@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vision-guided-dsmc"
-version = "0.4.0"
+version = "0.4.1"
 description = "Vision-guided particle allocation for rarefied thermal cavities"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
@@ -19,6 +19,11 @@ full = ["torch>=2.1", "matplotlib>=3.7", "pytest>=7"]
 vgdsmc-generate = "vgdsmc.cli:main"
 vgdsmc-benchmark = "vgdsmc.benchmark:main"
 vgdsmc-physical-benchmark = "vgdsmc.physical_benchmark:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vgdsmc*"]
+exclude = ["results*", "tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
