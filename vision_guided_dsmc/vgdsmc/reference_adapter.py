@@ -13,11 +13,7 @@ def load_reference_npz(
     path: str | Path,
     expected_shape: tuple[int, int] | None = None,
 ) -> dict[str, np.ndarray]:
-    """Load a deterministic kinetic reference with a strict field contract.
-
-    Required arrays are ``T``, ``rho``, ``u`` and ``v`` on the DSMC cell-center
-    grid. Optional arrays (for example ``qx`` and ``qy``) are preserved.
-    """
+    """Load a deterministic kinetic reference with a strict field contract."""
     with np.load(path) as data:
         missing = [name for name in REQUIRED_REFERENCE_FIELDS if name not in data]
         if missing:
@@ -70,22 +66,18 @@ def quantile_labels(
     lower_quantile: float = 1.0 / 3.0,
     upper_quantile: float = 2.0 / 3.0,
 ) -> tuple[np.ndarray, tuple[float, float]]:
-    """Convert a continuous reference target to approximately balanced classes."""
+    """Convert a continuous reference target to rank-balanced classes."""
     if not 0.0 < lower_quantile < upper_quantile < 1.0:
         raise ValueError("Require 0 < lower_quantile < upper_quantile < 1")
     flat = np.asarray(score, dtype=np.float64).ravel()
     order = np.argsort(flat, kind="mergesort")
-    first = int(round(lower_quantile * len(flat)))
-    second = int(round(upper_quantile * len(flat)))
-    first = int(np.clip(first, 1, len(flat) - 2))
-    second = int(np.clip(second, first + 1, len(flat) - 1))
+    first = int(np.clip(round(lower_quantile * len(flat)), 1, len(flat) - 2))
+    second = int(np.clip(round(upper_quantile * len(flat)), first + 1, len(flat) - 1))
     flat_label = np.empty(len(flat), dtype=np.int64)
     flat_label[order[:first]] = 0
     flat_label[order[first:second]] = 1
     flat_label[order[second:]] = 2
-    low = float(flat[order[first]])
-    high = float(flat[order[second]])
-    return flat_label.reshape(score.shape), (low, high)
+    return flat_label.reshape(score.shape), (float(flat[order[first]]), float(flat[order[second]]))
 
 
 def build_supervised_reference_case(
@@ -97,8 +89,9 @@ def build_supervised_reference_case(
     coarse_case_path = Path(coarse_case_path)
     with np.load(coarse_case_path) as data:
         if "x" not in data:
-            raise ValueError("Coarse case must contain the four-channel array 'x'")
+            raise ValueError("Coarse case must contain the flow-channel array 'x'")
         x = np.asarray(data["x"], dtype=np.float32)
+        context = np.asarray(data["context"], dtype=np.float32) if "context" in data else None
         coarse = {}
         for name in REQUIRED_REFERENCE_FIELDS:
             key = f"coarse_{name}"
@@ -107,23 +100,26 @@ def build_supervised_reference_case(
             coarse[name] = np.asarray(data[key], dtype=np.float64)
     if x.ndim != 3 or x.shape[0] < 4:
         raise ValueError("Coarse input 'x' must have shape (channels, ny, nx)")
+    if context is not None and (context.ndim != 1 or not np.isfinite(context).all()):
+        raise ValueError("Optional physical context must be a finite one-dimensional array")
 
     reference = load_reference_npz(reference_path, expected_shape=coarse["T"].shape)
     score = deterministic_error_map(coarse, reference)
     label, thresholds = quantile_labels(score)
-
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        output_path,
-        x=x,
-        score=score.astype(np.float32),
-        label=label,
-        threshold_low=np.float64(thresholds[0]),
-        threshold_high=np.float64(thresholds[1]),
+    arrays = {
+        "x": x,
+        "score": score.astype(np.float32),
+        "label": label,
+        "threshold_low": np.float64(thresholds[0]),
+        "threshold_high": np.float64(thresholds[1]),
         **{f"coarse_{name}": value for name, value in coarse.items()},
         **{f"reference_{name}": reference[name] for name in reference},
-    )
+    }
+    if context is not None:
+        arrays["context"] = context
+    np.savez_compressed(output_path, **arrays)
     metadata = {
         "coarse_case": str(coarse_case_path),
         "reference": str(reference_path),
@@ -131,6 +127,7 @@ def build_supervised_reference_case(
         "shape": list(score.shape),
         "class_counts": np.bincount(label.ravel(), minlength=3).tolist(),
         "thresholds": {"low": thresholds[0], "high": thresholds[1]},
+        "context": context.tolist() if context is not None else None,
     }
     output_path.with_suffix(".json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return output_path
