@@ -10,29 +10,42 @@ MASS_AR = 39.948e-3 / 6.02214076e23
 
 @dataclass(frozen=True)
 class VHSParameters:
-    """Argon VHS parameters matching the repository's Parallel_TAS kernel."""
+    """Argon VHS reference parameters used by the DSMC pilot."""
 
     diameter_ref: float = 4.17e-10
     temperature_ref: float = 273.0
     omega: float = 0.81
     mass: float = MASS_AR
 
+    @property
+    def reduced_mass(self) -> float:
+        return 0.5 * self.mass
+
 
 def vhs_cross_section(
     relative_speed: float | np.ndarray,
     params: VHSParameters = VHSParameters(),
 ) -> np.ndarray:
-    """Return the VHS total collision cross-section."""
+    """Return the Bird VHS total collision cross section.
 
+    For two identical molecules, the reduced mass is ``mass / 2``. This makes
+    the energy factor ``2 k T_ref / (mu g^2)`` and avoids the inconsistent
+    hard-coded gamma coefficient in the original standalone script.
+    """
     speed = np.asarray(relative_speed, dtype=float)
     safe_speed = np.maximum(speed, 1.0e-30)
     exponent = params.omega - 0.5
-    reference_speed_squared = 2.0 * KB * params.temperature_ref / params.mass
+    energy_factor = (
+        2.0
+        * KB
+        * params.temperature_ref
+        / (params.reduced_mass * safe_speed**2)
+    )
     gamma_value = math.gamma(2.5 - params.omega)
     cross_section = (
         math.pi
         * params.diameter_ref**2
-        * (reference_speed_squared / safe_speed**2) ** exponent
+        * energy_factor**exponent
         / gamma_value
     )
     return np.where(speed > 0.0, cross_section, 0.0)
@@ -43,8 +56,7 @@ def scatter_equal_mass(
     second_velocity: np.ndarray,
     rng: np.random.Generator,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Isotropically scatter an equal-mass pair in three velocity dimensions."""
-
+    """Isotropically scatter an equal-mass pair in three dimensions."""
     first = np.asarray(first_velocity, dtype=float)
     second = np.asarray(second_velocity, dtype=float)
     center_velocity = 0.5 * (first + second)
@@ -54,7 +66,11 @@ def scatter_equal_mass(
     azimuth = 2.0 * math.pi * rng.random()
     sine = math.sqrt(max(0.0, 1.0 - cosine * cosine))
     scattered_relative_velocity = relative_speed * np.array(
-        [sine * math.cos(azimuth), sine * math.sin(azimuth), cosine]
+        [
+            sine * math.cos(azimuth),
+            sine * math.sin(azimuth),
+            cosine,
+        ]
     )
     return (
         center_velocity + 0.5 * scattered_relative_velocity,
@@ -70,13 +86,7 @@ def sbt_collide_cell(
     rng: np.random.Generator,
     params: VHSParameters = VHSParameters(),
 ) -> tuple[np.ndarray, int]:
-    """Apply the repository's sequential SBT candidate rule in one cell.
-
-    The probability expression follows ``Parallel_TAS.py`` while the function is
-    isolated from problem-specific geometry. Velocities are three-dimensional,
-    even when particle positions belong to a two-dimensional cavity.
-    """
-
+    """Apply the repository's sequential SBT candidate rule in one cell."""
     updated = np.asarray(velocities, dtype=float).copy()
     particle_count = len(updated)
     accepted_collisions = 0
@@ -87,12 +97,18 @@ def sbt_collide_cell(
     for index in range(particle_count - 1):
         first = order[index]
         remaining_count = particle_count - index - 1
-        second = order[index + 1 + rng.integers(0, remaining_count)]
-        relative_speed = np.linalg.norm(updated[first] - updated[second])
+        second = order[
+            index + 1 + rng.integers(0, remaining_count)
+        ]
+        relative_speed = np.linalg.norm(
+            updated[first] - updated[second]
+        )
         if relative_speed <= 0.0:
             continue
 
-        cross_section = float(vhs_cross_section(relative_speed, params))
+        cross_section = float(
+            vhs_cross_section(relative_speed, params)
+        )
         probability = min(
             1.0,
             remaining_count
@@ -104,7 +120,9 @@ def sbt_collide_cell(
         )
         if rng.random() < probability:
             updated[first], updated[second] = scatter_equal_mass(
-                updated[first], updated[second], rng
+                updated[first],
+                updated[second],
+                rng,
             )
             accepted_collisions += 1
 
