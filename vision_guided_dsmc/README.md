@@ -12,12 +12,7 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
-Verified by GitHub Actions on Python 3.11:
-
-```text
-35 passed in 3.64s
-vgdsmc-generate smoke run: passed
-```
+The current locally assembled source passes `26` tests. GitHub Actions additionally checks editable package installation and the CLI smoke run on Python 3.11.
 
 ## Critical wall-reflection correction
 
@@ -33,29 +28,10 @@ Advanced indexing returns a copy, so reflected velocities were not written back 
 velocity[particle_ids] = reflected_velocity
 ```
 
-Dedicated regression tests verify that both wall implementations modify the original particle state. The following pre-fix numbers are withdrawn and must not be cited:
+Dedicated regression tests verify both wall implementations. The following pre-fix numbers are withdrawn and must not be cited:
 
 - the earlier `7.84%` dimensionless reduction;
 - the earlier `5.81%` physical reduction.
-
-## Corrected dimensionless closed loop
-
-The original three dimensionless cases were rerun after correcting the wall reflection:
-
-- improved cases: `3/3`;
-- case mean-error ratios: `0.89030`, `0.91059`, `0.87616`;
-- mean adaptive-to-uniform error ratio: `0.89235`;
-- mean error reduction: `10.77%`;
-- continuation particle ratio: `1.25`;
-- conservative-reallocation errors remained near machine precision.
-
-Run:
-
-```bash
-vgdsmc-benchmark --output outputs/stage3_benchmark
-```
-
-The execution record is `results/stage3_benchmark_summary.json`. This remains an educational dimensionless result, not a physical DSMC validation.
 
 ## Physical Argon VHS/SBT solver
 
@@ -70,38 +46,50 @@ The physical solver includes:
 - adaptive two-dimensional collision subcells;
 - conservative equalization of mixed particle weights before SBT collisions;
 - cell-wise particle reallocation preserving represented mass, momentum, and energy;
-- bounded integer PPC allocation with a mathematically exact global particle budget.
+- bounded integer PPC allocation with an exact global particle budget.
 
-The older isolated VHS helper was corrected as well: it previously used molecular mass where the identical-particle reduced mass is required, while an older standalone script hard-coded a gamma value inconsistent with `Gamma(5/2-0.81)`.
+## Matched-cost deterministic benchmark
 
-## Matched-cost vision benchmark
-
-The primary physical comparison is **vision allocation versus uniform allocation with exactly the same total number of simulation particles**. Both arms undergo the same conservative reallocation, so the comparison isolates where particles are placed rather than merely adding particles.
-
-Run:
+The physical comparison is **vision allocation versus uniform allocation with exactly the same total number of simulation particles**. Both arms undergo the same conservative reallocation.
 
 ```bash
 vgdsmc-physical-benchmark \
   --output outputs/stage5_physical_equal_budget
 ```
 
-Deterministic pilot result using the committed three cases:
+The original committed three-seed snapshot gave a mean error reduction of `4.72%`, but the multi-seed study below shows that this aggregate was seed-sensitive. It is retained only as a reproducible exploratory snapshot, not as evidence of robust improvement.
 
-- `Kn=0.05`: adaptive is `1.11%` worse than equal-budget uniform;
-- `Kn=0.10`: adaptive reduces error by `12.63%`;
-- `Kn=0.20`: adaptive reduces error by `2.64%`;
-- improved cases: `2/3`;
-- all three cases are within `2%` of or better than equal-budget uniform;
-- mean adaptive-to-uniform error ratio: `0.95278`;
-- mean error reduction: `4.72%`;
-- adaptive-to-uniform particle ratio: exactly `1.0`;
-- both methods use `800` particles during continuation in each case.
+Record: `results/stage5_physical_equal_budget_summary.json`.
 
-The execution record is `results/stage5_physical_equal_budget_summary.json`. This is a promising deterministic pilot, not yet a publication-grade statistical claim.
+## Multi-seed matched-cost benchmark
+
+```bash
+vgdsmc-physical-multiseed \
+  --output outputs/stage6_physical_multiseed \
+  --workers 3 \
+  --seeds 11 22 33
+```
+
+Nine executed runs, with three seeds at each condition:
+
+- equal adaptive/uniform particle budget in every run;
+- improved runs: `5/9`;
+- overall mean adaptive-to-uniform error ratio: `0.99918`;
+- overall mean improvement: `0.08%`;
+- normal-approximation 95% interval for the ratio: `[0.9303, 1.0680]`;
+- therefore no statistically resolved overall improvement in this small pilot.
+
+Condition-level results:
+
+- `Kn=0.05`: mean ratio `0.99909`; strongly seed-sensitive;
+- `Kn=0.10`: mean ratio `1.03042`; strongly seed-sensitive and worse on average;
+- `Kn=0.20`: ratios `0.96972`, `0.96080`, `0.97355`; all three seeds improved, with mean reduction `3.20%`.
+
+The honest current conclusion is that the present gradient/noise priority is **not robust across the full tested range**. The `Kn=0.20` condition is a promising subregime that warrants a larger ensemble, not yet a general claim.
+
+Record: `results/stage6_physical_multiseed_summary.json`.
 
 ## Independent SBT/VHS collision validation
-
-Run:
 
 ```bash
 vgdsmc-validate-collisions \
@@ -114,26 +102,9 @@ For one fixed Maxwellian velocity sample, the exact pre-clipping expectation is 
 - measured mean: `0.52700`;
 - relative difference: `5.24%`;
 - standard error: `0.01016`;
-- maximum initial candidate probability: `0.01966`, so probability clipping is inactive.
+- maximum initial candidate probability: `0.01966`, so clipping is inactive.
 
-A homogeneous anisotropic sample relaxed from directional temperatures near `(609, 141, 132) K` to `(283, 316, 283) K` after 100 sweeps:
-
-- final/initial anisotropy ratio: `0.0707`;
-- total-temperature relative change: `5.15e-16`;
-- velocity-energy relative change: `0.0` at reported precision;
-- maximum mean-velocity change: `1.58e-14 m/s`.
-
-The execution record is `results/stage5_collision_validation_summary.json`. These tests validate the selected candidate statistics and conservative homogeneous relaxation, not viscosity or the full Boltzmann collision integral.
-
-## Vision policy
-
-The reference-free physical priority image combines:
-
-- smoothed temperature-gradient magnitude;
-- smoothed density-gradient magnitude;
-- temporal temperature variation.
-
-The continuous image is converted into a bounded integer PPC map with an exact global budget. The earlier empirical `Kn < 0.15` gate was removed because the fair matched-cost comparison showed improvement in the tested `Kn=0.20` case.
+A homogeneous anisotropic sample relaxed while conserving total temperature and kinetic energy to numerical precision. Record: `results/stage5_collision_validation_summary.json`.
 
 ## Learned-model status
 
@@ -143,33 +114,32 @@ The U-Net path remains experimental and is not yet a successful result:
 - continuous single-seed rank regression had mean Spearman correlation near `0.036`;
 - four-member ensemble labels improved it only to about `0.133`.
 
-A learned model must beat the corrected matched-cost physical baseline before it is enabled in the closed loop.
+A learned model must beat the corrected multi-seed matched-cost baseline before it is enabled in the closed loop.
 
 ## Main files
 
 - `vgdsmc/simulator.py`: corrected dimensionless weighted pilot solver;
-- `vgdsmc/adaptive.py`, `vision.py`, `closed_loop.py`: dimensionless allocation loop;
 - `vgdsmc/vhs_model.py`: physical VHS parameters, particle state, and corrected diffuse walls;
 - `vgdsmc/sbt_solver.py`: physical SBT/TAS collision kernel and advancement;
 - `vgdsmc/physical_adaptive.py`: exact-budget physical allocation and conservative reallocation;
-- `vgdsmc/physical_benchmark.py`: matched-cost physical benchmark;
+- `vgdsmc/physical_benchmark.py`: deterministic matched-cost benchmark;
+- `vgdsmc/physical_multiseed.py`: parallel multi-seed benchmark and uncertainty summary;
 - `vgdsmc/collision_validation.py`: collision-frequency and homogeneous-relaxation validation;
 - `vgdsmc/training.py`: experimental learned-model path.
 
 ## Scientific limitations
 
-- the cavity has not yet been validated against an independent DSMC implementation;
-- variable particle weights are conservatively equalized before SBT collisions but remain an approximate treatment;
-- the matched-cost benchmark currently uses one seed per condition and a four-times-particle reference;
-- one matched-cost case is `1.11%` worse;
+- no independent DSMC-code validation yet;
+- only three seeds per condition;
+- the reference uses four times the simulation-particle count rather than a full convergence study;
+- variable particle weights are conservatively equalized before SBT collisions but remain approximate;
 - equal particle counts do not automatically imply equal wall-clock cost;
-- wall heat flux, viscosity, Knudsen-layer profiles, and transport coefficients require dedicated validation;
-- the collision-frequency test covers one sampled velocity set, not the full Boltzmann collision integral.
+- wall heat flux, viscosity, Knudsen-layer profiles, and transport coefficients require dedicated validation.
 
 ## Next scientific steps
 
-1. repeat every `(Kn, temperature ratio)` condition over multiple independent seeds and report confidence intervals;
-2. validate temperature, density, velocity, and wall heat flux against an independent high-particle DSMC solution;
-3. estimate viscosity or homogeneous relaxation rates and compare with the VHS target law;
+1. run at least 10-20 independent seeds per condition, especially around `Kn=0.20`;
+2. redesign the priority score for `Kn=0.05-0.10`, where the present map is seed-sensitive;
+3. validate temperature, density, velocity, and wall heat flux against an independent high-particle DSMC solution;
 4. measure particle updates and wall-clock time for matched-error and matched-cost comparisons;
-5. train a continuous vision score and require statistically significant improvement over the corrected physics baseline.
+5. train a continuous vision score and require statistically significant improvement over the corrected physical baseline.
