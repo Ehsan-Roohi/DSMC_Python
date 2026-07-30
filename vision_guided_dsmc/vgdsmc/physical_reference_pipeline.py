@@ -48,6 +48,7 @@ def run_pipeline(
         coarse_path,
         x=x,
         context=context,
+        case_seed=np.int64(seed),
         **{f"coarse_{name}": np.asarray(coarse[name]) for name in ("T", "rho", "u", "v")},
     )
     dvm_cfg = DVMReferenceConfig(
@@ -67,6 +68,7 @@ def run_pipeline(
             "supervised_case": str(supervised_path),
             "shape": list(supervised["score"].shape),
             "context": supervised["context"].tolist(),
+            "case_seed": int(supervised["case_seed"]),
             "class_counts": np.bincount(supervised["label"].ravel(), minlength=3).tolist(),
             "score_mean": float(np.mean(supervised["score"])),
             "score_max": float(np.max(supervised["score"])),
