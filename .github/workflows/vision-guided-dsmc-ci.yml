@@ -21,6 +21,34 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -e '.[full]'
       - run: pytest -q
+      - name: Import raw DVM moment table
+        run: |
+          cat > /tmp/cavity_dvm_moments.dat <<'EOF'
+          TITLE="DVM cavity fixture"
+          VARIABLES="X","Y","RHO","U","V","T","QX","QY"
+          ZONE I=2, J=2, F=POINT
+          0 0 1.00 0.00 0.00 1.00 0.0 0.0
+          1 0 1.01 0.10 0.00 1.01 0.1 0.0
+          0 1 1.02 0.00 0.10 1.02 0.0 0.1
+          1 1 1.03 0.10 0.10 1.03 0.1 0.1
+          EOF
+          vgdsmc-import-dvm \
+            --input /tmp/cavity_dvm_moments.dat \
+            --output /tmp/imported_dvm_reference.npz \
+            --case DVM65 --knudsen 0.075 --lid-speed 0.1 --wall-temperature 1.0
+      - name: Verify imported DVM reference
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          with np.load('/tmp/imported_dvm_reference.npz') as data:
+              assert data['T'].shape == (2, 2)
+              assert {'x','y','rho','u','v','T'}.issubset(data.files)
+              assert np.all(data['rho'] > 0)
+          meta = json.load(open('/tmp/imported_dvm_reference.json'))
+          assert meta['case'] == 'DVM65'
+          assert meta['shape'] == [2, 2]
+          PY
       - run: vgdsmc-generate --output /tmp/pilot --nx 6 --ny 6 --ppc 3 --reference-ppc 6 --steps 10 --sample-start 4
       - name: Run deterministic BGK-DVM baseline
         run: |
