@@ -19,6 +19,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install -e '.[dev]'
+      - run: python -m pip install -e '.[full]'
       - run: pytest -q
       - run: vgdsmc-generate --output /tmp/pilot --nx 6 --ny 6 --ppc 3 --reference-ppc 6 --steps 10 --sample-start 4
