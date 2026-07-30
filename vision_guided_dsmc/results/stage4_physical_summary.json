@@ -1,60 +1,9 @@
 {
-  "kernel": "Argon VHS + SBT/TAS adaptive subcells",
-  "source_kernel": "SBT/TAS probability adapted from Parallel_TAS.py",
-  "vhs_normalization": "Corrected Bird form with reduced mass and Gamma(5/2-omega)",
-  "wall_fix": "Diffuse reflected velocities are explicitly assigned back after NumPy fancy indexing.",
-  "policy_guard": "Pilot adaptation is enabled only for Kn < 0.15 and sufficiently resolved priority images.",
-  "cases": [
-    {
-      "knudsen": 0.05,
-      "temperature_ratio": 1.2222222222222223,
-      "uniform_error": 0.1699456750973335,
-      "adaptive_error": 0.1517586902565889,
-      "error_ratio": 0.8929835382375673,
-      "improvement_percent": 10.701646176243273,
-      "particle_ratio": 1.25,
-      "adapted": true,
-      "relative_temperature_noise": 0.23147302964303249,
-      "uniform_collisions": 3966.0,
-      "adaptive_collisions": 4644.0,
-      "warm_collisions": 4051.0,
-      "dt": 2.698102599091156e-11
-    },
-    {
-      "knudsen": 0.1,
-      "temperature_ratio": 1.3076923076923077,
-      "uniform_error": 0.12960881013973566,
-      "adaptive_error": 0.12650378213753438,
-      "error_ratio": 0.9760430791791573,
-      "improvement_percent": 2.3956920820842664,
-      "particle_ratio": 1.25,
-      "adapted": true,
-      "relative_temperature_noise": 0.2628923529220128,
-      "uniform_collisions": 3941.0,
-      "adaptive_collisions": 4566.0,
-      "warm_collisions": 3975.0,
-      "dt": 5.316256997753002e-11
-    },
-    {
-      "knudsen": 0.2,
-      "temperature_ratio": 1.1428571428571428,
-      "uniform_error": 0.10819794646651212,
-      "adaptive_error": 0.10819794646651212,
-      "error_ratio": 1.0,
-      "improvement_percent": 0.0,
-      "particle_ratio": 1.0,
-      "adapted": false,
-      "relative_temperature_noise": 0.27311684836040867,
-      "uniform_collisions": 2527.0,
-      "adaptive_collisions": 2527.0,
-      "warm_collisions": 2561.0,
-      "dt": 6.849840354582706e-11
-    }
-  ],
-  "improved_cases": 2,
-  "non_worse_cases": 3,
-  "mean_error_ratio": 0.9563422058055749,
-  "mean_improvement_percent": 4.3657794194425055,
-  "mean_particle_ratio": 1.1666666666666667,
-  "scope": "Deterministic pilot runs for the listed seeds; not an ensemble confidence interval or wall-clock speedup result."
+  "status": "superseded",
+  "reason": "This wall-corrected pilot compared an adaptive 1.25x particle budget with an untouched 1.0x base simulation and therefore mixed allocation quality with total particle cost. It also used an empirical Knudsen gate that is not part of the current matched-cost benchmark.",
+  "replacement": "results/stage5_physical_equal_budget_summary.json",
+  "do_not_cite_as_primary_result": true,
+  "historical_mean_error_ratio": 0.9563422058055749,
+  "historical_mean_improvement_percent": 4.3657794194425055,
+  "note": "Retained only to document the development path. The equal-particle-budget comparison is the scientifically preferred current result."
 }
