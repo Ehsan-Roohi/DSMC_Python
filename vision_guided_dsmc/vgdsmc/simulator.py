@@ -27,7 +27,11 @@ class ParticleState:
     weight: np.ndarray
 
     def copy(self) -> "ParticleState":
-        return ParticleState(self.pos.copy(), self.vel.copy(), self.weight.copy())
+        return ParticleState(
+            self.pos.copy(),
+            self.vel.copy(),
+            self.weight.copy(),
+        )
 
 
 def initialize_state(cfg: CavityConfig) -> ParticleState:
@@ -40,7 +44,11 @@ def initialize_state(cfg: CavityConfig) -> ParticleState:
     )
 
 
-def _wall_temperature(x: np.ndarray, wall: str, cfg: CavityConfig) -> np.ndarray:
+def _wall_temperature(
+    x: np.ndarray,
+    wall: str,
+    cfg: CavityConfig,
+) -> np.ndarray:
     if wall == "left":
         return np.full_like(x, cfg.t_left)
     if wall == "right":
@@ -56,18 +64,27 @@ def _diffuse_reflect(
     normal_axis: int,
     sign: float,
     rng: np.random.Generator,
-) -> None:
+) -> np.ndarray:
+    """Return reflected velocities; fancy indexing is not a write view."""
+    reflected = velocity.copy()
     sigma = np.sqrt(temperature)
     tangential_axis = 1 - normal_axis
-    velocity[:, tangential_axis] = rng.normal(0.0, sigma)
-    velocity[:, normal_axis] = sign * sigma * np.sqrt(
-        -2.0 * np.log(np.maximum(rng.random(len(velocity)), 1.0e-12))
+    reflected[:, tangential_axis] = rng.normal(0.0, sigma)
+    reflected[:, normal_axis] = sign * sigma * np.sqrt(
+        -2.0
+        * np.log(
+            np.maximum(rng.random(len(reflected)), 1.0e-12)
+        )
     )
+    return reflected
 
 
-def _apply_walls(state: ParticleState, cfg: CavityConfig, rng: np.random.Generator) -> None:
+def _apply_walls(
+    state: ParticleState,
+    cfg: CavityConfig,
+    rng: np.random.Generator,
+) -> None:
     pos, vel = state.pos, state.vel
-    # Iterate because a very fast particle can overshoot more than one domain length.
     for _ in range(4):
         masks = {
             "left": pos[:, 0] < 0.0,
@@ -83,37 +100,80 @@ def _apply_walls(state: ParticleState, cfg: CavityConfig, rng: np.random.Generat
             ids = np.flatnonzero(mask)
             if wall == "left":
                 pos[ids, 0] *= -1.0
-                _diffuse_reflect(vel[ids], _wall_temperature(pos[ids, 1], wall, cfg), 0, +1.0, rng)
+                vel[ids] = _diffuse_reflect(
+                    vel[ids],
+                    _wall_temperature(pos[ids, 1], wall, cfg),
+                    0,
+                    +1.0,
+                    rng,
+                )
             elif wall == "right":
                 pos[ids, 0] = 2.0 - pos[ids, 0]
-                _diffuse_reflect(vel[ids], _wall_temperature(pos[ids, 1], wall, cfg), 0, -1.0, rng)
+                vel[ids] = _diffuse_reflect(
+                    vel[ids],
+                    _wall_temperature(pos[ids, 1], wall, cfg),
+                    0,
+                    -1.0,
+                    rng,
+                )
             elif wall == "bottom":
                 pos[ids, 1] *= -1.0
-                _diffuse_reflect(vel[ids], _wall_temperature(pos[ids, 0], wall, cfg), 1, +1.0, rng)
+                vel[ids] = _diffuse_reflect(
+                    vel[ids],
+                    _wall_temperature(pos[ids, 0], wall, cfg),
+                    1,
+                    +1.0,
+                    rng,
+                )
             else:
                 pos[ids, 1] = 2.0 - pos[ids, 1]
-                _diffuse_reflect(vel[ids], _wall_temperature(pos[ids, 0], wall, cfg), 1, -1.0, rng)
+                vel[ids] = _diffuse_reflect(
+                    vel[ids],
+                    _wall_temperature(pos[ids, 0], wall, cfg),
+                    1,
+                    -1.0,
+                    rng,
+                )
     pos[:] = np.clip(pos, 0.0, 1.0 - 1.0e-12)
 
 
 def _cell_ids(pos: np.ndarray, cfg: CavityConfig) -> np.ndarray:
-    ix = np.clip((pos[:, 0] * cfg.nx).astype(np.int64), 0, cfg.nx - 1)
-    iy = np.clip((pos[:, 1] * cfg.ny).astype(np.int64), 0, cfg.ny - 1)
+    ix = np.clip(
+        (pos[:, 0] * cfg.nx).astype(np.int64),
+        0,
+        cfg.nx - 1,
+    )
+    iy = np.clip(
+        (pos[:, 1] * cfg.ny).astype(np.int64),
+        0,
+        cfg.ny - 1,
+    )
     return iy * cfg.nx + ix
 
 
-def _collide(state: ParticleState, cfg: CavityConfig, rng: np.random.Generator) -> None:
-    """Simplified weighted pair collision conserving weighted momentum and energy.
-
-    The selection rate remains a pilot stochastic kernel, but each accepted pair
-    collision is exactly conservative for unequal simulation-particle weights.
-    """
+def _collide(
+    state: ParticleState,
+    cfg: CavityConfig,
+    rng: np.random.Generator,
+) -> None:
+    """Simplified weighted pair collision conserving pair invariants."""
     cell = _cell_ids(state.pos, cfg)
     order = np.argsort(cell)
     sorted_cell = cell[order]
-    starts = np.searchsorted(sorted_cell, np.arange(cfg.nx * cfg.ny), side="left")
-    ends = np.searchsorted(sorted_cell, np.arange(cfg.nx * cfg.ny), side="right")
-    global_mean_weight = max(float(np.mean(state.weight)), 1.0e-12)
+    starts = np.searchsorted(
+        sorted_cell,
+        np.arange(cfg.nx * cfg.ny),
+        side="left",
+    )
+    ends = np.searchsorted(
+        sorted_cell,
+        np.arange(cfg.nx * cfg.ny),
+        side="right",
+    )
+    global_mean_weight = max(
+        float(np.mean(state.weight)),
+        1.0e-12,
+    )
 
     for start, end in zip(starts, ends):
         ids = order[start:end]
@@ -121,28 +181,62 @@ def _collide(state: ParticleState, cfg: CavityConfig, rng: np.random.Generator) 
             continue
         shuffled = rng.permutation(ids)
         for k in range(len(shuffled) // 2):
-            a, b = int(shuffled[2 * k]), int(shuffled[2 * k + 1])
-            rate_scale = max(state.weight[a], state.weight[b]) / global_mean_weight
-            if rng.random() > min(1.0, cfg.collision_rate * rate_scale):
+            a = int(shuffled[2 * k])
+            b = int(shuffled[2 * k + 1])
+            rate_scale = max(
+                state.weight[a],
+                state.weight[b],
+            ) / global_mean_weight
+            if rng.random() > min(
+                1.0,
+                cfg.collision_rate * rate_scale,
+            ):
                 continue
-            wa, wb = float(state.weight[a]), float(state.weight[b])
+            wa = float(state.weight[a])
+            wb = float(state.weight[b])
             total_weight = wa + wb
-            center = (wa * state.vel[a] + wb * state.vel[b]) / total_weight
+            center = (
+                wa * state.vel[a] + wb * state.vel[b]
+            ) / total_weight
             relative = state.vel[a] - state.vel[b]
             speed = float(np.linalg.norm(relative))
             theta = 2.0 * np.pi * rng.random()
-            relative_new = speed * np.array([np.cos(theta), np.sin(theta)])
-            state.vel[a] = center + (wb / total_weight) * relative_new
-            state.vel[b] = center - (wa / total_weight) * relative_new
+            relative_new = speed * np.array(
+                [np.cos(theta), np.sin(theta)]
+            )
+            state.vel[a] = (
+                center + (wb / total_weight) * relative_new
+            )
+            state.vel[b] = (
+                center - (wa / total_weight) * relative_new
+            )
 
 
-def sample_state(state: ParticleState, cfg: CavityConfig) -> dict[str, np.ndarray]:
+def sample_state(
+    state: ParticleState,
+    cfg: CavityConfig,
+) -> dict[str, np.ndarray]:
     cell = _cell_ids(state.pos, cfg)
     ncell = cfg.nx * cfg.ny
-    mass = np.bincount(cell, weights=state.weight, minlength=ncell)
-    count = np.bincount(cell, minlength=ncell).astype(np.float64)
-    sx = np.bincount(cell, weights=state.weight * state.vel[:, 0], minlength=ncell)
-    sy = np.bincount(cell, weights=state.weight * state.vel[:, 1], minlength=ncell)
+    mass = np.bincount(
+        cell,
+        weights=state.weight,
+        minlength=ncell,
+    )
+    count = np.bincount(
+        cell,
+        minlength=ncell,
+    ).astype(np.float64)
+    sx = np.bincount(
+        cell,
+        weights=state.weight * state.vel[:, 0],
+        minlength=ncell,
+    )
+    sy = np.bincount(
+        cell,
+        weights=state.weight * state.vel[:, 1],
+        minlength=ncell,
+    )
     s2 = np.bincount(
         cell,
         weights=state.weight * np.sum(state.vel**2, axis=1),
@@ -151,7 +245,10 @@ def sample_state(state: ParticleState, cfg: CavityConfig) -> dict[str, np.ndarra
     safe_mass = np.maximum(mass, 1.0e-14)
     u = sx / safe_mass
     v = sy / safe_mass
-    temperature = np.maximum(0.5 * (s2 / safe_mass - u**2 - v**2), 0.0)
+    temperature = np.maximum(
+        0.5 * (s2 / safe_mass - u**2 - v**2),
+        0.0,
+    )
     mean_mass = max(float(np.mean(mass)), 1.0e-14)
     shape = (cfg.ny, cfg.nx)
     return {
@@ -174,8 +271,12 @@ def advance_state(
     if steps <= 0:
         raise ValueError("steps must be positive")
     if not 0 <= sample_start < steps:
-        raise ValueError("sample_start must satisfy 0 <= sample_start < steps")
-    rng = np.random.default_rng(cfg.seed + 7919 if seed is None else seed)
+        raise ValueError(
+            "sample_start must satisfy 0 <= sample_start < steps"
+        )
+    rng = np.random.default_rng(
+        cfg.seed + 7919 if seed is None else seed
+    )
     sums: dict[str, np.ndarray] = {}
     sums2: dict[str, np.ndarray] = {}
     nsamples = 0
@@ -187,14 +288,24 @@ def advance_state(
         if step >= sample_start:
             fields = sample_state(state, cfg)
             for key, value in fields.items():
-                sums[key] = sums.get(key, np.zeros_like(value)) + value
-                sums2[key] = sums2.get(key, np.zeros_like(value)) + value**2
+                sums[key] = (
+                    sums.get(key, np.zeros_like(value)) + value
+                )
+                sums2[key] = (
+                    sums2.get(key, np.zeros_like(value))
+                    + value**2
+                )
             nsamples += 1
 
     out = {key: value / nsamples for key, value in sums.items()}
     for key in ("T", "u", "v"):
         mean = out[key]
-        out[f"sigma_{key}"] = np.sqrt(np.maximum(sums2[key] / nsamples - mean**2, 0.0))
+        out[f"sigma_{key}"] = np.sqrt(
+            np.maximum(
+                sums2[key] / nsamples - mean**2,
+                0.0,
+            )
+        )
     return out, state
 
 
@@ -203,7 +314,11 @@ def run_cavity(
     initial_state: ParticleState | None = None,
     return_state: bool = False,
 ):
-    state = initialize_state(cfg) if initial_state is None else initial_state.copy()
+    state = (
+        initialize_state(cfg)
+        if initial_state is None
+        else initial_state.copy()
+    )
     fields, state = advance_state(
         state,
         cfg,
