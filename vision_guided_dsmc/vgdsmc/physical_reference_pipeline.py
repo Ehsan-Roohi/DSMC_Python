@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from .dvm_bgk import DVMReferenceConfig, save_dvm_reference
+from .dvm_shakhov import ShakhovReferenceConfig, save_shakhov_reference
 from .reference_adapter import build_supervised_reference_case
 from .sbt_solver import run_physical_cavity
 from .vhs_model import PhysicalCavityConfig
@@ -18,15 +19,18 @@ def run_pipeline(
     ny: int = 12,
     particles_per_cell: int = 12,
     dsmc_steps: int = 160,
-    nv: int = 12,
-    dvm_max_steps: int = 2500,
+    nv: int = 8,
+    dvm_max_steps: int = 1800,
     knudsen: float = 0.10,
     t_left: float = 330.0,
     t_right: float = 270.0,
     t_top: float = 300.0,
     t_bottom: float = 300.0,
     seed: int = 7,
+    reference_model: str = "shakhov",
 ) -> dict[str, object]:
+    if reference_model not in {"bgk", "shakhov"}:
+        raise ValueError("reference_model must be 'bgk' or 'shakhov'")
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     dsmc_cfg = PhysicalCavityConfig(
@@ -51,18 +55,30 @@ def run_pipeline(
         case_seed=np.int64(seed),
         **{f"coarse_{name}": np.asarray(coarse[name]) for name in ("T", "rho", "u", "v")},
     )
-    dvm_cfg = DVMReferenceConfig(
-        nx=nx, ny=ny, nv=nv, knudsen=knudsen,
-        t_left=t_left, t_right=t_right, t_top=t_top, t_bottom=t_bottom,
-        max_steps=dvm_max_steps,
-    )
-    reference_path = save_dvm_reference(output_dir / "dvm_reference.npz", dvm_cfg)
+
+    reference_path = output_dir / f"{reference_model}_reference.npz"
+    if reference_model == "shakhov":
+        reference_cfg = ShakhovReferenceConfig(
+            nx=nx, ny=ny, nv=nv, knudsen=knudsen,
+            t_left=t_left, t_right=t_right, t_top=t_top, t_bottom=t_bottom,
+            max_steps=dvm_max_steps,
+        )
+        save_shakhov_reference(reference_path, reference_cfg)
+    else:
+        reference_cfg = DVMReferenceConfig(
+            nx=nx, ny=ny, nv=nv, knudsen=knudsen,
+            t_left=t_left, t_right=t_right, t_top=t_top, t_bottom=t_bottom,
+            max_steps=dvm_max_steps,
+        )
+        save_dvm_reference(reference_path, reference_cfg)
+
     supervised_path = build_supervised_reference_case(
         coarse_path, reference_path, output_dir / "supervised_case.npz"
     )
     with np.load(reference_path) as reference, np.load(supervised_path) as supervised:
         summary = {
-            "model": "physical_vhs_sbt_dsmc_plus_deterministic_bgk_dvm",
+            "model": f"physical_vhs_sbt_dsmc_plus_deterministic_{reference_model}_dvm",
+            "reference_model": reference_model,
             "coarse_case": str(coarse_path),
             "reference": str(reference_path),
             "supervised_case": str(supervised_path),
@@ -76,20 +92,22 @@ def run_pipeline(
             "dvm_final_residual": float(reference["residual_history"][-1]),
             "dvm_left_temperature": float(np.mean(reference["T"][:, 0])),
             "dvm_right_temperature": float(np.mean(reference["T"][:, -1])),
+            "dvm_mean_heat_flux_x": float(np.mean(reference["qx"])) if "qx" in reference else None,
         }
     (output_dir / "pipeline_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build physical DSMC, deterministic BGK-DVM reference, and supervised artifact")
+    parser = argparse.ArgumentParser(description="Build physical DSMC and deterministic kinetic-reference supervision")
     parser.add_argument("--output-dir", default="outputs/physical_reference_pipeline")
+    parser.add_argument("--reference-model", choices=("shakhov", "bgk"), default="shakhov")
     parser.add_argument("--nx", type=int, default=12)
     parser.add_argument("--ny", type=int, default=12)
     parser.add_argument("--ppc", type=int, default=12)
     parser.add_argument("--dsmc-steps", type=int, default=160)
-    parser.add_argument("--nv", type=int, default=12)
-    parser.add_argument("--dvm-max-steps", type=int, default=2500)
+    parser.add_argument("--nv", type=int, default=8)
+    parser.add_argument("--dvm-max-steps", type=int, default=1800)
     parser.add_argument("--kn", type=float, default=0.10)
     parser.add_argument("--seed", type=int, default=7)
     args = parser.parse_args()
@@ -98,6 +116,7 @@ def main() -> None:
         particles_per_cell=args.ppc, dsmc_steps=args.dsmc_steps,
         nv=args.nv, dvm_max_steps=args.dvm_max_steps,
         knudsen=args.kn, seed=args.seed,
+        reference_model=args.reference_model,
     ), indent=2))
 
 
