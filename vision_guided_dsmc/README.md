@@ -12,7 +12,7 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
-The current locally assembled source passes `26` tests. GitHub Actions additionally checks editable package installation and the CLI smoke run on Python 3.11.
+GitHub Actions on Python 3.11 verified editable installation, `35 passed in 3.71s`, and a successful end-to-end `vgdsmc-generate` smoke run.
 
 ## Critical wall-reflection correction
 
