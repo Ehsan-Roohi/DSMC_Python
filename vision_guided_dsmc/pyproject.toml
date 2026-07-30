@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vision-guided-dsmc"
-version = "0.8.0"
-description = "Matched-cost vision-guided DSMC pilot with physical Argon VHS/SBT collisions"
+version = "0.9.0"
+description = "Matched-cost physical Argon VHS/SBT pilot with deterministic-reference supervision"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
 
@@ -22,6 +22,7 @@ vgdsmc-physical-benchmark = "vgdsmc.physical_benchmark:main"
 vgdsmc-physical-multiseed = "vgdsmc.physical_multiseed:main"
 vgdsmc-physical-paired = "vgdsmc.physical_paired_ensemble:main"
 vgdsmc-physical-policy-study = "vgdsmc.physical_policy_study:main"
+vgdsmc-reference-case = "vgdsmc.reference_cli:main"
 vgdsmc-validate-collisions = "vgdsmc.collision_validation:main"
 
 [tool.setuptools.packages.find]
