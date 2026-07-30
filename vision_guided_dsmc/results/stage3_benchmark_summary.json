@@ -1,0 +1,32 @@
+{
+  "run_date": "2026-07-29",
+  "solver_status": "educational weighted DSMC-like pilot; not production DSMC",
+  "grid": "12x12",
+  "coarse_ppc": 20,
+  "reference_ppc": 60,
+  "warmup_steps": 100,
+  "continuation_steps": 150,
+  "continuation_sample_start": 100,
+  "vision_policy": "robustly scaled temperature-gradient magnitude",
+  "allocation_budget_ratio": 1.25,
+  "allocation_alpha": 0.5,
+  "case_mean_error_ratios": [
+    0.8687244126236652,
+    0.9133510846990596,
+    0.9826634579711513
+  ],
+  "mean_error_ratio": 0.9215796517646253,
+  "mean_error_reduction_percent": 7.84203482353747,
+  "improved_cases": "3/3",
+  "conservation": {
+    "mass_relative_error_order": "1e-16",
+    "momentum_absolute_error_order": "1e-14",
+    "energy_relative_error_order": "1e-15"
+  },
+  "learned_model_status": {
+    "single_seed_classification": "failed by class collapse",
+    "single_seed_rank_regression_mean_spearman": 0.03599924979235324,
+    "ensemble4_rank_regression_mean_spearman": 0.13252442002442003,
+    "conclusion": "Do not claim a successful learned vision model yet; establish the physics-vision baseline and redesign labels/data generation."
+  }
+}

@@ -1,79 +1,86 @@
 # Vision-Guided DSMC Pilot
 
-A deliberately small, reproducible first case for **vision-guided particle allocation** in a 2-D rarefied thermal cavity.
+A small, reproducible research pilot for **vision-guided particle allocation** in a two-dimensional rarefied thermal cavity.
 
-## Physics pilot
+> This remains an educational weighted DSMC-like solver, not a production DSMC implementation. The next major physics step is coupling the workflow to the validated VHS/SBT DSMC kernel.
 
-- unit square cavity;
+## Current physics case
+
+- unit-square cavity;
 - diffuse thermal walls;
-- left wall `T=1.10`, right wall `T=0.90`, top/bottom `T=1.00`;
-- particle transport plus stochastic cell collisions;
-- coarse and reference runs;
-- four-channel vision input: `T, u, v, sigma_T`;
-- three-class target: reduce / retain / increase particles.
-
-This is an educational DSMC-like research prototype, not yet a production DSMC solver. Its purpose is to validate the complete data and ML pipeline before coupling the method to the high-fidelity DSMC code.
+- left wall hotter than the right wall;
+- stochastic cell collisions;
+- coarse and high-particle reference runs;
+- weighted particles after adaptive reallocation;
+- exact cell-wise conservation of represented mass, momentum, and kinetic energy during splitting/merging.
 
 ## Install and test
 
 ```bash
 cd vision_guided_dsmc
-python -m pip install -e '.[dev]'
+python -m pip install -e '.[full]'
 pytest -q
-vgdsmc-generate --output outputs/pilot --nx 24 --ny 24 --ppc 20 --reference-ppc 120
 ```
 
-The generated `case.npz` contains the network input, label map, error score, and coarse/reference fields.
+The verified Stage-3 test suite contains eight tests, including:
 
-## Stage 2: training and adaptive allocation
+- simulator and dataset smoke tests;
+- arbitrary-size U-Net output tests;
+- exact particle-budget tests;
+- conservative weighted resampling tests;
+- a tiny closed-loop vision-guided run.
 
-Install the full optional dependencies:
+## Generate a coarse/reference case
 
 ```bash
-python -m pip install -e '.[full]'
+vgdsmc-generate \
+  --output outputs/pilot \
+  --nx 24 --ny 24 \
+  --ppc 20 --reference-ppc 120
 ```
 
-Train a compact U-Net from several generated cases:
+## Reproduce the Stage-3 benchmark
 
-```python
-from pathlib import Path
-from vgdsmc.training import TrainConfig, train_model
-
-cases = sorted(Path("outputs/dataset").glob("*/case.npz"))
-model_path = train_model(cases, "outputs/training", TrainConfig(epochs=20))
+```bash
+vgdsmc-benchmark --output outputs/stage3_benchmark
 ```
 
-Convert predicted classes to a particles-per-cell map:
+The benchmark runs three thermal-cavity cases using a reference-free image score based on the robustly normalized temperature-gradient magnitude. Particle allocation uses an exact global budget equal to 1.25 times the uniform coarse-particle count.
 
-```python
-import numpy as np
-from vgdsmc.adaptive import allocation_summary, label_to_target_ppc
+Verified local result:
 
-with np.load("outputs/pilot/case.npz") as data:
-    label = data["label"]
+- all three adaptive cases improved over their uniform baselines;
+- mean adaptive-to-baseline error ratio: `0.92158`;
+- mean error reduction: `7.84%`;
+- continuation particle-cost ratio: `1.25`;
+- mass and energy conservation errors were near machine precision.
 
-target_ppc = label_to_target_ppc(label, base_ppc=20)
-print(allocation_summary(label, base_ppc=20))
-```
+The committed summary is in `results/stage3_benchmark_summary.json`.
 
-Create a diagnostic figure:
+## Why the physics-vision baseline comes before learned vision
 
-```python
-from vgdsmc.visualize import plot_case
-plot_case("outputs/pilot/case.npz", "outputs/pilot/diagnostics.png")
-```
+The first learned experiments were actually executed, but were not successful enough to claim:
 
-## Current limitations
+- three-class learning collapsed toward the high-refinement class on noisy single-seed labels;
+- continuous rank regression on single-seed labels had mean Spearman correlation near `0.036`;
+- four-member ensemble labels improved it only to about `0.133`.
 
-- particle splitting/merging currently uses unweighted resampling;
-- newly populated empty cells use a unit-temperature Maxwellian;
-- the pilot collision kernel is not yet the validated VHS/SBT DSMC implementation;
-- conservation corrections and particle weights are the next physics upgrade.
+The likely reason is that coarse-versus-reference local error is dominated by Monte Carlo label noise. The present temperature-gradient image baseline establishes a reproducible closed-loop target that a learned model must later match or beat.
 
-## Next milestones
+## Code structure
 
-1. generate an ensemble dataset over `Kn`, wall-temperature ratio, and random seed;
-2. measure segmentation accuracy and class-wise recall;
-3. run a closed-loop adaptive cavity simulation;
-4. replace pilot resampling with conservative weighted particles;
-5. compare error versus particle updates against uniform DSMC.
+- `vgdsmc/simulator.py`: weighted particle state, diffuse walls, conservative weighted pair collisions, and sampling;
+- `vgdsmc/adaptive.py`: exact-budget allocation and conservative cell-wise particle reallocation;
+- `vgdsmc/vision.py`: reference-free image features and physics-vision scores;
+- `vgdsmc/closed_loop.py`: uniform versus adaptive continuation and error comparison;
+- `vgdsmc/benchmark.py`: reproducible three-case benchmark;
+- `vgdsmc/training.py`: experimental U-Net training and inference;
+- `results/stage3_benchmark_summary.json`: verified execution summary.
+
+## Next scientific steps
+
+1. replace the pilot collision kernel with the validated VHS/SBT DSMC implementation;
+2. define local particle weights consistently with real-particle number and collision probability;
+3. generate ensemble-averaged labels over Mach, Knudsen number, wall-temperature ratio, and seed;
+4. train a score-regression network and compare it against the temperature-gradient baseline;
+5. compare error versus total particle updates, wall heat flux, and uncertainty over multiple independent repetitions.
