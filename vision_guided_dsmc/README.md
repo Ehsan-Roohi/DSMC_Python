@@ -2,7 +2,7 @@
 
 A reproducible research pilot for **vision-guided particle allocation** in a two-dimensional rarefied thermal cavity.
 
-> Stage 4 uses physical SI units, three molecular velocity components, diffuse thermal walls, an Argon VHS model, and SBT/TAS adaptive collision subcells. It remains a research pilot rather than a validated production DSMC solver.
+> Stage 4 uses physical SI units, three molecular velocity components, diffuse thermal walls, an Argon VHS model, and SBT/TAS adaptive collision subcells. Stage 5 adds direct collision-frequency and homogeneous-relaxation validation. This remains a research pilot rather than a validated production DSMC solver.
 
 ## Install and test
 
@@ -12,7 +12,7 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
-The Stage-4 module was executed locally with eight focused tests passing. These tests cover VHS scaling, collision conservation, physical cavity execution, conservative reallocation, cell-weight equalization, the diffuse-wall assignment fix, and the high-Knudsen fallback.
+The focused local validation now includes the Stage-4 physical tests and the Stage-5 collision-frequency and relaxation tests. GitHub Actions installs the full optional dependency set so the U-Net shape test is included as well.
 
 ## Critical wall-reflection correction
 
@@ -33,8 +33,6 @@ All committed Stage-3 and Stage-4 summaries were regenerated after this correcti
 ## Stage 3: corrected dimensionless closed loop
 
 The corrected dimensionless pilot includes weighted particle states, conservative cell-wise splitting/merging, an exact global particle budget, a reference-free temperature-gradient score, and uniform-versus-adaptive continuation.
-
-Reproduce it with:
 
 ```bash
 vgdsmc-benchmark --output outputs/stage3_benchmark
@@ -68,8 +66,6 @@ The physical solver includes:
 
 A discrepancy was found in the older standalone VHS function: the hard-coded `gamma_val=1.04533` is not `Gamma(5/2-0.81)`. The new physical implementation evaluates the gamma function and uses the reduced mass explicitly. The legacy isolated `vhs_sbt.py` function was corrected as well.
 
-Reproduce the physical benchmark with:
-
 ```bash
 vgdsmc-physical-benchmark --output outputs/stage4_physical
 ```
@@ -84,6 +80,32 @@ Corrected deterministic Stage-4 result:
 - mean particle ratio: `1.167`.
 
 The `Kn < 0.15` guard is an empirical no-harm rule derived from this small pilot, not a universal physical threshold. Without that guard, the tested `Kn=0.20` case became worse. The execution record is `results/stage4_physical_summary.json`.
+
+## Stage 5: SBT/VHS kernel validation
+
+The sequential SBT candidate rule is validated independently of the cavity. For a fixed set of Maxwellian velocities, the exact pre-clipping expected collision count is computed by summing `sigma(g) g` over every unordered pair. Thousands of independent SBT sweeps are then compared with that expectation.
+
+```bash
+vgdsmc-validate-collisions \
+  --output outputs/stage5_collision_validation
+```
+
+Verified deterministic result:
+
+- exact expected accepted collisions per sweep: `0.50077`;
+- measured mean over `5000` sweeps: `0.52700`;
+- relative difference: `5.24%`;
+- standard error: `0.01016`;
+- maximum initial candidate probability: `0.01966`, so probability clipping is inactive.
+
+A second validation starts from directional temperatures near `(609, 141, 132) K`. After 100 collision sweeps they become approximately `(283, 316, 283) K`:
+
+- anisotropy ratio, final/initial: `0.0707`;
+- total-temperature relative change: `5.15e-16`;
+- velocity-energy relative change: `0.0` at reported precision;
+- maximum mean-velocity change: `1.58e-14 m/s`.
+
+The execution record is `results/stage5_collision_validation_summary.json`. This validates SBT candidate statistics and relaxation/conservation for the selected homogeneous tests; it is not yet a viscosity or transport-coefficient validation.
 
 ## Learned-model status
 
@@ -105,20 +127,22 @@ A learned model must beat the corrected confidence-gated physical baseline befor
 - `vgdsmc/sbt_solver.py`: physical SBT/TAS collision kernel and advancement;
 - `vgdsmc/physical_adaptive.py`: physical priority image, confidence gate, and reallocation;
 - `vgdsmc/physical_benchmark.py`: reproducible Stage-4 benchmark;
+- `vgdsmc/collision_validation.py`: Stage-5 pair-expectation and relaxation validation;
 - `vgdsmc/training.py`: experimental learned-model path.
 
 ## Scientific limitations
 
-- neither solver is yet validated against an independent DSMC implementation;
+- neither cavity solver is yet validated against an independent DSMC implementation;
 - variable particle weights are conservatively equalized before SBT but remain an approximate treatment;
 - each Stage-4 case currently uses one seed and a four-times-particle reference;
 - `Kn < 0.15` is a pilot safeguard, not a general regime boundary;
-- wall heat flux, viscosity, collision frequency, and Knudsen-layer profiles still need dedicated validation;
-- the reported particle ratios are not wall-clock speedups.
+- wall heat flux, viscosity, and Knudsen-layer profiles still need dedicated validation;
+- the reported particle ratios are not wall-clock speedups;
+- the Stage-5 frequency test validates candidate statistics for one sampled velocity set, not the full Boltzmann collision integral.
 
 ## Next scientific steps
 
-1. validate VHS/SBT relaxation against a homogeneous relaxation and viscosity benchmark;
+1. estimate viscosity from homogeneous shear/relaxation and compare with the VHS target law;
 2. validate the thermal cavity against an independent high-particle DSMC implementation;
 3. repeat each `(Kn, temperature ratio)` condition over multiple independent seeds with confidence intervals;
 4. add wall heat flux and uncertainty to the vision objective;
