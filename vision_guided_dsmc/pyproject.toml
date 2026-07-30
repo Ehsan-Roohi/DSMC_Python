@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vision-guided-dsmc"
-version = "1.1.0"
-description = "Physical Argon VHS/SBT DSMC with deterministic BGK-DVM score supervision"
+version = "1.2.0"
+description = "Physical Argon VHS/SBT DSMC with three-velocity Shakhov-DVM score supervision"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
 
@@ -24,6 +24,7 @@ vgdsmc-physical-paired = "vgdsmc.physical_paired_ensemble:main"
 vgdsmc-physical-policy-study = "vgdsmc.physical_policy_study:main"
 vgdsmc-reference-case = "vgdsmc.reference_cli:main"
 vgdsmc-dvm-reference = "vgdsmc.dvm_cli:main"
+vgdsmc-shakhov-reference = "vgdsmc.shakhov_cli:main"
 vgdsmc-physical-reference-pipeline = "vgdsmc.physical_reference_pipeline:main"
 vgdsmc-build-dvm-dataset = "vgdsmc.dvm_dataset:main"
 vgdsmc-train-score = "vgdsmc.score_regression:main"
