@@ -17,23 +17,33 @@ def _smooth3(field: np.ndarray) -> np.ndarray:
     out = np.zeros_like(field, dtype=float)
     for j in range(3):
         for i in range(3):
-            out += padded[j : j + field.shape[0], i : i + field.shape[1]]
+            out += padded[
+                j : j + field.shape[0],
+                i : i + field.shape[1],
+            ]
     return out / 9.0
 
 
 def gradient_priority(fields: dict[str, np.ndarray]) -> np.ndarray:
-    """Construct a reference-free vision score from smoothed physical fields."""
     temperature = _smooth3(fields["T"])
-    density = _smooth3(fields.get("rho", np.ones_like(temperature)))
+    density = _smooth3(
+        fields.get("rho", np.ones_like(temperature))
+    )
     gy_t, gx_t = np.gradient(temperature)
     gy_r, gx_r = np.gradient(density)
     grad_t = np.hypot(gx_t, gy_t)
     grad_r = np.hypot(gx_r, gy_r)
-    noise = _smooth3(fields.get("sigma_T", np.zeros_like(grad_t)))
+    noise = _smooth3(
+        fields.get("sigma_T", np.zeros_like(grad_t))
+    )
 
     def robust_scale(array: np.ndarray) -> np.ndarray:
         low, high = np.percentile(array, [5.0, 95.0])
-        return np.clip((array - low) / max(high - low, 1.0e-30), 0.0, 1.0)
+        return np.clip(
+            (array - low) / max(high - low, 1.0e-30),
+            0.0,
+            1.0,
+        )
 
     return (
         0.65 * robust_scale(grad_t)
@@ -49,14 +59,23 @@ def exact_budget_ppc(
     min_ppc: int = 4,
     max_ppc: int = 100,
 ) -> np.ndarray:
-    """Convert a continuous priority image into an exact global PPC budget."""
-    target_total = int(round(priority.size * base_ppc * budget_ratio))
     target_total = int(
-        np.clip(target_total, priority.size * min_ppc, priority.size * max_ppc)
+        round(priority.size * base_ppc * budget_ratio)
+    )
+    target_total = int(
+        np.clip(
+            target_total,
+            priority.size * min_ppc,
+            priority.size * max_ppc,
+        )
     )
     score = np.maximum(priority.astype(float), 0.0) + 0.05
     raw = score / score.sum() * target_total
-    ppc = np.clip(np.floor(raw).astype(int), min_ppc, max_ppc)
+    ppc = np.clip(
+        np.floor(raw).astype(int),
+        min_ppc,
+        max_ppc,
+    )
     difference = target_total - int(ppc.sum())
     residual = raw - np.floor(raw)
     if difference > 0:
@@ -84,19 +103,33 @@ def adaptation_target(
     budget_ratio: float = 1.25,
     noise_limit: float = 0.42,
 ) -> tuple[np.ndarray, dict[str, float | bool]]:
-    """Return a confidence-gated allocation map that can fall back to uniform."""
+    """Return a conservative pilot allocation or a uniform fallback.
+
+    The ``Kn < 0.15`` threshold is an empirical pilot guard inferred from the
+    three-case benchmark, not a universal physical law. It prevents the current
+    temperature-gradient policy from being applied in the tested high-Kn case,
+    where the local image was not sufficiently predictive.
+    """
     relative_noise = float(
         np.mean(fields.get("sigma_T", 0.0))
         / max(np.mean(fields["T"]), 1.0e-30)
     )
     priority = gradient_priority(fields)
-    adapted = relative_noise <= noise_limit and float(np.std(priority)) >= 0.05
+    knudsen_gate = cfg.knudsen < 0.15
+    adapted = (
+        knudsen_gate
+        and relative_noise <= noise_limit
+        and float(np.std(priority)) >= 0.05
+    )
     if adapted:
         target = exact_budget_ppc(
             priority,
             cfg.particles_per_cell,
             budget_ratio,
-            min_ppc=max(4, int(round(0.8 * cfg.particles_per_cell))),
+            min_ppc=max(
+                4,
+                int(round(0.8 * cfg.particles_per_cell)),
+            ),
             max_ppc=max(
                 cfg.particles_per_cell + 1,
                 int(round(2.0 * cfg.particles_per_cell)),
@@ -112,6 +145,7 @@ def adaptation_target(
         "adapted": bool(adapted),
         "relative_temperature_noise": relative_noise,
         "priority_std": float(np.std(priority)),
+        "knudsen_gate": bool(knudsen_gate),
     }
 
 
@@ -121,13 +155,14 @@ def conservative_reallocate(
     target_ppc: np.ndarray,
     seed: int = 0,
 ) -> PhysicalParticleState:
-    """Resample cell by cell while preserving mass, momentum, and energy."""
+    """Preserve represented cell mass, momentum, and kinetic energy."""
     rng = np.random.default_rng(seed)
     ix, iy = _cell_xy(state.pos, cfg)
     new_pos: list[np.ndarray] = []
     new_vel: list[np.ndarray] = []
     new_weight: list[np.ndarray] = []
-    dx, dy = cfg.length / cfg.nx, cfg.length / cfg.ny
+    dx = cfg.length / cfg.nx
+    dy = cfg.length / cfg.ny
 
     for j in range(cfg.ny):
         for i in range(cfg.nx):
@@ -140,21 +175,33 @@ def conservative_reallocate(
                         (j + rng.random(target)) * dy,
                     )
                 )
-                velocity = _thermal_velocities(target, cfg.t0, cfg.vhs, rng)
+                velocity = _thermal_velocities(
+                    target,
+                    cfg.t0,
+                    cfg.vhs,
+                    rng,
+                )
                 weight = np.full(target, 1.0e-12)
             else:
                 old_weight = state.weight[ids]
                 total_weight = float(old_weight.sum())
                 probabilities = old_weight / total_weight
-                chosen = rng.choice(ids, size=target, replace=True, p=probabilities)
+                chosen = rng.choice(
+                    ids,
+                    size=target,
+                    replace=True,
+                    p=probabilities,
+                )
                 positions = state.pos[chosen].copy()
                 positions[:, 0] = np.clip(
-                    positions[:, 0] + rng.normal(0.0, 0.03 * dx, target),
+                    positions[:, 0]
+                    + rng.normal(0.0, 0.03 * dx, target),
                     i * dx,
                     np.nextafter((i + 1) * dx, i * dx),
                 )
                 positions[:, 1] = np.clip(
-                    positions[:, 1] + rng.normal(0.0, 0.03 * dy, target),
+                    positions[:, 1]
+                    + rng.normal(0.0, 0.03 * dy, target),
                     j * dy,
                     np.nextafter((j + 1) * dy, j * dy),
                 )
@@ -162,12 +209,18 @@ def conservative_reallocate(
                 weight = np.full(target, total_weight / target)
 
                 old_mean = (
-                    np.sum(old_weight[:, None] * state.vel[ids], axis=0)
+                    np.sum(
+                        old_weight[:, None] * state.vel[ids],
+                        axis=0,
+                    )
                     / total_weight
                 )
                 old_centered = state.vel[ids] - old_mean
                 old_thermal = float(
-                    np.sum(old_weight * np.sum(old_centered**2, axis=1))
+                    np.sum(
+                        old_weight
+                        * np.sum(old_centered**2, axis=1)
+                    )
                 )
                 centered = velocity - velocity.mean(axis=0)
                 new_thermal = float(
@@ -183,7 +236,10 @@ def conservative_reallocate(
                     perturb = rng.normal(size=velocity.shape)
                     perturb -= perturb.mean(axis=0)
                     denominator = float(
-                        np.sum(weight * np.sum(perturb**2, axis=1))
+                        np.sum(
+                            weight
+                            * np.sum(perturb**2, axis=1)
+                        )
                     )
                     velocity = old_mean + perturb * np.sqrt(
                         old_thermal / max(denominator, 1.0e-30)
@@ -203,13 +259,19 @@ def field_error(
     fields: dict[str, np.ndarray],
     reference: dict[str, np.ndarray],
 ) -> float:
-    e_t = np.mean(np.abs(fields["T"] - reference["T"])) / max(
-        np.mean(reference["T"]),
-        1.0e-30,
-    )
+    e_t = np.mean(
+        np.abs(fields["T"] - reference["T"])
+    ) / max(np.mean(reference["T"]), 1.0e-30)
     speed = np.hypot(fields["u"], fields["v"])
     speed_ref = np.hypot(reference["u"], reference["v"])
-    thermal = np.sqrt(2.0 * KB * np.mean(reference["T"]) / MASS_AR)
-    e_u = np.mean(np.abs(speed - speed_ref)) / max(thermal, 1.0e-30)
-    e_rho = np.mean(np.abs(fields["rho"] - reference["rho"]))
+    thermal = np.sqrt(
+        2.0 * KB * np.mean(reference["T"]) / MASS_AR
+    )
+    e_u = np.mean(np.abs(speed - speed_ref)) / max(
+        thermal,
+        1.0e-30,
+    )
+    e_rho = np.mean(
+        np.abs(fields["rho"] - reference["rho"])
+    )
     return float(0.45 * e_t + 0.25 * e_u + 0.30 * e_rho)
