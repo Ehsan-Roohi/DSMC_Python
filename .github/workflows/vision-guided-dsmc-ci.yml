@@ -53,6 +53,7 @@ jobs:
           import numpy as np
           with np.load('/tmp/physical_pipeline/supervised_case.npz') as data:
               assert data['x'].shape == (4, 4, 4)
+              assert data['context'].shape == (2,)
               assert data['score'].shape == (4, 4)
               assert set(np.unique(data['label'])) == {0, 1, 2}
               assert np.isfinite(data['score']).all()
@@ -60,18 +61,18 @@ jobs:
           assert summary['dvm_left_temperature'] > summary['dvm_right_temperature']
           assert summary['dvm_final_residual'] < 5e-6
           PY
-      - name: Build quick multi-condition DSMC-DVM dataset
+      - name: Build full multi-condition DSMC-DVM dataset
         run: |
           vgdsmc-build-dvm-dataset \
-            --output-dir /tmp/dvm_dataset --quick \
+            --output-dir /tmp/dvm_dataset \
             --nx 6 --ny 6 --ppc 5 \
             --dsmc-steps 25 --nv 8 --dvm-max-steps 700
-      - name: Train continuous local-error score model
+      - name: Train context-conditioned continuous score model
         run: |
           vgdsmc-train-score \
             --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
             --output-dir /tmp/score_training \
-            --epochs 4 --batch-size 2
+            --epochs 30 --batch-size 4
       - name: Verify score-regression artifacts
         run: |
           python - <<'PY'
@@ -79,7 +80,8 @@ jobs:
           import math
           from pathlib import Path
           metrics = json.load(open('/tmp/score_training/metrics.json'))
-          assert metrics['case_count'] == 4
+          assert metrics['case_count'] == 18
+          assert metrics['input_channels'] == 6
           assert math.isfinite(metrics['validation_mae'])
           assert math.isfinite(metrics['validation_spearman'])
           assert Path('/tmp/score_training/score_model.pt').exists()
