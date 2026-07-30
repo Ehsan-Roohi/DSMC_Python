@@ -1,0 +1,57 @@
+{
+  "kernel": "Argon VHS + SBT/TAS adaptive subcells",
+  "source_kernel": "SBT/TAS probability adapted from Parallel_TAS.py",
+  "vhs_normalization": "Corrected Bird form with reduced mass and Gamma(5/2-omega)",
+  "cases": [
+    {
+      "knudsen": 0.05,
+      "temperature_ratio": 1.2222222222222223,
+      "uniform_error": 0.3108704894456959,
+      "adaptive_error": 0.2791092880558563,
+      "error_ratio": 0.8978314041758286,
+      "improvement_percent": 10.216859582417136,
+      "particle_ratio": 1.25,
+      "adapted": true,
+      "relative_temperature_noise": 0.24850733047856674,
+      "uniform_collisions": 13338.0,
+      "adaptive_collisions": 12483.0,
+      "warm_collisions": 5256.0,
+      "dt": 2.698102599091156e-11
+    },
+    {
+      "knudsen": 0.1,
+      "temperature_ratio": 1.3076923076923077,
+      "uniform_error": 0.3268943447302479,
+      "adaptive_error": 0.3033447428260422,
+      "error_ratio": 0.9279595921928879,
+      "improvement_percent": 7.204040780711207,
+      "particle_ratio": 1.25,
+      "adapted": true,
+      "relative_temperature_noise": 0.39581009317157767,
+      "uniform_collisions": 22294.0,
+      "adaptive_collisions": 16048.0,
+      "warm_collisions": 9305.0,
+      "dt": 5.316256997753002e-11
+    },
+    {
+      "knudsen": 0.2,
+      "temperature_ratio": 1.1428571428571428,
+      "uniform_error": 0.32655605437501434,
+      "adaptive_error": 0.32655605437501434,
+      "error_ratio": 1.0,
+      "improvement_percent": 0.0,
+      "particle_ratio": 1.0,
+      "adapted": false,
+      "relative_temperature_noise": 0.44371373145728504,
+      "uniform_collisions": 23845.0,
+      "adaptive_collisions": 23845.0,
+      "warm_collisions": 9515.0,
+      "dt": 6.849840354582706e-11
+    }
+  ],
+  "improved_cases": 2,
+  "non_worse_cases": 3,
+  "mean_error_ratio": 0.9419303321229054,
+  "mean_improvement_percent": 5.806966787709456,
+  "mean_particle_ratio": 1.1666666666666667
+}
