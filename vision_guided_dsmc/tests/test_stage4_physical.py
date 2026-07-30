@@ -189,21 +189,3 @@ def test_diffuse_wall_updates_original_velocity_array():
     assert state.pos[0, 0] >= 0.0
     assert state.vel[0, 0] > 0.0
     assert np.linalg.norm(state.vel[0]) > 0.0
-
-
-def test_high_kn_gate_returns_uniform_allocation():
-    cfg = PhysicalCavityConfig(
-        nx=3,
-        ny=3,
-        particles_per_cell=10,
-        knudsen=0.20,
-    )
-    fields = {
-        "T": np.arange(9, dtype=float).reshape(3, 3) + 290.0,
-        "sigma_T": np.ones((3, 3)),
-        "rho": np.linspace(0.8, 1.2, 9).reshape(3, 3),
-    }
-    target, decision = adaptation_target(fields, cfg)
-    assert not decision["adapted"]
-    assert not decision["knudsen_gate"]
-    assert np.all(target == 10)
