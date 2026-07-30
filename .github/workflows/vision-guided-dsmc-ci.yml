@@ -22,26 +22,41 @@ jobs:
       - run: python -m pip install -e '.[full]'
       - run: pytest -q
       - run: vgdsmc-generate --output /tmp/pilot --nx 6 --ny 6 --ppc 3 --reference-ppc 6 --steps 10 --sample-start 4
-      - name: Build deterministic-reference fixture
+      - name: Run deterministic BGK-DVM reference
+        run: |
+          vgdsmc-dvm-reference \
+            --output /tmp/bgk_reference.npz \
+            --nx 6 --ny 6 --nv 8 \
+            --max-steps 700 --tolerance 5e-6
+      - name: Verify BGK-DVM contract
         run: |
           python - <<'PY'
           import numpy as np
-          with np.load('/tmp/pilot/case.npz') as data:
-              np.savez_compressed(
-                  '/tmp/reference.npz',
-                  T=data['reference_T'],
-                  rho=data['reference_rho'],
-                  u=data['reference_u'],
-                  v=data['reference_v'],
-              )
+          with np.load('/tmp/bgk_reference.npz') as data:
+              assert {'T', 'rho', 'u', 'v'}.issubset(data.files)
+              assert data['T'].shape == (6, 6)
+              assert np.isfinite(data['T']).all()
+              assert float(data['T'][:, 0].mean()) > float(data['T'][:, -1].mean())
+              assert float(data['residual_history'][-1]) < 5e-6
           PY
-      - run: vgdsmc-reference-case --coarse-case /tmp/pilot/case.npz --reference /tmp/reference.npz --output /tmp/supervised.npz
-      - name: Verify supervised artifact
+      - name: Run physical DSMC to DVM supervision pipeline
+        run: |
+          vgdsmc-physical-reference-pipeline \
+            --output-dir /tmp/physical_pipeline \
+            --nx 4 --ny 4 --ppc 6 \
+            --dsmc-steps 30 --nv 8 \
+            --dvm-max-steps 700 --kn 0.10
+      - name: Verify physical supervised artifact
         run: |
           python - <<'PY'
+          import json
           import numpy as np
-          with np.load('/tmp/supervised.npz') as data:
-              assert data['x'].shape == (4, 6, 6)
-              assert data['score'].shape == (6, 6)
+          with np.load('/tmp/physical_pipeline/supervised_case.npz') as data:
+              assert data['x'].shape == (4, 4, 4)
+              assert data['score'].shape == (4, 4)
               assert set(np.unique(data['label'])) == {0, 1, 2}
+              assert np.isfinite(data['score']).all()
+          summary = json.load(open('/tmp/physical_pipeline/pipeline_summary.json'))
+          assert summary['dvm_left_temperature'] > summary['dvm_right_temperature']
+          assert summary['dvm_final_residual'] < 5e-6
           PY
