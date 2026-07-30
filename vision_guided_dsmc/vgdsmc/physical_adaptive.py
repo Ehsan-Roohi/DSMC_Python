@@ -3,8 +3,12 @@ from __future__ import annotations
 import numpy as np
 
 from .vhs_model import (
-    KB, MASS_AR, PhysicalCavityConfig, PhysicalParticleState,
-    _cell_xy, _thermal_velocities,
+    KB,
+    MASS_AR,
+    PhysicalCavityConfig,
+    PhysicalParticleState,
+    _cell_xy,
+    _thermal_velocities,
 )
 
 
@@ -13,22 +17,34 @@ def _smooth3(field: np.ndarray) -> np.ndarray:
     out = np.zeros_like(field, dtype=float)
     for j in range(3):
         for i in range(3):
-            out += padded[j:j+field.shape[0], i:i+field.shape[1]]
+            out += padded[
+                j : j + field.shape[0],
+                i : i + field.shape[1],
+            ]
     return out / 9.0
 
 
 def gradient_priority(fields: dict[str, np.ndarray]) -> np.ndarray:
+    """Build a reference-free physical priority image."""
     temperature = _smooth3(fields["T"])
-    density = _smooth3(fields.get("rho", np.ones_like(temperature)))
+    density = _smooth3(
+        fields.get("rho", np.ones_like(temperature))
+    )
     gy_t, gx_t = np.gradient(temperature)
     gy_r, gx_r = np.gradient(density)
     grad_t = np.hypot(gx_t, gy_t)
     grad_r = np.hypot(gx_r, gy_r)
-    noise = _smooth3(fields.get("sigma_T", np.zeros_like(grad_t)))
+    noise = _smooth3(
+        fields.get("sigma_T", np.zeros_like(grad_t))
+    )
 
-    def robust_scale(a: np.ndarray) -> np.ndarray:
-        lo, hi = np.percentile(a, [5.0, 95.0])
-        return np.clip((a - lo) / max(hi - lo, 1.0e-30), 0.0, 1.0)
+    def robust_scale(array: np.ndarray) -> np.ndarray:
+        low, high = np.percentile(array, [5.0, 95.0])
+        return np.clip(
+            (array - low) / max(float(high - low), 1.0e-30),
+            0.0,
+            1.0,
+        )
 
     return (
         0.65 * robust_scale(grad_t)
@@ -44,38 +60,73 @@ def exact_budget_ppc(
     min_ppc: int = 4,
     max_ppc: int = 100,
 ) -> np.ndarray:
-    target_total = int(round(priority.size * base_ppc * budget_ratio))
+    """Allocate an exact bounded integer particle budget.
+
+    The previous one-pass largest-remainder correction could fail after cells
+    were clipped at ``min_ppc`` or ``max_ppc``. This bounded apportionment starts
+    every cell at the minimum and repeatedly distributes the remaining budget
+    over cells that still have capacity, so the requested global sum is exact.
+    """
+    priority = np.asarray(priority, dtype=np.float64)
+    if priority.size == 0:
+        raise ValueError("priority must contain at least one cell")
+    if base_ppc <= 0 or budget_ratio <= 0.0:
+        raise ValueError("base_ppc and budget_ratio must be positive")
+    if min_ppc < 2 or max_ppc < min_ppc:
+        raise ValueError("Require 2 <= min_ppc <= max_ppc")
+
+    cells = priority.size
+    requested = int(round(cells * base_ppc * budget_ratio))
     target_total = int(
-        np.clip(
-            target_total,
-            priority.size * min_ppc,
-            priority.size * max_ppc,
-        )
+        np.clip(requested, cells * min_ppc, cells * max_ppc)
     )
-    score = np.maximum(priority.astype(float), 0.0) + 0.05
-    raw = score / score.sum() * target_total
-    ppc = np.clip(np.floor(raw).astype(int), min_ppc, max_ppc)
-    difference = target_total - int(ppc.sum())
-    residual = raw - np.floor(raw)
-    if difference > 0:
-        for index in np.argsort(residual.ravel())[::-1]:
-            j, i = np.unravel_index(index, ppc.shape)
-            if ppc[j, i] < max_ppc:
-                ppc[j, i] += 1
-                difference -= 1
-                if difference == 0:
-                    break
-    elif difference < 0:
-        for index in np.argsort(residual.ravel()):
-            j, i = np.unravel_index(index, ppc.shape)
-            if ppc[j, i] > min_ppc:
-                ppc[j, i] -= 1
-                difference += 1
-                if difference == 0:
-                    break
-    if int(ppc.sum()) != target_total:
+
+    flat_priority = np.maximum(priority.ravel(), 0.0) + 0.05
+    allocation = np.full(cells, min_ppc, dtype=np.int64)
+    capacity = np.full(cells, max_ppc - min_ppc, dtype=np.int64)
+    remaining = target_total - int(allocation.sum())
+
+    while remaining > 0:
+        eligible = np.flatnonzero(capacity > 0)
+        if eligible.size == 0:
+            raise RuntimeError(
+                "Exact physical particle-budget correction exhausted capacity"
+            )
+
+        weights = flat_priority[eligible]
+        weight_sum = float(weights.sum())
+        if not np.isfinite(weight_sum) or weight_sum <= 0.0:
+            weights = np.ones_like(weights)
+            weight_sum = float(weights.sum())
+
+        quota = remaining * weights / weight_sum
+        whole = np.minimum(
+            np.floor(quota).astype(np.int64),
+            capacity[eligible],
+        )
+        distributed = int(whole.sum())
+
+        if distributed > 0:
+            allocation[eligible] += whole
+            capacity[eligible] -= whole
+            remaining -= distributed
+            continue
+
+        # All fractional quotas are below one. Give one particle to the
+        # highest-priority residual cells, then repeat if more budget remains.
+        order = np.argsort(quota, kind="stable")[::-1]
+        take = min(remaining, eligible.size)
+        chosen = eligible[order[:take]]
+        allocation[chosen] += 1
+        capacity[chosen] -= 1
+        remaining -= take
+
+    result = allocation.reshape(priority.shape)
+    if int(result.sum()) != target_total:
         raise RuntimeError("Exact physical particle-budget correction failed")
-    return ppc
+    if result.min() < min_ppc or result.max() > max_ppc:
+        raise RuntimeError("Physical particle allocation violated PPC bounds")
+    return result
 
 
 def adaptation_target(
@@ -84,10 +135,10 @@ def adaptation_target(
     budget_ratio: float = 1.25,
     noise_limit: float = 0.42,
 ) -> tuple[np.ndarray, dict[str, float | bool]]:
-    """Return a confidence-gated vision allocation map."""
+    """Return a confidence-gated physical allocation map."""
     relative_noise = float(
         np.mean(fields.get("sigma_T", 0.0))
-        / max(np.mean(fields["T"]), 1.0e-30)
+        / max(float(np.mean(fields["T"])), 1.0e-30)
     )
     priority = gradient_priority(fields)
     adapted = (
@@ -99,7 +150,10 @@ def adaptation_target(
             priority,
             cfg.particles_per_cell,
             budget_ratio,
-            min_ppc=max(4, int(round(0.8 * cfg.particles_per_cell))),
+            min_ppc=max(
+                4,
+                int(round(0.8 * cfg.particles_per_cell)),
+            ),
             max_ppc=max(
                 cfg.particles_per_cell + 1,
                 int(round(2.0 * cfg.particles_per_cell)),
@@ -109,7 +163,7 @@ def adaptation_target(
         target = np.full(
             (cfg.ny, cfg.nx),
             cfg.particles_per_cell,
-            dtype=int,
+            dtype=np.int64,
         )
     return target, {
         "adapted": bool(adapted),
@@ -124,13 +178,14 @@ def conservative_reallocate(
     target_ppc: np.ndarray,
     seed: int = 0,
 ) -> PhysicalParticleState:
-    """Resample each cell while preserving represented mass, momentum, and energy."""
+    """Resample each cell while preserving represented moments."""
     rng = np.random.default_rng(seed)
     ix, iy = _cell_xy(state.pos, cfg)
     new_pos: list[np.ndarray] = []
     new_vel: list[np.ndarray] = []
     new_weight: list[np.ndarray] = []
-    dx, dy = cfg.length / cfg.nx, cfg.length / cfg.ny
+    dx = cfg.length / cfg.nx
+    dy = cfg.length / cfg.ny
 
     for j in range(cfg.ny):
         for i in range(cfg.nx):
@@ -138,6 +193,7 @@ def conservative_reallocate(
             target = int(target_ppc[j, i])
             if target < 2:
                 raise ValueError("target PPC must be at least two")
+
             if len(ids) == 0:
                 positions = np.column_stack(
                     (
@@ -195,17 +251,14 @@ def conservative_reallocate(
                 sampled_mean = np.mean(velocities, axis=0)
                 centered = velocities - sampled_mean
                 sampled_thermal = float(
-                    np.sum(
-                        weights * np.sum(centered**2, axis=1)
-                    )
+                    np.sum(weights * np.sum(centered**2, axis=1))
                 )
+
                 if old_thermal <= 1.0e-30:
                     velocities[:] = old_mean
                 elif sampled_thermal > 1.0e-30:
-                    velocities = (
-                        old_mean
-                        + centered
-                        * np.sqrt(old_thermal / sampled_thermal)
+                    velocities = old_mean + centered * np.sqrt(
+                        old_thermal / sampled_thermal
                     )
                 else:
                     perturbation = rng.normal(size=velocities.shape)
@@ -216,13 +269,10 @@ def conservative_reallocate(
                             * np.sum(perturbation**2, axis=1)
                         )
                     )
-                    velocities = (
-                        old_mean
-                        + perturbation
-                        * np.sqrt(
-                            old_thermal / max(denominator, 1.0e-30)
-                        )
+                    velocities = old_mean + perturbation * np.sqrt(
+                        old_thermal / max(denominator, 1.0e-30)
                     )
+
             new_pos.append(positions)
             new_vel.append(velocities)
             new_weight.append(weights)
@@ -240,7 +290,7 @@ def field_error(
 ) -> float:
     temperature_error = (
         np.mean(np.abs(fields["T"] - reference["T"]))
-        / max(np.mean(reference["T"]), 1.0e-30)
+        / max(float(np.mean(reference["T"])), 1.0e-30)
     )
     speed = np.hypot(fields["u"], fields["v"])
     reference_speed = np.hypot(reference["u"], reference["v"])
@@ -249,7 +299,7 @@ def field_error(
     )
     speed_error = (
         np.mean(np.abs(speed - reference_speed))
-        / max(thermal_speed, 1.0e-30)
+        / max(float(thermal_speed), 1.0e-30)
     )
     density_error = np.mean(
         np.abs(fields["rho"] - reference["rho"])
