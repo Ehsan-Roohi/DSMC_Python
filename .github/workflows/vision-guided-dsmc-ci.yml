@@ -22,30 +22,41 @@ jobs:
       - run: python -m pip install -e '.[full]'
       - run: pytest -q
       - run: vgdsmc-generate --output /tmp/pilot --nx 6 --ny 6 --ppc 3 --reference-ppc 6 --steps 10 --sample-start 4
-      - name: Run deterministic BGK-DVM reference
+      - name: Run deterministic BGK-DVM baseline
         run: |
           vgdsmc-dvm-reference \
             --output /tmp/bgk_reference.npz \
             --nx 6 --ny 6 --nv 8 \
             --max-steps 700 --tolerance 5e-6
-      - name: Verify BGK-DVM contract
+      - name: Run three-velocity Shakhov-DVM reference
+        run: |
+          vgdsmc-shakhov-reference \
+            --output /tmp/shakhov_reference.npz \
+            --nx 6 --ny 6 --nv 6 \
+            --max-steps 900 --tolerance 8e-6
+      - name: Verify deterministic kinetic references
         run: |
           python - <<'PY'
           import numpy as np
-          with np.load('/tmp/bgk_reference.npz') as data:
-              assert {'T', 'rho', 'u', 'v'}.issubset(data.files)
-              assert data['T'].shape == (6, 6)
-              assert np.isfinite(data['T']).all()
-              assert float(data['T'][:, 0].mean()) > float(data['T'][:, -1].mean())
-              assert float(data['residual_history'][-1]) < 5e-6
+          for path, tolerance in [('/tmp/bgk_reference.npz', 5e-6), ('/tmp/shakhov_reference.npz', 8e-6)]:
+              with np.load(path) as data:
+                  assert {'T', 'rho', 'u', 'v'}.issubset(data.files)
+                  assert data['T'].shape == (6, 6)
+                  assert np.isfinite(data['T']).all()
+                  assert float(data['T'][:, 0].mean()) > float(data['T'][:, -1].mean())
+                  assert float(data['residual_history'][-1]) < tolerance
+          with np.load('/tmp/shakhov_reference.npz') as data:
+              assert {'qx', 'qy', 'w'}.issubset(data.files)
+              assert np.isfinite(data['qx']).all()
           PY
-      - name: Run physical DSMC to DVM supervision pipeline
+      - name: Run physical DSMC to Shakhov supervision pipeline
         run: |
           vgdsmc-physical-reference-pipeline \
+            --reference-model shakhov \
             --output-dir /tmp/physical_pipeline \
             --nx 4 --ny 4 --ppc 6 \
-            --dsmc-steps 30 --nv 8 \
-            --dvm-max-steps 700 --kn 0.10
+            --dsmc-steps 30 --nv 6 \
+            --dvm-max-steps 900 --kn 0.10
       - name: Verify physical supervised artifact
         run: |
           python - <<'PY'
@@ -58,21 +69,22 @@ jobs:
               assert set(np.unique(data['label'])) == {0, 1, 2}
               assert np.isfinite(data['score']).all()
           summary = json.load(open('/tmp/physical_pipeline/pipeline_summary.json'))
+          assert summary['reference_model'] == 'shakhov'
           assert summary['dvm_left_temperature'] > summary['dvm_right_temperature']
-          assert summary['dvm_final_residual'] < 5e-6
+          assert summary['dvm_final_residual'] < 8e-6
           PY
-      - name: Build full multi-condition DSMC-DVM dataset
+      - name: Build full Shakhov-supervised multi-condition dataset
         run: |
           vgdsmc-build-dvm-dataset \
             --output-dir /tmp/dvm_dataset \
             --nx 6 --ny 6 --ppc 5 \
-            --dsmc-steps 25 --nv 8 --dvm-max-steps 700
+            --dsmc-steps 25 --nv 6 --dvm-max-steps 900
       - name: Train context-conditioned continuous score model
         run: |
           vgdsmc-train-score \
             --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
             --output-dir /tmp/score_training \
-            --epochs 30 --batch-size 4
+            --epochs 30 --batch-size 4 --split-mode seed
       - name: Verify score-regression artifacts
         run: |
           python - <<'PY'
@@ -82,6 +94,8 @@ jobs:
           metrics = json.load(open('/tmp/score_training/metrics.json'))
           assert metrics['case_count'] == 18
           assert metrics['input_channels'] == 6
+          assert metrics['train_seeds'] == [11]
+          assert metrics['validation_seeds'] == [22]
           assert math.isfinite(metrics['validation_mae'])
           assert math.isfinite(metrics['validation_spearman'])
           assert Path('/tmp/score_training/score_model.pt').exists()
