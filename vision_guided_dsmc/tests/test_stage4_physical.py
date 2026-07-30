@@ -12,7 +12,12 @@ from vgdsmc.sbt_solver import (
     equalize_cell_weights,
     run_physical_cavity,
 )
-from vgdsmc.vhs_model import PhysicalCavityConfig, PhysicalParticleState, VHSModel
+from vgdsmc.vhs_model import (
+    PhysicalCavityConfig,
+    PhysicalParticleState,
+    VHSModel,
+    apply_diffuse_walls,
+)
 
 
 def test_vhs_cross_section_decreases_with_speed():
@@ -21,7 +26,11 @@ def test_vhs_cross_section_decreases_with_speed():
     sigma = model.cross_section(speeds)
     assert np.all(np.diff(sigma) < 0.0)
     assert np.all(sigma > 0.0)
-    assert np.isclose(model.gamma_factor, 0.9067818160205746, rtol=1.0e-13)
+    assert np.isclose(
+        model.gamma_factor,
+        0.9067818160205746,
+        rtol=1.0e-13,
+    )
 
 
 def test_weighted_scatter_conserves_momentum_and_energy():
@@ -34,10 +43,26 @@ def test_weighted_scatter_conserves_momentum_and_energy():
         weight.copy(),
     )
     before = conserved_quantities(state)
-    _weighted_elastic_scatter(state.vel, state.weight, 0, 1, rng)
+    _weighted_elastic_scatter(
+        state.vel,
+        state.weight,
+        0,
+        1,
+        rng,
+    )
     after = conserved_quantities(state)
-    assert np.allclose(after[1], before[1], rtol=1.0e-12, atol=1.0e-12)
-    assert np.isclose(after[2], before[2], rtol=1.0e-12, atol=0.0)
+    assert np.allclose(
+        after[1],
+        before[1],
+        rtol=1.0e-12,
+        atol=1.0e-12,
+    )
+    assert np.isclose(
+        after[2],
+        before[2],
+        rtol=1.0e-12,
+        atol=0.0,
+    )
 
 
 def test_physical_cavity_runs_and_accepts_collisions():
@@ -50,7 +75,10 @@ def test_physical_cavity_runs_and_accepts_collisions():
         knudsen=0.05,
         seed=5,
     )
-    fields, state, diagnostics = run_physical_cavity(cfg, return_state=True)
+    fields, state, diagnostics = run_physical_cavity(
+        cfg,
+        return_state=True,
+    )
     assert fields["T"].shape == (5, 5)
     assert np.isfinite(fields["T"]).all()
     assert fields["T"].mean() > 0.0
@@ -79,16 +107,30 @@ def test_conservative_reallocation_and_exact_budget():
         base_ppc=8,
         budget_ratio=1.25,
     )
-    new_state = conservative_reallocate(state, cfg, target, seed=18)
+    new_state = conservative_reallocate(
+        state,
+        cfg,
+        target,
+        seed=18,
+    )
     after = conserved_quantities(new_state)
     assert len(new_state.pos) == int(target.sum())
     assert np.isclose(after[0], before[0], rtol=1.0e-12)
-    assert np.allclose(after[1], before[1], rtol=1.0e-10, atol=1.0e-8)
+    assert np.allclose(
+        after[1],
+        before[1],
+        rtol=1.0e-10,
+        atol=1.0e-8,
+    )
     assert np.isclose(after[2], before[2], rtol=1.0e-10)
 
 
 def test_noise_gate_returns_uniform_allocation():
-    cfg = PhysicalCavityConfig(nx=3, ny=3, particles_per_cell=10)
+    cfg = PhysicalCavityConfig(
+        nx=3,
+        ny=3,
+        particles_per_cell=10,
+    )
     fields = {
         "T": np.full((3, 3), 300.0),
         "sigma_T": np.full((3, 3), 150.0),
@@ -100,7 +142,11 @@ def test_noise_gate_returns_uniform_allocation():
 
 
 def test_cell_weight_equalization_conserves_invariants():
-    cfg = PhysicalCavityConfig(nx=1, ny=1, particles_per_cell=4)
+    cfg = PhysicalCavityConfig(
+        nx=1,
+        ny=1,
+        particles_per_cell=4,
+    )
     rng = np.random.default_rng(12)
     state = PhysicalParticleState(
         pos=rng.random((4, 2)) * cfg.length,
@@ -112,5 +158,52 @@ def test_cell_weight_equalization_conserves_invariants():
     after = conserved_quantities(state)
     assert np.allclose(state.weight, state.weight[0])
     assert np.isclose(after[0], before[0], rtol=1.0e-12)
-    assert np.allclose(after[1], before[1], rtol=1.0e-10, atol=1.0e-9)
+    assert np.allclose(
+        after[1],
+        before[1],
+        rtol=1.0e-10,
+        atol=1.0e-9,
+    )
     assert np.isclose(after[2], before[2], rtol=1.0e-10)
+
+
+def test_diffuse_wall_updates_original_velocity_array():
+    cfg = PhysicalCavityConfig(
+        nx=1,
+        ny=1,
+        particles_per_cell=1,
+        seed=4,
+    )
+    state = PhysicalParticleState(
+        pos=np.array(
+            [[-0.1 * cfg.length, 0.5 * cfg.length]]
+        ),
+        vel=np.zeros((1, 3)),
+        weight=np.ones(1),
+    )
+    apply_diffuse_walls(
+        state,
+        cfg,
+        np.random.default_rng(8),
+    )
+    assert state.pos[0, 0] >= 0.0
+    assert state.vel[0, 0] > 0.0
+    assert np.linalg.norm(state.vel[0]) > 0.0
+
+
+def test_high_kn_gate_returns_uniform_allocation():
+    cfg = PhysicalCavityConfig(
+        nx=3,
+        ny=3,
+        particles_per_cell=10,
+        knudsen=0.20,
+    )
+    fields = {
+        "T": np.arange(9, dtype=float).reshape(3, 3) + 290.0,
+        "sigma_T": np.ones((3, 3)),
+        "rho": np.linspace(0.8, 1.2, 9).reshape(3, 3),
+    }
+    target, decision = adaptation_target(fields, cfg)
+    assert not decision["adapted"]
+    assert not decision["knudsen_gate"]
+    assert np.all(target == 10)
