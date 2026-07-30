@@ -1,18 +1,8 @@
 # Vision-Guided DSMC Pilot
 
-A small, reproducible research pilot for **vision-guided particle allocation** in a two-dimensional rarefied thermal cavity.
+A reproducible research pilot for **vision-guided particle allocation** in a two-dimensional rarefied thermal cavity.
 
-> This remains an educational weighted DSMC-like solver, not a production DSMC implementation. The next major physics step is coupling the workflow to the validated VHS/SBT DSMC kernel.
-
-## Current physics case
-
-- unit-square cavity;
-- diffuse thermal walls;
-- left wall hotter than the right wall;
-- stochastic cell collisions;
-- coarse and high-particle reference runs;
-- weighted particles after adaptive reallocation;
-- exact cell-wise conservation of represented mass, momentum, and kinetic energy during splitting/merging.
+> Stage 4 now uses physical SI units, three translational velocity components, diffuse thermal walls, the Argon VHS model, and SBT/TAS adaptive collision subcells. It is still a research pilot rather than a fully validated production DSMC solver.
 
 ## Install and test
 
@@ -22,65 +12,86 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
-The verified Stage-3 test suite contains eight tests, including:
+The Stage-4 addition was executed locally with six new physical-kernel tests passing. The full repository test suite should be run through the command above.
 
-- simulator and dataset smoke tests;
-- arbitrary-size U-Net output tests;
-- exact particle-budget tests;
-- conservative weighted resampling tests;
-- a tiny closed-loop vision-guided run.
+## Stage 3: closed-loop physics-vision prototype
 
-## Generate a coarse/reference case
+The dimensionless pilot established:
 
-```bash
-vgdsmc-generate \
-  --output outputs/pilot \
-  --nx 24 --ny 24 \
-  --ppc 20 --reference-ppc 120
-```
+- weighted particle states;
+- conservative cell-wise splitting and merging;
+- exact global particle budgets;
+- a reference-free temperature-gradient vision score;
+- uniform-versus-adaptive closed-loop continuation;
+- an experimental U-Net path whose negative results are documented rather than hidden.
 
-## Reproduce the Stage-3 benchmark
+Reproduce the Stage-3 benchmark with:
 
 ```bash
 vgdsmc-benchmark --output outputs/stage3_benchmark
 ```
 
-The benchmark runs three thermal-cavity cases using a reference-free image score based on the robustly normalized temperature-gradient magnitude. Particle allocation uses an exact global budget equal to 1.25 times the uniform coarse-particle count.
+The committed summary is `results/stage3_benchmark_summary.json`.
 
-Verified local result:
+## Stage 4: physical Argon VHS/SBT cavity
 
-- all three adaptive cases improved over their uniform baselines;
-- mean adaptive-to-baseline error ratio: `0.92158`;
-- mean error reduction: `7.84%`;
-- continuation particle-cost ratio: `1.25`;
-- mass and energy conservation errors were near machine precision.
+The new physical solver includes:
 
-The committed summary is in `results/stage3_benchmark_summary.json`.
+- SI-unit positions, velocities, time step, cell volume, number density, and mean free path;
+- two-dimensional spatial motion with three-dimensional molecular velocities;
+- diffuse fully accommodating thermal walls;
+- Argon reference parameters `d_ref=4.17e-10 m`, `T_ref=273 K`, and `omega=0.81`;
+- VHS total cross section using reduced mass and `Gamma(5/2-omega)`;
+- the SBT candidate-pair probability adapted from the repository's `Parallel_TAS.py`;
+- adaptive two-dimensional collision subcells;
+- conservative equalization of mixed particle weights before SBT collisions;
+- confidence-gated vision allocation that falls back to a uniform map when the sampled temperature field is too noisy.
 
-## Why the physics-vision baseline comes before learned vision
+A discrepancy was found in the old standalone kernel: its hard-coded `gamma_val=1.04533` does not equal `Gamma(5/2-0.81)`. Stage 4 uses the evaluated gamma function and the identical-particle reduced mass explicitly.
 
-The first learned experiments were actually executed, but were not successful enough to claim:
+Reproduce the physical benchmark with:
 
-- three-class learning collapsed toward the high-refinement class on noisy single-seed labels;
-- continuous rank regression on single-seed labels had mean Spearman correlation near `0.036`;
-- four-member ensemble labels improved it only to about `0.133`.
+```bash
+vgdsmc-physical-benchmark --output outputs/stage4_physical
+```
 
-The likely reason is that coarse-versus-reference local error is dominated by Monte Carlo label noise. The present temperature-gradient image baseline establishes a reproducible closed-loop target that a learned model must later match or beat.
+Verified local Stage-4 result:
+
+- `Kn=0.05`: error reduced by `10.22%` with particle ratio `1.25`;
+- `Kn=0.10`: error reduced by `7.20%` with particle ratio `1.25`;
+- `Kn=0.20`: the statistical-noise gate disabled adaptation, giving no degradation and particle ratio `1.00`;
+- mean error reduction across the three cases: `5.81%`;
+- mean particle ratio: `1.167`;
+- non-worse cases: `3/3`.
+
+The committed execution record is `results/stage4_physical_summary.json`.
+
+These figures are deterministic pilot results for the specified seeds. They are not yet ensemble confidence intervals or evidence of wall-clock acceleration.
 
 ## Code structure
 
-- `vgdsmc/simulator.py`: weighted particle state, diffuse walls, conservative weighted pair collisions, and sampling;
-- `vgdsmc/adaptive.py`: exact-budget allocation and conservative cell-wise particle reallocation;
-- `vgdsmc/vision.py`: reference-free image features and physics-vision scores;
-- `vgdsmc/closed_loop.py`: uniform versus adaptive continuation and error comparison;
-- `vgdsmc/benchmark.py`: reproducible three-case benchmark;
-- `vgdsmc/training.py`: experimental U-Net training and inference;
-- `results/stage3_benchmark_summary.json`: verified execution summary.
+- `vgdsmc/simulator.py`: dimensionless weighted pilot solver;
+- `vgdsmc/adaptive.py`: Stage-3 exact-budget reallocation;
+- `vgdsmc/vision.py`: Stage-3 reference-free image features;
+- `vgdsmc/closed_loop.py`: Stage-3 uniform/adaptive continuation;
+- `vgdsmc/vhs_model.py`: physical Argon VHS parameters, cavity configuration, particles, and diffuse walls;
+- `vgdsmc/sbt_solver.py`: physical SBT/TAS collision kernel, sampling, and time advancement;
+- `vgdsmc/physical_adaptive.py`: confidence gate, physical priority image, and conservative reallocation;
+- `vgdsmc/physical_benchmark.py`: reproducible Stage-4 benchmark;
+- `vgdsmc/training.py`: experimental U-Net training and inference.
+
+## Scientific limitations
+
+- the physical solver has not yet been validated against an independent DSMC package or an analytical benchmark;
+- variable particle weights are locally equalized before SBT, which is conservative but remains an approximate adaptive-weight treatment;
+- the current benchmark uses one seed per case and a four-times-particle reference;
+- wall heat flux, collision frequency, viscosity, and Knudsen-layer profiles still require dedicated validation;
+- the learned vision model has not yet beaten the physics-vision baseline.
 
 ## Next scientific steps
 
-1. replace the pilot collision kernel with the validated VHS/SBT DSMC implementation;
-2. define local particle weights consistently with real-particle number and collision probability;
-3. generate ensemble-averaged labels over Mach, Knudsen number, wall-temperature ratio, and seed;
-4. train a score-regression network and compare it against the temperature-gradient baseline;
-5. compare error versus total particle updates, wall heat flux, and uncertainty over multiple independent repetitions.
+1. validate the VHS/SBT relaxation rate against a homogeneous relaxation or viscosity benchmark;
+2. validate the thermal cavity against an independent high-particle DSMC implementation;
+3. repeat each `(Kn, temperature ratio)` case over multiple independent seeds with confidence intervals;
+4. add wall heat-flux and uncertainty-aware objectives to the allocation map;
+5. train a continuous score-regression network and require it to beat the confidence-gated physical baseline.
