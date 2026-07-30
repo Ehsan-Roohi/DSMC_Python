@@ -13,19 +13,22 @@ class ScoreTrainConfig:
     learning_rate: float = 1.0e-3
     batch_size: int = 4
     validation_fraction: float = 0.25
+    split_mode: str = "seed"
     seed: int = 7
 
 
-def load_score_cases(paths: list[str | Path]) -> tuple[np.ndarray, np.ndarray]:
+def _load_records(paths: list[str | Path]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     xs: list[np.ndarray] = []
     ys: list[np.ndarray] = []
+    seeds: list[int] = []
     expected_shape: tuple[int, int] | None = None
     expected_channels: int | None = None
-    for path in paths:
+    for index, path in enumerate(paths):
         with np.load(path) as data:
             x = np.asarray(data["x"], dtype=np.float32)
             score = np.asarray(data["score"], dtype=np.float32)
             context = np.asarray(data["context"], dtype=np.float32) if "context" in data else None
+            case_seed = int(data["case_seed"]) if "case_seed" in data else index
         if x.ndim != 3 or x.shape[0] < 4 or score.shape != x.shape[1:]:
             raise ValueError(f"Invalid supervised case shape in {path}")
         if context is not None:
@@ -42,9 +45,15 @@ def load_score_cases(paths: list[str | Path]) -> tuple[np.ndarray, np.ndarray]:
             raise ValueError(f"Non-finite or negative training data in {path}")
         xs.append(x)
         ys.append(score)
+        seeds.append(case_seed)
     if len(xs) < 2:
         raise ValueError("At least two supervised cases are required")
-    return np.stack(xs), np.stack(ys)
+    return np.stack(xs), np.stack(ys), np.asarray(seeds, dtype=np.int64)
+
+
+def load_score_cases(paths: list[str | Path]) -> tuple[np.ndarray, np.ndarray]:
+    x, score, _ = _load_records(paths)
+    return x, score
 
 
 def _rank_average(values: np.ndarray) -> np.ndarray:
@@ -69,11 +78,21 @@ def _correlation(first: np.ndarray, second: np.ndarray) -> float:
     return float(np.corrcoef(first, second)[0, 1])
 
 
-def train_score_regression(
-    case_paths: list[str | Path],
-    output_dir: str | Path,
-    cfg: ScoreTrainConfig = ScoreTrainConfig(),
-) -> Path:
+def _split_indices(seeds: np.ndarray, cfg: ScoreTrainConfig) -> tuple[np.ndarray, np.ndarray, int | None]:
+    if cfg.split_mode == "seed" and len(np.unique(seeds)) >= 2:
+        holdout_seed = int(np.max(np.unique(seeds)))
+        validation = np.flatnonzero(seeds == holdout_seed)
+        training = np.flatnonzero(seeds != holdout_seed)
+        if len(training) and len(validation):
+            return training, validation, holdout_seed
+    if cfg.split_mode not in {"seed", "tail"}:
+        raise ValueError("split_mode must be 'seed' or 'tail'")
+    count = len(seeds)
+    validation_count = min(max(1, int(round(cfg.validation_fraction * count))), count - 1)
+    return np.arange(count - validation_count), np.arange(count - validation_count, count), None
+
+
+def train_score_regression(case_paths, output_dir, cfg: ScoreTrainConfig = ScoreTrainConfig()) -> Path:
     try:
         import torch
         from torch import nn
@@ -83,12 +102,10 @@ def train_score_regression(
 
     torch.manual_seed(cfg.seed)
     np.random.seed(cfg.seed)
-    x, score = load_score_cases(case_paths)
-    case_count = len(x)
-    validation_count = min(max(1, int(round(cfg.validation_fraction * case_count))), case_count - 1)
-    train_count = case_count - validation_count
-    train_x, validation_x = x[:train_count], x[train_count:]
-    train_score, validation_score = score[:train_count], score[train_count:]
+    x, score, case_seeds = _load_records(case_paths)
+    training_indices, validation_indices, holdout_seed = _split_indices(case_seeds, cfg)
+    train_x, validation_x = x[training_indices], x[validation_indices]
+    train_score, validation_score = score[training_indices], score[validation_indices]
     mean = train_x.mean(axis=(0, 2, 3), keepdims=True)
     std = np.maximum(train_x.std(axis=(0, 2, 3), keepdims=True), 1.0e-6)
     train_x = (train_x - mean) / std
@@ -102,12 +119,9 @@ def train_score_regression(
         def __init__(self) -> None:
             super().__init__()
             self.network = nn.Sequential(
-                nn.Conv2d(input_channels, 32, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(32, 32, 3, padding=2, dilation=2),
-                nn.ReLU(),
-                nn.Conv2d(32, 16, 3, padding=1),
-                nn.ReLU(),
+                nn.Conv2d(input_channels, 32, 3, padding=1), nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding=2, dilation=2), nn.ReLU(),
+                nn.Conv2d(32, 16, 3, padding=1), nn.ReLU(),
                 nn.Conv2d(16, 1, 1),
             )
         def forward(self, values):
@@ -118,7 +132,7 @@ def train_score_regression(
     loss_function = torch.nn.SmoothL1Loss()
     loader = DataLoader(
         TensorDataset(torch.from_numpy(train_x), torch.from_numpy(train_target)),
-        batch_size=min(cfg.batch_size, train_count), shuffle=True,
+        batch_size=min(cfg.batch_size, len(train_x)), shuffle=True,
     )
     history: list[float] = []
     model.train()
@@ -130,7 +144,7 @@ def train_score_regression(
             loss.backward()
             optimizer.step()
             total += float(loss.detach()) * len(features)
-        history.append(total / train_count)
+        history.append(total / len(train_x))
 
     model.eval()
     with torch.no_grad():
@@ -154,9 +168,11 @@ def train_score_regression(
         "architecture": "context_conditioned_dilated_score_cnn",
     }, model_path)
     metrics = {
-        "config": asdict(cfg), "case_count": case_count,
-        "train_cases": train_count, "validation_cases": validation_count,
-        "input_channels": input_channels,
+        "config": asdict(cfg), "case_count": len(x),
+        "train_cases": len(training_indices), "validation_cases": len(validation_indices),
+        "train_seeds": sorted(set(case_seeds[training_indices].tolist())),
+        "validation_seeds": sorted(set(case_seeds[validation_indices].tolist())),
+        "holdout_seed": holdout_seed, "input_channels": input_channels,
         "final_training_loss": history[-1], "validation_mae": mae,
         "validation_rmse": rmse, "baseline_constant_mae": baseline_mae,
         "mae_ratio_to_constant": mae / max(baseline_mae, 1.0e-14),
@@ -164,7 +180,11 @@ def train_score_regression(
         "target_scale": target_scale,
     }
     (output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    np.savez_compressed(output_dir / "validation_predictions.npz", truth=truth, prediction=prediction)
+    np.savez_compressed(
+        output_dir / "validation_predictions.npz",
+        truth=truth, prediction=prediction,
+        case_seeds=case_seeds[validation_indices],
+    )
     return model_path
 
 
@@ -175,10 +195,14 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--learning-rate", type=float, default=1.0e-3)
+    parser.add_argument("--split-mode", choices=("seed", "tail"), default="seed")
     args = parser.parse_args()
     model_path = train_score_regression(
         args.cases, args.output_dir,
-        ScoreTrainConfig(epochs=args.epochs, batch_size=args.batch_size, learning_rate=args.learning_rate),
+        ScoreTrainConfig(
+            epochs=args.epochs, batch_size=args.batch_size,
+            learning_rate=args.learning_rate, split_mode=args.split_mode,
+        ),
     )
     metrics = json.loads((Path(args.output_dir) / "metrics.json").read_text(encoding="utf-8"))
     print(json.dumps({"model": str(model_path), **metrics}, indent=2))
