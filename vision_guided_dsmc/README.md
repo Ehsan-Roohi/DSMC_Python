@@ -1,6 +1,6 @@
 # Vision-Guided DSMC Pilot
 
-A reproducible research pilot for **vision-guided particle allocation** in a two-dimensional rarefied thermal cavity.
+A reproducible research pilot for **vision-guided computational allocation** in a two-dimensional rarefied thermal cavity.
 
 The physical path uses SI units, two-dimensional particle positions, three molecular velocity components, diffuse fully accommodating walls, an Argon VHS cross-section, and an SBT/TAS collision-selection rule adapted from `Parallel_TAS.py`. It remains a research pilot rather than a validated production DSMC solver.
 
@@ -12,7 +12,7 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
-GitHub Actions on Python 3.11 verified editable installation, `35 passed in 3.71s`, and a successful end-to-end `vgdsmc-generate` smoke run.
+The locally assembled source passes `30` tests. GitHub Actions additionally checks editable installation and an end-to-end CLI smoke run on Python 3.11.
 
 ## Critical wall-reflection correction
 
@@ -48,20 +48,11 @@ The physical solver includes:
 - cell-wise particle reallocation preserving represented mass, momentum, and energy;
 - bounded integer PPC allocation with an exact global particle budget.
 
-## Matched-cost deterministic benchmark
+## Matched-cost results
 
-The physical comparison is **vision allocation versus uniform allocation with exactly the same total number of simulation particles**. Both arms undergo the same conservative reallocation.
+Vision and uniform controls use exactly the same total number of simulation particles and undergo the same conservative reallocation.
 
-```bash
-vgdsmc-physical-benchmark \
-  --output outputs/stage5_physical_equal_budget
-```
-
-The original committed three-seed snapshot gave a mean error reduction of `4.72%`, but the multi-seed study below shows that this aggregate was seed-sensitive. It is retained only as a reproducible exploratory snapshot, not as evidence of robust improvement.
-
-Record: `results/stage5_physical_equal_budget_summary.json`.
-
-## Multi-seed matched-cost benchmark
+The initial three-case snapshot produced a mean error reduction of `4.72%`, but it was seed-sensitive. The nine-run study is the primary committed result:
 
 ```bash
 vgdsmc-physical-multiseed \
@@ -70,24 +61,27 @@ vgdsmc-physical-multiseed \
   --seeds 11 22 33
 ```
 
-Nine executed runs, with three seeds at each condition:
-
 - equal adaptive/uniform particle budget in every run;
 - improved runs: `5/9`;
 - overall mean adaptive-to-uniform error ratio: `0.99918`;
 - overall mean improvement: `0.08%`;
-- normal-approximation 95% interval for the ratio: `[0.9303, 1.0680]`;
-- therefore no statistically resolved overall improvement in this small pilot.
+- normal-approximation 95% interval: `[0.9303, 1.0680]`;
+- no statistically resolved overall improvement.
 
-Condition-level results:
+Further executed diagnostics showed that the apparent condition-level gains were not robust:
 
-- `Kn=0.05`: mean ratio `0.99909`; strongly seed-sensitive;
-- `Kn=0.10`: mean ratio `1.03042`; strongly seed-sensitive and worse on average;
-- `Kn=0.20`: ratios `0.96972`, `0.96080`, `0.97355`; all three seeds improved, with mean reduction `3.20%`.
+- ten additional `Kn=0.20` seeds with the original policy gave mean ratio `1.0190`;
+- paired continuation with a two-member reference ensemble gave mean ratio `1.0939`;
+- batch-means particle allocation gave mean ratio `1.0172` over nine runs and `1.0417` over ten new `Kn=0.20` seeds;
+- vision-guided collision-subcell refinement at equal subcell budget gave mean ratio `1.0582`.
 
-The honest current conclusion is that the present gradient/noise priority is **not robust across the full tested range**. The `Kn=0.20` condition is a promising subregime that warrants a larger ensemble, not yet a general claim.
+The complete negative-results log is:
 
-Record: `results/stage6_physical_multiseed_summary.json`.
+```text
+results/stage7_to_stage14_diagnostic_log.md
+```
+
+**Current conclusion:** DSMC-only gradient, temporal-variance, disagreement, batch-standard-error, and collision-subcell images do not robustly identify where extra computation reduces error. Manual tuning of these noisy features is not scientifically justified.
 
 ## Independent SBT/VHS collision validation
 
@@ -102,19 +96,52 @@ For one fixed Maxwellian velocity sample, the exact pre-clipping expectation is 
 - measured mean: `0.52700`;
 - relative difference: `5.24%`;
 - standard error: `0.01016`;
-- maximum initial candidate probability: `0.01966`, so clipping is inactive.
+- maximum candidate probability: `0.01966`, so clipping is inactive.
 
 A homogeneous anisotropic sample relaxed while conserving total temperature and kinetic energy to numerical precision. Record: `results/stage5_collision_validation_summary.json`.
 
+## Deterministic-reference adapter
+
+The next path uses a lower-noise DVM/Shakhov or other deterministic kinetic reference instead of noisy coarse-versus-DSMC labels.
+
+Required reference file contract:
+
+```text
+reference.npz
+  T    # (ny, nx), K
+  rho  # (ny, nx), positive density or consistently normalized density
+  u    # (ny, nx), m/s
+  v    # (ny, nx), m/s
+```
+
+Optional arrays such as `qx` and `qy` are preserved. All required fields must be finite, positive where appropriate, and aligned with the DSMC cell-center grid.
+
+Build an ML-ready supervised case:
+
+```bash
+vgdsmc-reference-case \
+  --coarse-case outputs/coarse/case.npz \
+  --reference outputs/dvm/reference.npz \
+  --output outputs/supervised/case.npz
+```
+
+The adapter:
+
+- validates the DVM/reference field contract and grid alignment;
+- computes a dimensionless local error from temperature, velocity magnitude, and density;
+- produces a continuous score;
+- creates rank-based balanced classes that remain valid even when many cells have tied or zero error;
+- stores metadata and class counts beside the generated `NPZ` file.
+
 ## Learned-model status
 
-The U-Net path remains experimental and is not yet a successful result:
+The earlier U-Net path is not claimed as successful:
 
 - single-seed classification collapsed toward the high-refinement class;
 - continuous single-seed rank regression had mean Spearman correlation near `0.036`;
 - four-member ensemble labels improved it only to about `0.133`.
 
-A learned model must beat the corrected multi-seed matched-cost baseline before it is enabled in the closed loop.
+A learned model must be retrained against deterministic or strongly ensemble-averaged targets and must outperform the equal-budget uniform control over independent seeds.
 
 ## Main files
 
@@ -123,23 +150,26 @@ A learned model must beat the corrected multi-seed matched-cost baseline before 
 - `vgdsmc/sbt_solver.py`: physical SBT/TAS collision kernel and advancement;
 - `vgdsmc/physical_adaptive.py`: exact-budget physical allocation and conservative reallocation;
 - `vgdsmc/physical_benchmark.py`: deterministic matched-cost benchmark;
-- `vgdsmc/physical_multiseed.py`: parallel multi-seed benchmark and uncertainty summary;
+- `vgdsmc/physical_multiseed.py`: parallel multi-seed benchmark;
+- `vgdsmc/physical_paired_ensemble.py`: paired continuation/reference-ensemble evaluation;
+- `vgdsmc/physical_policy_study.py`: policy diagnostics;
 - `vgdsmc/collision_validation.py`: collision-frequency and homogeneous-relaxation validation;
+- `vgdsmc/reference_adapter.py`: deterministic-reference validation and supervised-label generation;
+- `vgdsmc/reference_cli.py`: reference-case command-line interface;
 - `vgdsmc/training.py`: experimental learned-model path.
 
 ## Scientific limitations
 
-- no independent DSMC-code validation yet;
-- only three seeds per condition;
-- the reference uses four times the simulation-particle count rather than a full convergence study;
+- no independent DVM or external DSMC cavity field has been connected yet;
+- the reference used in current comparisons is a higher-particle version of the same solver, not a full convergence study;
 - variable particle weights are conservatively equalized before SBT collisions but remain approximate;
-- equal particle counts do not automatically imply equal wall-clock cost;
-- wall heat flux, viscosity, Knudsen-layer profiles, and transport coefficients require dedicated validation.
+- equal particle or subcell budgets do not automatically imply equal wall-clock cost;
+- wall heat flux, viscosity, Knudsen-layer profiles, and transport coefficients require independent validation.
 
 ## Next scientific steps
 
-1. run at least 10-20 independent seeds per condition, especially around `Kn=0.20`;
-2. redesign the priority score for `Kn=0.05-0.10`, where the present map is seed-sensitive;
-3. validate temperature, density, velocity, and wall heat flux against an independent high-particle DSMC solution;
-4. measure particle updates and wall-clock time for matched-error and matched-cost comparisons;
-5. train a continuous vision score and require statistically significant improvement over the corrected physical baseline.
+1. export one DVM/Shakhov thermal-cavity solution to the documented `NPZ` contract;
+2. generate matched coarse DSMC cases on the same grid and operating conditions;
+3. verify DVM/DSMC nondimensionalization and field alignment;
+4. train continuous score regression against deterministic local error;
+5. require statistically significant improvement over the equal-budget uniform control before re-enabling closed-loop vision guidance.
