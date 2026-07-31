@@ -1,0 +1,114 @@
+{
+  "stage": 22,
+  "description": "Internal spatial- and velocity-grid convergence study for corrected Shakhov-DVM",
+  "workflow_id": 30643964029,
+  "status": "success",
+  "tests": {
+    "passed": 8,
+    "runtime_seconds": 0.94
+  },
+  "configuration": {
+    "knudsen": 0.10,
+    "wall_temperatures_K": {
+      "left": 340.0,
+      "right": 260.0,
+      "top": 300.0,
+      "bottom": 300.0
+    },
+    "velocity_extent": 5.0,
+    "max_steps": 1400,
+    "tolerance": 3.0e-6,
+    "run_count": 7
+  },
+  "spatial_convergence": {
+    "fixed_nv": 8,
+    "levels": [6, 8, 10],
+    "reference_grid": [12, 12],
+    "metrics": {
+      "6x6": {
+        "temperature_relative_rms": 0.00626681441701954,
+        "density_relative_rms": 0.005611100218870793,
+        "velocity_thermal_rms": 0.0026710382657026766,
+        "heat_flux_relative_rms": 0.12821056823245153,
+        "composite_error": 0.03590245480098442
+      },
+      "8x8": {
+        "temperature_relative_rms": 0.0034214252012542655,
+        "density_relative_rms": 0.0030001056536142765,
+        "velocity_thermal_rms": 0.001398495999807282,
+        "heat_flux_relative_rms": 0.07174487068229882,
+        "composite_error": 0.020013436821698007
+      },
+      "10x10": {
+        "temperature_relative_rms": 0.001510016530830499,
+        "density_relative_rms": 0.001299567989792278,
+        "velocity_thermal_rms": 0.0005783186394148072,
+        "heat_flux_relative_rms": 0.032333417229755544,
+        "composite_error": 0.008987437419070978
+      }
+    },
+    "all_metrics_monotone_nonincreasing": true,
+    "observed_orders": {
+      "temperature_relative_rms": [2.103749333889309, 3.665517495923414],
+      "density_relative_rms": [2.17635845882405, 3.7492260354291567],
+      "velocity_thermal_rms": [2.2492534260410446, 3.957217903246504],
+      "heat_flux_relative_rms": [2.018052805014331, 3.5717594081262227],
+      "composite_error": [2.0314153675921593, 3.587717970894995]
+    }
+  },
+  "velocity_convergence": {
+    "fixed_grid": [8, 8],
+    "levels": [6, 8, 10],
+    "reference_nv": 12,
+    "metrics": {
+      "Nv6": {
+        "temperature_relative_rms": 0.0016128707402072496,
+        "density_relative_rms": 0.005313226076114788,
+        "velocity_thermal_rms": 0.0010487231683276705,
+        "heat_flux_relative_rms": 0.3493484719597923,
+        "composite_error": 0.08917401259790911
+      },
+      "Nv8": {
+        "temperature_relative_rms": 0.0008221162435777587,
+        "density_relative_rms": 0.0010211982837121565,
+        "velocity_thermal_rms": 0.0007110587367833707,
+        "heat_flux_relative_rms": 0.022976831875880645,
+        "composite_error": 0.006378400058321482
+      },
+      "Nv10": {
+        "temperature_relative_rms": 0.0002756931409765535,
+        "density_relative_rms": 0.00035600924413695865,
+        "velocity_thermal_rms": 0.0002358086615115817,
+        "heat_flux_relative_rms": 0.003459351135766013,
+        "composite_error": 0.001079693964413005
+      }
+    },
+    "all_metrics_monotone_nonincreasing": true,
+    "observed_orders": {
+      "temperature_relative_rms": [2.3424787380905943, 4.896369870532618],
+      "density_relative_rms": [5.73279543727278, 4.722409862664778],
+      "velocity_thermal_rms": [1.3507050745652343, 4.946297177409711],
+      "heat_flux_relative_rms": [9.460386215013212, 8.485144871490304],
+      "composite_error": [9.168706081407061, 7.960076131227937]
+    }
+  },
+  "reference_diagnostics": {
+    "spatial_reference_12x12_Nv8": {
+      "iterations": 1250,
+      "final_residual": 1.8265516816034324e-6,
+      "mean_temperature_K": 299.36847284081716,
+      "left_temperature_K": 321.24285159661287,
+      "right_temperature_K": 277.4225783124387,
+      "mean_heat_flux_x": 768422.0760288588
+    },
+    "velocity_reference_8x8_Nv12": {
+      "iterations": 800,
+      "final_residual": 2.0689075063439137e-6,
+      "mean_temperature_K": 299.4832681510643,
+      "left_temperature_K": 318.8358249283863,
+      "right_temperature_K": 279.9379703963448,
+      "mean_heat_flux_x": 725370.1848950679
+    }
+  },
+  "conclusion": "Both spatial and velocity sequences are monotone for every reported metric. Bulk fields converge substantially faster than heat flux. At fixed 8x8 space, Nv=10 differs from Nv=12 by about 0.35 percent in heat flux and less than 0.04 percent in temperature, density, and velocity metrics. At fixed Nv=8, a 10x10 grid still differs from 12x12 by about 3.23 percent in heat flux while bulk-field errors are about 0.15 percent or smaller. A combined high-resolution reference should therefore use at least Nv=10 and a 12x12 spatial grid before external validation. This is internal discretization convergence, not validation against an independent solver or experiment."
+}
