@@ -1,0 +1,97 @@
+{
+  "stage": 21,
+  "description": "Field-error-weighted Neyman sampling with and without lag-one autocorrelation correction",
+  "workflow_id": 30643154514,
+  "status": "success",
+  "configuration": {
+    "grid": [6, 6],
+    "particles_per_cell": 20,
+    "warm_steps": 40,
+    "pilot_steps": 40,
+    "evaluation_steps": 80,
+    "base_samples_per_cell": 20,
+    "sample_range": [15, 25],
+    "observations_per_estimator": 720,
+    "seeds": [399, 411, 422, 433, 444, 455, 466, 477, 488, 499],
+    "conditions": [[0.05, 40.0], [0.10, 40.0], [0.20, 40.0]]
+  },
+  "weighted_raw_variance": {
+    "primary_success": false,
+    "sampling_error": {
+      "mean_ratio": 0.9987251476567416,
+      "median_ratio": 0.9926615870236853,
+      "standard_error": 0.0071239596428681615,
+      "ci95": [0.98476218675672, 1.0126881085567632],
+      "run_count": 30,
+      "improved_runs": 17,
+      "mean_improvement_percent": 0.12748523432584147
+    },
+    "dvm_error": {
+      "mean_ratio": 0.9982151704510606,
+      "median_ratio": 0.9983558112340725,
+      "standard_error": 0.002235585442996163,
+      "ci95": [0.9938334229827881, 1.002596917919333],
+      "improved_runs": 17,
+      "mean_improvement_percent": 0.17848295489394372
+    },
+    "condition_sampling_ratios": {
+      "Kn_0.05": {
+        "mean": 0.9935905799068575,
+        "ci95": [0.9707458643549645, 1.0164352954587506],
+        "improved_runs": 6
+      },
+      "Kn_0.10": {
+        "mean": 1.009452754558523,
+        "ci95": [0.9825796118246004, 1.0363258972924456],
+        "improved_runs": 5
+      },
+      "Kn_0.20": {
+        "mean": 0.9931321085048437,
+        "ci95": [0.9693228643183508, 1.0169413526913365],
+        "improved_runs": 6
+      }
+    },
+    "improving_condition_count": 2,
+    "mean_absolute_fractional_count_change": 0.061111111111111144
+  },
+  "weighted_effective_variance": {
+    "primary_success": false,
+    "sampling_error": {
+      "mean_ratio": 0.9957460929992307,
+      "median_ratio": 1.0032305274561857,
+      "standard_error": 0.008594758872917545,
+      "ci95": [0.9789003656083123, 1.0125918203901492],
+      "run_count": 30,
+      "improved_runs": 14,
+      "mean_improvement_percent": 0.425390700076933
+    },
+    "dvm_error": {
+      "mean_ratio": 0.996409103848836,
+      "median_ratio": 0.9947877506876909,
+      "standard_error": 0.002281252289584957,
+      "ci95": [0.9919378493612494, 1.0008803583364225],
+      "improved_runs": 20,
+      "mean_improvement_percent": 0.3590896151164036
+    },
+    "condition_sampling_ratios": {
+      "Kn_0.05": {
+        "mean": 0.9842599711082013,
+        "ci95": [0.958208607921582, 1.0103113342948205],
+        "improved_runs": 6
+      },
+      "Kn_0.10": {
+        "mean": 1.0136256673624602,
+        "ci95": [0.9927525964974556, 1.0344987382274649],
+        "improved_runs": 3
+      },
+      "Kn_0.20": {
+        "mean": 0.9893526405270305,
+        "ci95": [0.9516880846393411, 1.02701719641472],
+        "improved_runs": 5
+      }
+    },
+    "improving_condition_count": 2,
+    "mean_absolute_fractional_count_change": 0.08694444444444449
+  },
+  "conclusion": "Neither field-error-weighted raw variance nor lag-one-autocorrelation-corrected effective variance met the predeclared success rule. Average changes were small and statistically unresolved, while Kn=0.10 worsened for both policies. This closes the fixed-trajectory sampling-allocation feasibility path. Particle and sampling adaptation remain disabled. The project now pivots to deterministic-reference convergence and independent physical validation."
+}
