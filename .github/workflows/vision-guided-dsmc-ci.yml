@@ -56,7 +56,7 @@ jobs:
             --output /tmp/bgk_reference.npz \
             --nx 6 --ny 6 --nv 8 \
             --max-steps 700 --tolerance 5e-6
-      - name: Run three-velocity Shakhov-DVM reference
+      - name: Run corrected three-velocity Shakhov-DVM reference
         run: |
           vgdsmc-shakhov-reference \
             --output /tmp/shakhov_reference.npz \
@@ -101,31 +101,34 @@ jobs:
           assert summary['dvm_left_temperature'] > summary['dvm_right_temperature']
           assert summary['dvm_final_residual'] < 8e-6
           PY
-      - name: Build full Shakhov-supervised multi-condition dataset
+      - name: Build five-seed Shakhov-supervised dataset
         run: |
           vgdsmc-build-dvm-dataset \
             --output-dir /tmp/dvm_dataset \
             --nx 6 --ny 6 --ppc 5 \
-            --dsmc-steps 25 --nv 6 --dvm-max-steps 900
-      - name: Train context-conditioned continuous score model
+            --dsmc-steps 25 --nv 6 --dvm-max-steps 900 \
+            --seeds 11 22 33 44 55
+      - name: Train ensemble-target coordinate-conditioned score model
         run: |
-          vgdsmc-train-score \
+          vgdsmc-train-ensemble-score \
             --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
-            --output-dir /tmp/score_training \
-            --epochs 30 --batch-size 4 --split-mode seed
-      - name: Verify score-regression artifacts
+            --output-dir /tmp/ensemble_score_training \
+            --epochs 80 --batch-size 6 --validation-seed-count 2
+      - name: Verify ensemble-regression artifacts
         run: |
           python - <<'PY'
           import json
           import math
           from pathlib import Path
-          metrics = json.load(open('/tmp/score_training/metrics.json'))
-          assert metrics['case_count'] == 18
-          assert metrics['input_channels'] == 6
-          assert metrics['train_seeds'] == [11]
-          assert metrics['validation_seeds'] == [22]
-          assert math.isfinite(metrics['validation_mae'])
-          assert math.isfinite(metrics['validation_spearman'])
-          assert Path('/tmp/score_training/score_model.pt').exists()
-          assert Path('/tmp/score_training/validation_predictions.npz').exists()
+          metrics = json.load(open('/tmp/ensemble_score_training/metrics.json'))
+          assert metrics['case_count'] == 45
+          assert metrics['condition_count'] == 9
+          assert metrics['input_channels'] == 10
+          assert metrics['train_seeds'] == [11, 22, 33]
+          assert metrics['validation_seeds'] == [44, 55]
+          assert math.isfinite(metrics['ensemble_group_mae'])
+          assert math.isfinite(metrics['ensemble_group_spearman'])
+          assert math.isfinite(metrics['mae_ratio_to_global_constant'])
+          assert Path('/tmp/ensemble_score_training/ensemble_score_model.pt').exists()
+          assert Path('/tmp/ensemble_score_training/validation_predictions.npz').exists()
           PY
