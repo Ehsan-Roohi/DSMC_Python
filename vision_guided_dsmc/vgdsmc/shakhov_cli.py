@@ -4,12 +4,12 @@ import argparse
 import json
 import numpy as np
 
-from .dvm_shakhov import ShakhovReferenceConfig, save_shakhov_reference
+from .dvm_shakhov_corrected import ShakhovReferenceConfig, save_shakhov_reference
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate a deterministic 2-D-space/3-D-velocity Shakhov-DVM reference"
+        description="Generate a quadrature-corrected deterministic 2-D-space/3-D-velocity Shakhov-DVM reference"
     )
     parser.add_argument("--output", default="outputs/dvm/shakhov_reference.npz")
     parser.add_argument("--nx", type=int, default=12)
@@ -44,6 +44,7 @@ def main() -> None:
             "iterations": int(data["iterations"]),
             "final_residual": float(data["residual_history"][-1]),
             "mean_temperature": float(np.mean(data["T"])),
+            "mean_raw_quadrature_temperature": float(np.mean(data["T_raw_quadrature"])),
             "left_temperature": float(np.mean(data["T"][:, 0])),
             "right_temperature": float(np.mean(data["T"][:, -1])),
             "mean_heat_flux_x": float(np.mean(data["qx"])),
