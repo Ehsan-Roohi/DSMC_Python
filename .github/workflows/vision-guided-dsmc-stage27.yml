@@ -1,0 +1,64 @@
+name: Vision-guided DSMC Stage 27
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage27.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage27.yml'
+jobs:
+  discretization-attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 27 fixed attribution design
+        run: pytest -q tests/test_stage27_discretization_attribution.py tests/test_linear_sidewall_validation.py
+      - name: Run baseline and isolated refinement cases
+        run: |
+          vgdsmc-stage27-attribution \
+            --output-dir /tmp/stage27_attribution \
+            --max-steps 6500 --tolerance 2e-5
+      - name: Verify attribution outputs
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage27_attribution/summary.json'))
+          assert summary['stage'] == 27
+          assert summary['configuration']['physics_frozen'] is True
+          assert summary['configuration']['transport_order'] == 'first-order upwind'
+          names = [row['case'] for row in summary['rows']]
+          assert names == [
+              'baseline_20x20_nv17',
+              'spatial_24x24_nv17',
+              'velocity_20x20_nv19',
+          ]
+          assert set(summary['attribution']) == {'spatial_refinement', 'velocity_refinement'}
+          for row in summary['rows']:
+              for key in ('final_change', 'qav_relative_error',
+                          'wall_velocity_relative_rms',
+                          'wall_velocity_sign_agreement', 'work_proxy'):
+                  assert math.isfinite(row[key])
+          arrays = np.load('/tmp/stage27_attribution/fields_and_profiles.npz')
+          assert 'table_velocity_baseline_20x20_nv17' in arrays.files
+          assert 'table_velocity_spatial_24x24_nv17' in arrays.files
+          assert 'table_velocity_velocity_20x20_nv19' in arrays.files
+          assert Path('/tmp/stage27_attribution/summary.json').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage27-discretization-attribution
+          path: /tmp/stage27_attribution
+          retention-days: 30
