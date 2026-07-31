@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vision-guided-dsmc"
-version = "1.4.0"
+version = "1.5.0"
 description = "Physical Argon VHS/SBT DSMC with deterministic DVM supervision"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
@@ -30,6 +30,7 @@ vgdsmc-physical-reference-pipeline = "vgdsmc.physical_reference_pipeline:main"
 vgdsmc-build-dvm-dataset = "vgdsmc.dvm_dataset:main"
 vgdsmc-train-score = "vgdsmc.score_regression:main"
 vgdsmc-train-ensemble-score = "vgdsmc.ensemble_score_regression:main"
+vgdsmc-train-lowfreq-score = "vgdsmc.lowfreq_score_regression:main"
 vgdsmc-validate-collisions = "vgdsmc.collision_validation:main"
 
 [tool.setuptools.packages.find]
