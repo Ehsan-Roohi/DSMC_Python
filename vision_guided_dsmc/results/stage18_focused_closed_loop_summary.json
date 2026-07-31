@@ -1,0 +1,53 @@
+{
+  "stage": 18,
+  "description": "Focused five-percent matched-budget closed loop on ten unseen seeds",
+  "workflow_run": 2,
+  "status": "success",
+  "configuration": {
+    "grid": [6, 6],
+    "particles_per_cell": 20,
+    "particles_per_run": 720,
+    "amplitude": 0.05,
+    "seeds": [66, 77, 88, 99, 111, 122, 133, 144, 155, 166],
+    "conditions": [[0.05, 40.0], [0.10, 40.0], [0.20, 40.0]]
+  },
+  "overall": {
+    "run_count": 30,
+    "improved_runs": 16,
+    "mean_error_ratio": 0.9852067474955276,
+    "median_error_ratio": 0.9967367817716439,
+    "standard_error": 0.021974541661728467,
+    "ci95": [0.9421366458385398, 1.0282768491525154],
+    "mean_improvement_percent": 1.4793252504472387,
+    "mean_realized_absolute_fractional_change": 0.023333333333333355,
+    "maximum_realized_fractional_change": 0.05,
+    "mean_collision_ratio": 1.0044859243465258
+  },
+  "condition_breakdown": {
+    "Kn_0.05": {
+      "run_count": 10,
+      "improved_runs": 4,
+      "mean_error_ratio": 1.0177106691149653,
+      "mean_improvement_percent": -1.7710669114965327,
+      "standard_error": 0.03849664092115875,
+      "ci95": [0.9422572529094941, 1.0931640853204365]
+    },
+    "Kn_0.10": {
+      "run_count": 10,
+      "improved_runs": 8,
+      "mean_error_ratio": 0.9625926078170961,
+      "mean_improvement_percent": 3.74073921829039,
+      "standard_error": 0.034980295854868004,
+      "ci95": [0.8940312279415548, 1.0311539876926374]
+    },
+    "Kn_0.20": {
+      "run_count": 10,
+      "improved_runs": 4,
+      "mean_error_ratio": 0.9753169655545211,
+      "mean_improvement_percent": 2.4683034445478924,
+      "standard_error": 0.04215629345991348,
+      "ci95": [0.8926906303730906, 1.0579433007359516]
+    }
+  },
+  "conclusion": "The overall confidence interval includes one, so no statistically resolved benefit is claimed. Kn=0.10 is an exploratory promising condition and is advanced to a preregistered-style confirmation on entirely new seeds and three temperature differences."
+}
