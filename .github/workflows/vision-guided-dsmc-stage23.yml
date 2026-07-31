@@ -1,0 +1,68 @@
+name: Vision-guided DSMC Stage 23
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage23.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage23.yml'
+jobs:
+  combined-high-resolution-reference:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 23 utilities
+        run: pytest -q tests/test_combined_dvm_reference.py tests/test_dvm_convergence.py tests/test_dvm_shakhov.py
+      - name: Run combined 3x2 high-resolution matrix
+        run: |
+          vgdsmc-combined-dvm-reference \
+            --output-dir /tmp/stage23_combined_dvm \
+            --kn 0.10 --max-steps 1800 --tolerance 2e-6 \
+            --spatial-levels 10 12 14 \
+            --velocity-levels 10 12
+      - name: Verify combined-reference outputs
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage23_combined_dvm/summary.json'))
+          assert summary['stage'] == 23
+          assert summary['run_count'] == 6
+          assert summary['canonical_reference']['grid'] == [14, 14]
+          assert summary['canonical_reference']['nv'] == 12
+          assert set(summary['spatial_sequences']) == {'Nv_10', 'Nv_12'}
+          assert set(summary['velocity_increments']) == {'grid_10', 'grid_12', 'grid_14'}
+          canonical = 'nx14_ny14_nv12'
+          assert summary['errors_relative_to_canonical'][canonical]['composite_error'] == 0.0
+          for row in summary['errors_relative_to_canonical'].values():
+              for value in row.values():
+                  assert math.isfinite(value)
+                  assert value >= 0.0
+          for row in summary['profile_errors_relative_to_canonical'].values():
+              for value in row.values():
+                  assert math.isfinite(value)
+                  assert value >= 0.0
+          fields = np.load('/tmp/stage23_combined_dvm/fields.npz')
+          profiles = np.load('/tmp/stage23_combined_dvm/profiles.npz')
+          assert 'T_nx14_ny14_nv12' in fields.files
+          assert 'normal_heat_flux_left_nx14_ny14_nv12' in profiles.files
+          assert 'T_horizontal_centerline_nx14_ny14_nv12' in profiles.files
+          assert Path('/tmp/stage23_combined_dvm/summary.json').exists()
+          PY
+      - name: Upload Stage 23 reference artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage23-combined-dvm-reference
+          path: /tmp/stage23_combined_dvm
+          retention-days: 30
