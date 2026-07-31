@@ -1,8 +1,19 @@
-# Vision-Guided DSMC Pilot
+# Audited Vision-Guided DSMC / DVM Pilot
 
-A reproducible research pilot for **vision-guided computational allocation** in a two-dimensional rarefied thermal cavity.
+A reproducible rarefied-gas research pipeline for testing whether spatial information from a coarse DSMC solution can guide computational allocation in a two-dimensional thermal cavity.
 
-The physical path uses SI units, two-dimensional particle positions, three molecular velocity components, diffuse fully accommodating walls, an Argon VHS cross-section, and an SBT/TAS collision-selection rule adapted from `Parallel_TAS.py`. It remains a research pilot rather than a validated production DSMC solver.
+The repository now contains:
+
+- a physical Argon VHS/SBT DSMC pilot with 2-D positions and 3-D molecular velocities;
+- corrected diffuse fully accommodating walls;
+- deterministic BGK-DVM and corrected three-velocity Shakhov-DVM references;
+- raw DVM/Tecplot import and aligned `NPZ` reference contracts;
+- matched-budget particle, collision-subcell, and temporal-sampling experiments;
+- multi-seed learned error-map models;
+- explicit negative-result records;
+- spatial- and velocity-grid convergence studies for the deterministic Shakhov solver.
+
+This is an audited research pilot, not a validated production DSMC package.
 
 ## Install and test
 
@@ -12,164 +23,191 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
-The locally assembled source passes `30` tests. GitHub Actions additionally checks editable installation and an end-to-end CLI smoke run on Python 3.11.
+## Critical corrections
 
-## Critical wall-reflection correction
+### Wall-reflection writeback
 
-The early pilot used a NumPy pattern equivalent to:
-
-```python
-modify(velocity[particle_ids])
-```
-
-Advanced indexing returns a copy, so reflected velocities were not written back to the original particle array. Both the dimensionless and physical solvers now explicitly assign the returned velocities:
+The early particle solver passed an advanced-indexing expression such as `velocity[ids]` into a mutating helper. NumPy returned a copy, so reflected velocities were not written back. Both particle solvers now explicitly assign returned velocities:
 
 ```python
-velocity[particle_ids] = reflected_velocity
+velocity[ids] = reflected_velocity
 ```
 
-Dedicated regression tests verify both wall implementations. The following pre-fix numbers are withdrawn and must not be cited:
+Dedicated regression tests protect both implementations. Results produced before this correction, including the early `7.84%` and `5.81%` reductions, are withdrawn.
 
-- the earlier `7.84%` dimensionless reduction;
-- the earlier `5.81%` physical reduction.
+### Exact bounded budgets
 
-## Physical Argon VHS/SBT solver
+Particle and sampling allocators now guarantee the exact requested global integer budget while respecting cell-wise lower and upper limits.
 
-The physical solver includes:
+### Shakhov velocity-quadrature energy
 
-- SI-unit positions, velocities, time step, volume, number density, and mean free path;
-- two-dimensional spatial motion with three-dimensional molecular velocities;
-- diffuse fully accommodating thermal walls;
-- Argon reference parameters `d_ref=4.17e-10 m`, `T_ref=273 K`, and `omega=0.81`;
-- VHS total cross-section using the identical-particle reduced mass and `Gamma(5/2-omega)`;
-- the sequential SBT candidate probability adapted from `Parallel_TAS.py`;
+A low-order Cartesian velocity grid did not reproduce the continuous Maxwellian second moment exactly and injected energy during relaxation. The Maxwellian parameter is now reconstructed on the active quadrature so an isothermal cavity remains near its prescribed temperature. The corrected solver reports both physical temperature and the raw quadrature diagnostic.
+
+## Physical Argon VHS/SBT path
+
+The physical DSMC pilot includes:
+
+- SI-unit position, velocity, time step, number density, and cell volume;
+- Argon `d_ref=4.17e-10 m`, `T_ref=273 K`, `omega=0.81`;
+- VHS cross-section using identical-particle reduced mass and `Gamma(5/2-omega)`;
+- sequential SBT/TAS collision selection adapted from `Parallel_TAS.py`;
 - adaptive two-dimensional collision subcells;
-- conservative equalization of mixed particle weights before SBT collisions;
-- cell-wise particle reallocation preserving represented mass, momentum, and energy;
-- bounded integer PPC allocation with an exact global particle budget.
+- conservative mass/momentum/energy particle resampling;
+- collision-frequency and homogeneous-relaxation checks.
 
-## Matched-cost results
+The collision-statistics check obtained an exact expected count of `0.50077` collisions per sweep and a measured mean of `0.52700` over 5000 sweeps. Homogeneous anisotropic relaxation conserved total temperature, momentum, and kinetic energy to numerical precision.
 
-Vision and uniform controls use exactly the same total number of simulation particles and undergo the same conservative reallocation.
+## Deterministic reference path
 
-The initial three-case snapshot produced a mean error reduction of `4.72%`, but it was seed-sensitive. The nine-run study is the primary committed result:
-
-```bash
-vgdsmc-physical-multiseed \
-  --output outputs/stage6_physical_multiseed \
-  --workers 3 \
-  --seeds 11 22 33
-```
-
-- equal adaptive/uniform particle budget in every run;
-- improved runs: `5/9`;
-- overall mean adaptive-to-uniform error ratio: `0.99918`;
-- overall mean improvement: `0.08%`;
-- normal-approximation 95% interval: `[0.9303, 1.0680]`;
-- no statistically resolved overall improvement.
-
-Further executed diagnostics showed that the apparent condition-level gains were not robust:
-
-- ten additional `Kn=0.20` seeds with the original policy gave mean ratio `1.0190`;
-- paired continuation with a two-member reference ensemble gave mean ratio `1.0939`;
-- batch-means particle allocation gave mean ratio `1.0172` over nine runs and `1.0417` over ten new `Kn=0.20` seeds;
-- vision-guided collision-subcell refinement at equal subcell budget gave mean ratio `1.0582`.
-
-The complete negative-results log is:
-
-```text
-results/stage7_to_stage14_diagnostic_log.md
-```
-
-**Current conclusion:** DSMC-only gradient, temporal-variance, disagreement, batch-standard-error, and collision-subcell images do not robustly identify where extra computation reduces error. Manual tuning of these noisy features is not scientifically justified.
-
-## Independent SBT/VHS collision validation
+Generate a corrected Shakhov reference:
 
 ```bash
-vgdsmc-validate-collisions \
-  --output outputs/stage5_collision_validation
+vgdsmc-shakhov-reference \
+  --output outputs/dvm/shakhov_reference.npz \
+  --nx 12 --ny 12 --nv 10 \
+  --kn 0.10 --max-steps 1800
 ```
 
-For one fixed Maxwellian velocity sample, the exact pre-clipping expectation is obtained by summing `sigma(g) g` over every unordered pair. Over `5000` independent SBT sweeps:
+Import an existing raw moment file:
 
-- exact expected collisions per sweep: `0.50077`;
-- measured mean: `0.52700`;
-- relative difference: `5.24%`;
-- standard error: `0.01016`;
-- maximum candidate probability: `0.01966`, so clipping is inactive.
+```bash
+vgdsmc-import-dvm \
+  --input data/cavity_dvm/cavity_dvm_moments.dat \
+  --output outputs/dvm/imported_reference.npz
+```
 
-A homogeneous anisotropic sample relaxed while conserving total temperature and kinetic energy to numerical precision. Record: `results/stage5_collision_validation_summary.json`.
-
-## Deterministic-reference adapter
-
-The next path uses a lower-noise DVM/Shakhov or other deterministic kinetic reference instead of noisy coarse-versus-DSMC labels.
-
-Required reference file contract:
+The aligned reference contract requires:
 
 ```text
-reference.npz
-  T    # (ny, nx), K
-  rho  # (ny, nx), positive density or consistently normalized density
-  u    # (ny, nx), m/s
-  v    # (ny, nx), m/s
+T, rho, u, v
 ```
 
-Optional arrays such as `qx` and `qy` are preserved. All required fields must be finite, positive where appropriate, and aligned with the DSMC cell-center grid.
+and preserves optional fields such as `qx` and `qy`.
 
-Build an ML-ready supervised case:
+Build an ML-ready DSMC/DVM case:
 
 ```bash
 vgdsmc-reference-case \
   --coarse-case outputs/coarse/case.npz \
-  --reference outputs/dvm/reference.npz \
+  --reference outputs/dvm/shakhov_reference.npz \
   --output outputs/supervised/case.npz
 ```
 
-The adapter:
+## Audited adaptation findings
 
-- validates the DVM/reference field contract and grid alignment;
-- computes a dimensionless local error from temperature, velocity magnitude, and density;
-- produces a continuous score;
-- creates rank-based balanced classes that remain valid even when many cells have tied or zero error;
-- stores metadata and class counts beside the generated `NPZ` file.
+All principal comparisons used paired controls and exact equal computational budgets for the quantity under study.
 
-## Learned-model status
+### Particle and collision allocation
 
-The earlier U-Net path is not claimed as successful:
+The early apparent gains did not survive independent seeds. The confirmatory Stage 19 experiment fixed the selected policy before execution:
 
-- single-seed classification collapsed toward the high-refinement class;
-- continuous single-seed rank regression had mean Spearman correlation near `0.036`;
-- four-member ensemble labels improved it only to about `0.133`.
+- `Kn=0.10`;
+- temperature differences `20, 40, 60 K`;
+- 5% local particle perturbation;
+- 10 entirely new seeds;
+- 30 paired equal-particle runs.
 
-A learned model must be retrained against deterministic or strongly ensemble-averaged targets and must outperform the equal-budget uniform control over independent seeds.
+Result:
 
-## Main files
+```text
+mean adaptive/uniform error ratio = 1.01614
+95% interval = [0.97607, 1.05621]
+improved runs = 11/30
+improving temperature conditions = 0/3
+```
 
-- `vgdsmc/simulator.py`: corrected dimensionless weighted pilot solver;
-- `vgdsmc/vhs_model.py`: physical VHS parameters, particle state, and corrected diffuse walls;
-- `vgdsmc/sbt_solver.py`: physical SBT/TAS collision kernel and advancement;
-- `vgdsmc/physical_adaptive.py`: exact-budget physical allocation and conservative reallocation;
-- `vgdsmc/physical_benchmark.py`: deterministic matched-cost benchmark;
-- `vgdsmc/physical_multiseed.py`: parallel multi-seed benchmark;
-- `vgdsmc/physical_paired_ensemble.py`: paired continuation/reference-ensemble evaluation;
-- `vgdsmc/physical_policy_study.py`: policy diagnostics;
-- `vgdsmc/collision_validation.py`: collision-frequency and homogeneous-relaxation validation;
-- `vgdsmc/reference_adapter.py`: deterministic-reference validation and supervised-label generation;
-- `vgdsmc/reference_cli.py`: reference-case command-line interface;
-- `vgdsmc/training.py`: experimental learned-model path.
+The confirmatory hypothesis failed. Learned particle reallocation is disabled.
 
-## Scientific limitations
+### Fixed-trajectory sampling allocation
 
-- no independent DVM or external DSMC cavity field has been connected yet;
-- the reference used in current comparisons is a higher-particle version of the same solver, not a full convergence study;
-- variable particle weights are conservatively equalized before SBT collisions but remain approximate;
-- equal particle or subcell budgets do not automatically imply equal wall-clock cost;
-- wall heat flux, viscosity, Knudsen-layer profiles, and transport coefficients require independent validation.
+Stages 20 and 21 kept particle trajectories and collisions identical and changed only the number of temporal observations used in each cell, with exactly 720 observations in every estimator.
 
-## Next scientific steps
+The best Stage 21 policy used field-error weights and lag-one autocorrelation correction:
 
-1. export one DVM/Shakhov thermal-cavity solution to the documented `NPZ` contract;
-2. generate matched coarse DSMC cases on the same grid and operating conditions;
-3. verify DVM/DSMC nondimensionalization and field alignment;
-4. train continuous score regression against deterministic local error;
-5. require statistically significant improvement over the equal-budget uniform control before re-enabling closed-loop vision guidance.
+```text
+mean adaptive/uniform sampling-error ratio = 0.99575
+95% interval = [0.97890, 1.01259]
+improved runs = 14/30
+```
+
+The effect was small and statistically unresolved; `Kn=0.10` worsened. Sampling allocation is also disabled.
+
+### Current scientific conclusion
+
+Gradient maps, temporal variance, two-run disagreement, batch standard error, learned low-frequency scores, particle reallocation, collision-subcell allocation, and fixed-trajectory sampling allocation did not demonstrate robust matched-budget benefit in the tested cavity pilot. These negative results are retained rather than tuned away.
+
+Detailed records are stored under `results/stage7_to_stage14_diagnostic_log.md` and `results/stage15_...` through `results/stage21_...`.
+
+## Stage 22: corrected Shakhov-DVM convergence
+
+Run:
+
+```bash
+vgdsmc-dvm-convergence \
+  --output-dir outputs/stage22_dvm_convergence \
+  --kn 0.10 \
+  --spatial-levels 6 8 10 --spatial-reference 12 --spatial-nv 8 \
+  --velocity-levels 6 8 10 --velocity-reference 12 --velocity-grid 8
+```
+
+The test used `T_left=340 K`, `T_right=260 K`, and `T_top=T_bottom=300 K`.
+
+### Spatial grid at fixed `Nv=8`
+
+Errors relative to `12x12, Nv=8`:
+
+| Grid | T RMS | rho RMS | velocity RMS | heat-flux RMS | composite |
+|---|---:|---:|---:|---:|---:|
+| 6x6 | 0.6267% | 0.5611% | 0.2671% | 12.8211% | 3.5902% |
+| 8x8 | 0.3421% | 0.3000% | 0.1398% | 7.1745% | 2.0013% |
+| 10x10 | 0.1510% | 0.1300% | 0.0578% | 3.2333% | 0.8987% |
+
+Every metric decreased monotonically.
+
+### Velocity grid at fixed `8x8`
+
+Errors relative to `8x8, Nv=12`:
+
+| Nv | T RMS | rho RMS | velocity RMS | heat-flux RMS | composite |
+|---|---:|---:|---:|---:|---:|
+| 6 | 0.1613% | 0.5313% | 0.1049% | 34.9348% | 8.9174% |
+| 8 | 0.0822% | 0.1021% | 0.0711% | 2.2977% | 0.6378% |
+| 10 | 0.0276% | 0.0356% | 0.0236% | 0.3459% | 0.1080% |
+
+Every metric again decreased monotonically. Heat flux is much more sensitive than bulk fields.
+
+### Practical reference choice
+
+For subsequent physical comparisons:
+
+- use at least `Nv=10`;
+- use at least a `12x12` spatial grid when wall or volume heat flux matters;
+- run a combined `12x12, Nv=10/12` check before declaring the final reference;
+- still compare against an independent solver or published benchmark because Stage 22 is internal convergence, not external validation.
+
+Record: `results/stage22_dvm_convergence_summary.json`.
+
+## Main modules
+
+- `vgdsmc/vhs_model.py`: physical state, VHS parameters, corrected walls;
+- `vgdsmc/sbt_solver.py`: VHS/SBT collisions and physical advancement;
+- `vgdsmc/collision_validation.py`: collision statistics and relaxation;
+- `vgdsmc/dvm_bgk.py`: deterministic BGK-DVM baseline;
+- `vgdsmc/dvm_shakhov.py`: corrected Shakhov transport/collision kernel;
+- `vgdsmc/dvm_shakhov_corrected.py`: saved reference interface and diagnostics;
+- `vgdsmc/dvm_import.py`: raw DVM/Tecplot moment importer;
+- `vgdsmc/reference_adapter.py`: aligned deterministic supervision;
+- `vgdsmc/dvm_convergence.py`: Stage 22 convergence study;
+- `vgdsmc/lowfreq_closed_loop.py`: paired learned particle-allocation audit;
+- `vgdsmc/sampling_allocation.py`: fixed-trajectory sampling audit;
+- `vgdsmc/effective_sampling_allocation.py`: weighted/autocorrelated sampling audit.
+
+## Remaining limitations and next step
+
+- Shakhov-DVM has internal convergence evidence but no independent external validation;
+- heat flux remains the most demanding quantity;
+- variable-weight SBT treatment is approximate;
+- no wall-clock speedup has been demonstrated;
+- adaptive policies remain disabled.
+
+The next scientific step is a combined high-resolution Shakhov reference followed by centerline and wall-heat-flux comparison against an independent DSMC/DVM implementation or a published benchmark. Only after that validation should any new learned allocation strategy be reconsidered.
