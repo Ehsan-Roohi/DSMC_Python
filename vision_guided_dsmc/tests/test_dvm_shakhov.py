@@ -55,7 +55,10 @@ def test_temperature_reconstruction_inverts_discrete_maxwellian_response():
         vz,
         dv,
     )
-    measured_kelvin = _macroscopic(distribution, vx, vy, vz, dv)["T"] * cfg.reference_temperature
+    measured_kelvin = (
+        _macroscopic(distribution, vx, vy, vz, dv)["T"]
+        * cfg.reference_temperature
+    )
     reconstructed = reconstruct_temperature(measured_kelvin, cfg)
     assert np.allclose(reconstructed, target_kelvin, atol=0.5)
 
@@ -74,7 +77,7 @@ def test_isothermal_shakhov_reference_remains_near_uniform():
     )
     result = solve_shakhov_reference(cfg)
     assert abs(float(np.mean(result["T"])) - 300.0) < 3.0
-    assert abs(float(np.mean(result["T_raw_quadrature"])) - 300.0) > 5.0
+    assert np.allclose(result["T_raw_quadrature"], result["T"])
     assert float(np.max(np.hypot(result["u"], result["v"]))) < 0.5
     assert float(np.max(np.abs(result["rho"] - 1.0))) < 1.0e-2
 
@@ -101,6 +104,9 @@ def test_hot_left_shakhov_reference_and_contract(tmp_path):
             "qy",
         }.issubset(data.files)
         assert data["T"].shape == (6, 6)
-        assert float(np.mean(data["T"][:, 0])) > float(np.mean(data["T"][:, -1])) + 8.0
+        assert (
+            float(np.mean(data["T"][:, 0]))
+            > float(np.mean(data["T"][:, -1])) + 8.0
+        )
         assert np.isfinite(data["qx"]).all()
         assert float(data["residual_history"][-1]) < 8.0e-6
