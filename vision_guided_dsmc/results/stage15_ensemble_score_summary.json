@@ -1,0 +1,40 @@
+{
+  "stage": 15,
+  "description": "Five-seed ensemble-target coordinate-conditioned score regression",
+  "ci_run": 220,
+  "status": "success",
+  "tests": {
+    "passed": 56,
+    "runtime_seconds": 7.11
+  },
+  "dataset": {
+    "case_count": 45,
+    "condition_count": 9,
+    "grid": [6, 6],
+    "train_seeds": [11, 22, 33],
+    "validation_seeds": [44, 55],
+    "knudsen_numbers": [0.05, 0.10, 0.20],
+    "temperature_differences_K": [20.0, 40.0, 60.0]
+  },
+  "model": {
+    "input_channels": 10,
+    "epochs": 80,
+    "final_training_loss": 0.003975163420869244,
+    "raw_validation_mae": 0.09196680784225464,
+    "raw_validation_spearman": 0.24317904637764223,
+    "ensemble_group_mae": 0.06940951198339462,
+    "ensemble_group_rmse": 0.09039439260959625,
+    "ensemble_group_pearson": 0.2479337816501083,
+    "ensemble_group_spearman": 0.2874695033208965
+  },
+  "baselines": {
+    "global_constant_mae": 0.07122518122196198,
+    "condition_scalar_mae": 0.06860411912202835,
+    "training_spatial_template_mae": 0.08395075052976608
+  },
+  "ratios": {
+    "model_to_global_constant": 0.9745080432591795,
+    "model_to_condition_scalar": 1.011739715802395
+  },
+  "conclusion": "The ensemble model improves MAE by about 2.55 percent relative to a global constant and raises rank correlation, but remains about 1.17 percent worse than a condition-specific scalar baseline. The training spatial template transfers worse than the scalar baseline, indicating that cell-scale target structure remains noisy. The next experiment should train on a spatially smoothed low-frequency target before any closed-loop allocation test."
+}
