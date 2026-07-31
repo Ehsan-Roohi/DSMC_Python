@@ -132,3 +132,29 @@ jobs:
           assert Path('/tmp/ensemble_score_training/ensemble_score_model.pt').exists()
           assert Path('/tmp/ensemble_score_training/validation_predictions.npz').exists()
           PY
+      - name: Train low-frequency rank-aware score model
+        run: |
+          vgdsmc-train-lowfreq-score \
+            --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
+            --output-dir /tmp/lowfreq_score_training \
+            --epochs 100 --batch-size 6 \
+            --validation-seed-count 2 --smoothing-passes 2
+      - name: Verify low-frequency regression artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          metrics = json.load(open('/tmp/lowfreq_score_training/metrics.json'))
+          assert metrics['case_count'] == 45
+          assert metrics['condition_count'] == 9
+          assert metrics['input_channels'] == 10
+          assert metrics['train_seeds'] == [11, 22, 33]
+          assert metrics['validation_seeds'] == [44, 55]
+          assert math.isfinite(metrics['rank_validation_mae'])
+          assert math.isfinite(metrics['rank_validation_spearman'])
+          assert math.isfinite(metrics['top_quartile_iou'])
+          assert math.isfinite(metrics['mae_ratio_to_constant_rank'])
+          assert Path('/tmp/lowfreq_score_training/lowfreq_score_model.pt').exists()
+          assert Path('/tmp/lowfreq_score_training/validation_predictions.npz').exists()
+          PY
