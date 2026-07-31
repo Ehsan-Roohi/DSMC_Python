@@ -6,6 +6,9 @@ from vgdsmc.dvm_shakhov import (
     _macroscopic,
     _shakhov_equilibrium,
     _velocity_grid,
+)
+from vgdsmc.dvm_shakhov_corrected import (
+    reconstruct_temperature,
     save_shakhov_reference,
     solve_shakhov_reference,
 )
@@ -34,6 +37,29 @@ def test_shakhov_equilibrium_preserves_primary_moments():
     assert np.all(equilibrium > 0.0)
 
 
+def test_temperature_reconstruction_inverts_discrete_maxwellian_response():
+    cfg = ShakhovReferenceConfig(nx=3, ny=3, nv=6)
+    vx, vy, vz, dv = _velocity_grid(cfg)
+    one = np.ones((1, 1))
+    zero = np.zeros((1, 1))
+    target_kelvin = 300.0
+    parameter = np.full((1, 1), target_kelvin / cfg.reference_temperature)
+    distribution = _discrete_maxwellian(
+        one,
+        zero,
+        zero,
+        zero,
+        parameter,
+        vx,
+        vy,
+        vz,
+        dv,
+    )
+    measured_kelvin = _macroscopic(distribution, vx, vy, vz, dv)["T"] * cfg.reference_temperature
+    reconstructed = reconstruct_temperature(measured_kelvin, cfg)
+    assert np.allclose(reconstructed, target_kelvin, atol=0.5)
+
+
 def test_isothermal_shakhov_reference_remains_near_uniform():
     cfg = ShakhovReferenceConfig(
         nx=6,
@@ -48,6 +74,7 @@ def test_isothermal_shakhov_reference_remains_near_uniform():
     )
     result = solve_shakhov_reference(cfg)
     assert abs(float(np.mean(result["T"])) - 300.0) < 3.0
+    assert abs(float(np.mean(result["T_raw_quadrature"])) - 300.0) > 5.0
     assert float(np.max(np.hypot(result["u"], result["v"]))) < 0.5
     assert float(np.max(np.abs(result["rho"] - 1.0))) < 1.0e-2
 
@@ -64,7 +91,15 @@ def test_hot_left_shakhov_reference_and_contract(tmp_path):
     )
     path = save_shakhov_reference(tmp_path / "shakhov.npz", cfg)
     with np.load(path) as data:
-        assert {"T", "rho", "u", "v", "qx", "qy"}.issubset(data.files)
+        assert {
+            "T",
+            "T_raw_quadrature",
+            "rho",
+            "u",
+            "v",
+            "qx",
+            "qy",
+        }.issubset(data.files)
         assert data["T"].shape == (6, 6)
         assert float(np.mean(data["T"][:, 0])) > float(np.mean(data["T"][:, -1])) + 8.0
         assert np.isfinite(data["qx"]).all()
