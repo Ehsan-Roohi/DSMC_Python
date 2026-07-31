@@ -1,0 +1,82 @@
+name: Vision-guided DSMC Stage 25
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage25.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage25.yml'
+jobs:
+  corrected-bottom-heated-feasibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 25 corrections
+        run: pytest -q tests/test_bottom_heated_corrected.py tests/test_bottom_heated_benchmark.py tests/test_dvm_shakhov.py
+      - name: Run five fixed corrected cases
+        run: |
+          vgdsmc-bottom-heated-corrected \
+            --output-dir /tmp/stage25_bottom_heated_corrected \
+            --nx 18 --ny 18 --nv 17 --velocity-extent 5.0 \
+            --max-steps 4200 --tolerance 2e-5
+      - name: Verify fixed design and scientific endpoints
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage25_bottom_heated_corrected/summary.json'))
+          assert summary['stage'] == 25
+          assert summary['configuration']['reference_temperature_convention'] == 'T0=TH'
+          assert summary['configuration']['nv'] == 17
+          assert summary['configuration']['nv'] % 2 == 1
+          assert summary['configuration']['conditions'] == [
+              [0.1, 0.1], [1.0, 0.1], [10.0, 0.1], [1.0, 0.5], [10.0, 0.5]
+          ]
+          assert len(summary['rows']) == 5
+          assert set(summary['preregistered_checks']) == {
+              'all_wall_temperatures_represented_within_2pct',
+              'all_cases_fixed_scale_converged',
+              'ratio_0p1_bottom_heat_flux_nondecreasing_with_kn0',
+              'ratio_0p1_high_kn_lateral_hot_to_cold_majority',
+          }
+          assert summary['check_count'] == 4
+          for value in summary['preregistered_checks'].values():
+              assert isinstance(value, bool)
+          for row in summary['rows']:
+              for name in (
+                  'final_fixed_scale_change',
+                  'cold_wall_discrete_temperature',
+                  'cold_wall_relative_representation_error',
+                  'positive_lateral_velocity_fraction',
+                  'average_bottom_heat_flux',
+                  'maximum_dimensionless_speed',
+                  'minimum_temperature',
+                  'maximum_temperature',
+              ):
+                  assert math.isfinite(row[name])
+              assert 0.0 <= row['positive_lateral_velocity_fraction'] <= 1.0
+              assert row['minimum_temperature'] > 0.0
+          arrays = np.load('/tmp/stage25_bottom_heated_corrected/fields_and_profiles.npz')
+          assert 'T_ratio0p1_kn0p1' in arrays.files
+          assert 'residual_history_ratio0p1_kn10' in arrays.files
+          assert 'bottom_heat_flux_ratio0p5_kn10' in arrays.files
+          assert Path('/tmp/stage25_bottom_heated_corrected/summary.json').exists()
+          PY
+      - name: Upload Stage 25 corrected artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage25-bottom-heated-corrected
+          path: /tmp/stage25_bottom_heated_corrected
+          retention-days: 30
