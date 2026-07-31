@@ -1,0 +1,99 @@
+{
+  "stage": 20,
+  "description": "Pilot-variance matched-observation sampling allocation on fixed DSMC trajectories",
+  "workflow_run": 2,
+  "workflow_id": 30642406569,
+  "status": "success",
+  "configuration": {
+    "grid": [6, 6],
+    "particles_per_cell": 20,
+    "warm_steps": 40,
+    "pilot_steps": 20,
+    "evaluation_steps": 60,
+    "base_samples_per_cell": 20,
+    "observations_per_estimator": 720,
+    "seeds": [288, 299, 311, 322, 333, 344, 355, 366, 377, 388],
+    "conditions": [[0.05, 40.0], [0.10, 40.0], [0.20, 40.0]],
+    "policies": {
+      "mild": [15, 25],
+      "strong": [10, 30]
+    }
+  },
+  "mild": {
+    "primary_success": false,
+    "sampling_error": {
+      "mean_ratio": 1.0080847056943332,
+      "median_ratio": 1.0150911504013878,
+      "standard_error": 0.011235564268476213,
+      "ci95": [0.9860629997281198, 1.0301064116605465],
+      "run_count": 30,
+      "improved_runs": 13,
+      "mean_improvement_percent": -0.8084705694333172
+    },
+    "dvm_error": {
+      "mean_ratio": 1.0067580412543797,
+      "median_ratio": 1.005305233344031,
+      "standard_error": 0.002880353567095391,
+      "ci95": [1.0011125482628727, 1.0124035342458868],
+      "improved_runs": 9,
+      "mean_improvement_percent": -0.6758041254379732
+    },
+    "condition_sampling_ratios": {
+      "Kn_0.05": {
+        "mean": 0.9878360146208527,
+        "ci95": [0.9588746517635097, 1.0167973774781958],
+        "improved_runs": 6
+      },
+      "Kn_0.10": {
+        "mean": 1.0398333666298964,
+        "ci95": [1.0006879729003635, 1.0789787603594294],
+        "improved_runs": 3
+      },
+      "Kn_0.20": {
+        "mean": 0.9965847358322506,
+        "ci95": [0.9559021675184277, 1.0372673041460736],
+        "improved_runs": 4
+      }
+    },
+    "mean_absolute_fractional_count_change": 0.10722222222222225
+  },
+  "strong": {
+    "primary_success": false,
+    "sampling_error": {
+      "mean_ratio": 1.0381290952742797,
+      "median_ratio": 1.0400184186263983,
+      "standard_error": 0.012617742547308606,
+      "ci95": [1.0133983198815548, 1.0628598706670045],
+      "run_count": 30,
+      "improved_runs": 7,
+      "mean_improvement_percent": -3.8129095274279656
+    },
+    "dvm_error": {
+      "mean_ratio": 1.012551054907251,
+      "median_ratio": 1.010726987776441,
+      "standard_error": 0.003865305502651917,
+      "ci95": [1.0049750561220532, 1.0201270536924487],
+      "improved_runs": 7,
+      "mean_improvement_percent": -1.2551054907250947
+    },
+    "condition_sampling_ratios": {
+      "Kn_0.05": {
+        "mean": 1.0422812217127302,
+        "ci95": [1.006352015310681, 1.0782104281147793],
+        "improved_runs": 2
+      },
+      "Kn_0.10": {
+        "mean": 1.0500450798088057,
+        "ci95": [1.0040317212217307, 1.0960584383958807],
+        "improved_runs": 2
+      },
+      "Kn_0.20": {
+        "mean": 1.0220609843013033,
+        "ci95": [0.9738330487280571, 1.0702889198745495],
+        "improved_runs": 3
+      }
+    },
+    "mean_absolute_fractional_count_change": 0.19388888888888894
+  },
+  "conclusion": "Neither predeclared sampling policy met the primary success rule. Strong allocation significantly worsened sampling error. Mild allocation was statistically unresolved overall and significantly worsened the DVM-relative endpoint. The next and final sampling-feasibility test uses a principled effective-variance Neyman score with field-error weights and temporal autocorrelation."
+}
