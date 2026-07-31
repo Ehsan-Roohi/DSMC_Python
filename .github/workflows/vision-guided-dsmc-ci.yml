@@ -158,3 +158,34 @@ jobs:
           assert Path('/tmp/lowfreq_score_training/lowfreq_score_model.pt').exists()
           assert Path('/tmp/lowfreq_score_training/validation_predictions.npz').exists()
           PY
+      - name: Run Stage 17 low-amplitude matched-budget closed loop
+        run: |
+          vgdsmc-lowfreq-closed-loop \
+            --model /tmp/lowfreq_score_training/lowfreq_score_model.pt \
+            --output-dir /tmp/stage17_closed_loop \
+            --nx 6 --ny 6 --ppc 20 \
+            --warm-steps 40 --continuation-steps 60 \
+            --nv 6 --dvm-max-steps 900 \
+            --amplitudes 0.05 0.10 0.20 \
+            --seeds 66 77 88
+      - name: Verify Stage 17 paired closed-loop artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          summary = json.load(open('/tmp/stage17_closed_loop/summary.json'))
+          assert summary['stage'] == 17
+          assert summary['configuration']['seeds'] == [66, 77, 88]
+          assert len(summary['rows']) == 27
+          assert set(summary['amplitude_summaries']) == {'0.050', '0.100', '0.200'}
+          for row in summary['rows']:
+              assert row['uniform_particles'] == row['adaptive_particles']
+              assert row['particle_ratio'] == 1.0
+              assert math.isfinite(row['error_ratio'])
+          for metrics in summary['amplitude_summaries'].values():
+              assert metrics['run_count'] == 9
+              assert math.isfinite(metrics['mean'])
+              assert metrics['ci95_low'] <= metrics['mean'] <= metrics['ci95_high']
+          assert Path('/tmp/stage17_closed_loop/allocation_maps.npz').exists()
+          PY
