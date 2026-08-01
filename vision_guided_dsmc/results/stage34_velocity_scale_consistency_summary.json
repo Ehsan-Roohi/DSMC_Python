@@ -1,0 +1,129 @@
+{
+  "stage": 34,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 34",
+    "run_id": 30695729906,
+    "job_id": 91358170782,
+    "status": "completed",
+    "conclusion": "success",
+    "tests_passed": 25,
+    "tests_failed": 0,
+    "artifact_name": "stage34-velocity-scale-consistency",
+    "artifact_id": 8817713646,
+    "artifact_size_bytes": 20387,
+    "artifact_sha256": "45598af900fc6b088ec32c949f5f876661303819a47a8cbfd3b4e367e24a9244"
+  },
+  "configuration": {
+    "grid": [12, 12],
+    "kn0_sequence": [0.1, 1.0, 10.0],
+    "cold_hot_ratio": 0.1,
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "transport": "first-order upwind",
+    "collision": "Shakhov",
+    "max_steps": 9000,
+    "tolerance": 0.00003,
+    "legacy_solver_velocity_scale": "c0=sqrt(k*T0/m)",
+    "paper_velocity_scale": "v0=sqrt(2*k*T0/m)",
+    "legacy_tau_prefactor": "2*Kn0/sqrt(pi)",
+    "paper_consistent_c0_tau_prefactor": "sqrt(2)*Kn0/sqrt(pi)",
+    "physical_parameter_retuning": false
+  },
+  "paper_consistent_rows": [
+    {
+      "kn0": 0.1,
+      "iterations": 1600,
+      "converged": true,
+      "final_change": 1.8850766864888374e-05,
+      "predicted_qav": 0.07954802746383147,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.10483371477543713,
+      "observable_metrics": {
+        "boundary_mixture": {"relative_rms": 2.8645254005959058, "sign_agreement": 0.2, "relative_l1": 3.2631398678481744},
+        "adjacent_cell_center": {"relative_rms": 2.7786238932624405, "sign_agreement": 0.2, "relative_l1": 2.6621856603774994},
+        "linear_extrapolated_wall": {"relative_rms": 1.9402797092765636, "sign_agreement": 0.6, "relative_l1": 1.531854224236442}
+      },
+      "wall_mass_balance_relative_error": 2.2483018590898787e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.17180585345954846,
+      "maximum_temperature": 0.8681109009089224,
+      "work_proxy": 1061683200
+    },
+    {
+      "kn0": 1.0,
+      "iterations": 1500,
+      "converged": true,
+      "final_change": 1.876206721157514e-05,
+      "predicted_qav": 0.1532141835930005,
+      "literature_qav": 0.148,
+      "qav_relative_error": 0.03523097022297649,
+      "observable_metrics": {
+        "boundary_mixture": {"relative_rms": 0.4360636463647133, "sign_agreement": 1.0, "relative_l1": 0.46748086968324276},
+        "adjacent_cell_center": {"relative_rms": 0.3663566677229525, "sign_agreement": 1.0, "relative_l1": 0.36326733820872337},
+        "linear_extrapolated_wall": {"relative_rms": 0.30127320602229635, "sign_agreement": 1.0, "relative_l1": 0.2991725766568849}
+      },
+      "wall_mass_balance_relative_error": 2.116420326792045e-16,
+      "minimum_distribution": 1.0796125828473938e-30,
+      "minimum_temperature": 0.1956555857410652,
+      "maximum_temperature": 0.7469627089867491,
+      "work_proxy": 995328000
+    },
+    {
+      "kn0": 10.0,
+      "iterations": 4100,
+      "converged": true,
+      "final_change": 2.8348192986360488e-05,
+      "predicted_qav": 0.18323830533804605,
+      "literature_qav": 0.178,
+      "qav_relative_error": 0.02942868167441608,
+      "observable_metrics": {
+        "boundary_mixture": {"relative_rms": 0.3826988072283765, "sign_agreement": 1.0, "relative_l1": 0.4273245841119014},
+        "adjacent_cell_center": {"relative_rms": 0.3526085592833127, "sign_agreement": 1.0, "relative_l1": 0.3323067743114854},
+        "linear_extrapolated_wall": {"relative_rms": 0.2608766893855354, "sign_agreement": 1.0, "relative_l1": 0.24519919315480165}
+      },
+      "wall_mass_balance_relative_error": 1.3311464222469256e-16,
+      "minimum_distribution": 1.128027296992236e-30,
+      "minimum_temperature": 0.20532654273168416,
+      "maximum_temperature": 0.6513091608868661,
+      "work_proxy": 2720563200
+    }
+  ],
+  "legacy_to_paper_consistent_comparisons": [
+    {
+      "kn0": 0.1,
+      "legacy_qav_relative_error": 0.27319224931776787,
+      "corrected_qav_relative_error": 0.10483371477543713,
+      "qav_error_ratio_corrected_to_legacy": 0.38373605048179144,
+      "legacy_boundary_velocity_relative_rms": 3.1935337629690843,
+      "corrected_boundary_velocity_relative_rms": 2.8645254005959058,
+      "boundary_velocity_error_ratio_corrected_to_legacy": 0.8969767076871943,
+      "legacy_boundary_sign_agreement": 0.2,
+      "corrected_boundary_sign_agreement": 0.2
+    },
+    {
+      "kn0": 1.0,
+      "legacy_qav_relative_error": 0.08639909784099577,
+      "corrected_qav_relative_error": 0.03523097022297649,
+      "qav_error_ratio_corrected_to_legacy": 0.4077701168571652,
+      "legacy_boundary_velocity_relative_rms": 0.2733045144741894,
+      "corrected_boundary_velocity_relative_rms": 0.4360636463647133,
+      "boundary_velocity_error_ratio_corrected_to_legacy": 1.595523027505258,
+      "legacy_boundary_sign_agreement": 1.0,
+      "corrected_boundary_sign_agreement": 1.0
+    },
+    {
+      "kn0": 10.0,
+      "legacy_qav_relative_error": 0.03754998719906642,
+      "corrected_qav_relative_error": 0.02942868167441608,
+      "qav_error_ratio_corrected_to_legacy": 0.7837201519777813,
+      "legacy_boundary_velocity_relative_rms": 0.14467929367009996,
+      "corrected_boundary_velocity_relative_rms": 0.3826988072283765,
+      "boundary_velocity_error_ratio_corrected_to_legacy": 2.645152582103507,
+      "legacy_boundary_sign_agreement": 1.0,
+      "corrected_boundary_sign_agreement": 1.0
+    }
+  ],
+  "all_corrected_cases_converged": true,
+  "decision": "paper_consistent_mapping_is_required_but_exposes_additional_implementation_discrepancy",
+  "scientific_conclusion": "The algebraically required c0-scale relaxation mapping reduces Table-6 heat-flux error at all three Knudsen numbers, but it does not uniformly improve Table-3 wall velocity. The mixed result is retained and motivates an exact dual-coordinate covariance audit rather than parameter retuning."
+}
