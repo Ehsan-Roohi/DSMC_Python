@@ -1,0 +1,114 @@
+name: Vision-guided DSMC Stage 34
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage34_velocity_scale_consistency.py'
+      - 'vision_guided_dsmc/vgdsmc/reduced_spherical_solver.py'
+      - 'vision_guided_dsmc/vgdsmc/stage32_near_continuum_observable_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/linear_sidewall_validation.py'
+      - 'vision_guided_dsmc/vgdsmc/velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage34_velocity_scale_consistency.py'
+      - 'vision_guided_dsmc/pyproject.toml'
+      - '.github/workflows/vision-guided-dsmc-stage34.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage34_velocity_scale_consistency.py'
+      - 'vision_guided_dsmc/vgdsmc/reduced_spherical_solver.py'
+      - 'vision_guided_dsmc/vgdsmc/stage32_near_continuum_observable_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/linear_sidewall_validation.py'
+      - 'vision_guided_dsmc/vgdsmc/velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage34_velocity_scale_consistency.py'
+      - 'vision_guided_dsmc/pyproject.toml'
+      - '.github/workflows/vision-guided-dsmc-stage34.yml'
+
+jobs:
+  velocity-scale-consistency:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 34 scale conversion and reduced solver
+        run: |
+          pytest -q \
+            tests/test_stage34_velocity_scale_consistency.py \
+            tests/test_reduced_spherical_solver.py \
+            tests/test_stage32_near_continuum_observable_audit.py
+      - name: Run exact velocity-scale consistency audit
+        run: |
+          vgdsmc-stage34-velocity-scale \
+            --output-dir /tmp/stage34_velocity_scale \
+            --max-steps 9000 --tolerance 3e-5
+      - name: Verify Stage 34 reproducibility and scientific endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          summary = json.load(open('/tmp/stage34_velocity_scale/summary.json'))
+          assert summary['stage'] == 34
+          cfg = summary['configuration']
+          assert cfg['grid'] == [12, 12]
+          assert cfg['kn0_sequence'] == [0.1, 1.0, 10.0]
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['quadrature'] == 'spherical_matched_r16_mu12_phi24'
+          assert cfg['velocity_point_count'] == 4608
+          assert cfg['transport'] == 'first-order upwind'
+          assert cfg['collision'] == 'Shakhov'
+          assert cfg['legacy_tau_prefactor'] == '2*Kn0/sqrt(pi)'
+          assert cfg['paper_consistent_c0_tau_prefactor'] == 'sqrt(2)*Kn0/sqrt(pi)'
+          assert cfg['physical_parameter_retuning'] is False
+          assert len(summary['paper_consistent_rows']) == 3
+          assert len(summary['comparisons']) == 3
+          for row in summary['paper_consistent_rows']:
+              for key in (
+                  'final_change', 'predicted_qav', 'literature_qav',
+                  'qav_relative_error', 'wall_mass_balance_relative_error',
+                  'minimum_distribution', 'minimum_temperature',
+                  'maximum_temperature', 'work_proxy',
+              ):
+                  assert math.isfinite(row[key])
+              assert row['minimum_distribution'] > 0.0
+              assert row['minimum_temperature'] > 0.0
+              assert row['wall_mass_balance_relative_error'] < 1e-10
+              assert set(row['observable_metrics']) == {
+                  'boundary_mixture',
+                  'adjacent_cell_center',
+                  'linear_extrapolated_wall',
+              }
+              for metrics in row['observable_metrics'].values():
+                  assert math.isfinite(metrics['relative_rms'])
+                  assert math.isfinite(metrics['relative_l1'])
+                  assert 0.0 <= metrics['sign_agreement'] <= 1.0
+          for comparison in summary['comparisons']:
+              for key in (
+                  'qav_error_ratio_corrected_to_legacy',
+                  'boundary_velocity_error_ratio_corrected_to_legacy',
+                  'boundary_sign_agreement_change',
+              ):
+                  assert math.isfinite(comparison[key])
+          assert summary['decision'] in {
+              'adopt_paper_consistent_velocity_scale_and_repeat_high_resolution_endpoint',
+              'paper_consistent_mapping_is_required_but_exposes_additional_implementation_discrepancy',
+              'mixed_cross_kn_effect_audit_reduced_equations_and_benchmark_observables',
+          }
+          arrays = np.load('/tmp/stage34_velocity_scale/fields_and_profiles.npz')
+          for kn in ('0p1', '1p0', '10p0'):
+              assert np.isfinite(arrays[f'T_kn{kn}']).all()
+              assert np.isfinite(arrays[f'bottom_heat_flux_kn{kn}']).all()
+              assert np.isfinite(arrays[f'table_velocity_boundary_mixture_kn{kn}']).all()
+          assert Path('/tmp/stage34_velocity_scale/summary.json').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage34-velocity-scale-consistency
+          path: /tmp/stage34_velocity_scale
+          retention-days: 30
