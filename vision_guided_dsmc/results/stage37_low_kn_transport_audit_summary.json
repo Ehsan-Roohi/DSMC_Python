@@ -1,0 +1,75 @@
+{
+  "stage": 37,
+  "workflow_run_id": 30708041761,
+  "workflow_job_id": 91390477801,
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "tests": {"passed": 44, "failed": 0, "duration_seconds": 0.31},
+  "artifact": {
+    "id": 8822338075,
+    "name": "stage37-low-kn-transport-audit",
+    "size_bytes": 14832,
+    "sha256": "2981365dd782c617eba73deb9e54d3ec31909acdc862d6d786934879f6b87152"
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [24, 24],
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "collision": "Shakhov",
+    "wall_observable": "linear_extrapolated_wall",
+    "cfl_equal_in_both_arms": 0.2,
+    "limiter_theta": 1.5,
+    "max_steps": 16000,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false
+  },
+  "rows": [
+    {
+      "scheme": "first_order_upwind",
+      "iterations": 4600,
+      "converged": true,
+      "final_change": 1.6202831369938053e-05,
+      "predicted_qav": 0.07473044968217635,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.03792291225244935,
+      "wall_velocity_relative_rms": 0.8947813193174375,
+      "wall_velocity_sign_agreement": 0.8,
+      "wall_velocity_relative_l1": 0.921349764565591,
+      "wall_mass_balance_relative_error": 1.9293558552538705e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.14756557196392397,
+      "maximum_temperature": 0.900196703039309,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 12209356800
+    },
+    {
+      "scheme": "muscl_ssprk2",
+      "iterations": 5900,
+      "converged": true,
+      "final_change": 1.9700071770266045e-05,
+      "predicted_qav": 0.04324014823991044,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.39944238555679945,
+      "wall_velocity_relative_rms": 2.7885335044977855,
+      "wall_velocity_sign_agreement": 1.0,
+      "wall_velocity_relative_l1": 1.884477062793814,
+      "wall_mass_balance_relative_error": 2.415988193870213e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1187404588444163,
+      "maximum_temperature": 0.8697436824351845,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 15659827200
+    }
+  ],
+  "comparison": {
+    "qav_error_ratio_muscl_to_first_order": 10.533009250390585,
+    "velocity_error_ratio_muscl_to_first_order": 3.116441351977432,
+    "sign_agreement_change": 0.19999999999999996,
+    "qav_change": -0.03149030144226591
+  },
+  "decision": "muscl_screen_mixed_stage38_transport_collision_interaction_audit",
+  "scientific_conclusion": "At fixed Kn0, wall temperatures, corrected relaxation mapping, Shakhov collision model, spherical quadrature, 24x24 grid, CFL, wall model, observable, stopping rule and positivity floor, MUSCL/SSP-RK2 improved sign agreement from 0.8 to 1.0 but worsened heat-flux error by a factor of 10.5330 and wall-velocity RMS error by a factor of 3.1164. The mixed negative endpoint is retained and motivates a fixed-physics transport-collision coupling audit rather than parameter retuning."
+}
