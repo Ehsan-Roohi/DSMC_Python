@@ -1,0 +1,104 @@
+name: Vision-guided DSMC Stage 37
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage37_low_kn_transport_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage37_low_kn_transport_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage37.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage37_low_kn_transport_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage37_low_kn_transport_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage37.yml'
+
+jobs:
+  low-kn-transport-order-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 37 and retained transport/quadrature infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage37_low_kn_transport_audit.py \
+            tests/test_stage36_high_resolution_cross_kn.py \
+            tests/test_second_order_transport.py \
+            tests/test_stage34_velocity_scale_consistency.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Run fixed same-CFL low-Kn transport-order screen
+        run: |
+          python -m vgdsmc.stage37_low_kn_transport_audit \
+            --output-dir /tmp/stage37_low_kn_transport_audit \
+            --max-steps 16000 --tolerance 2e-5
+      - name: Verify exact design and retain positive mixed or negative endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage37_low_kn_transport_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 37
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 0.1
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grid'] == [24, 24]
+          assert cfg['quadrature'] == 'spherical_matched_r16_mu12_phi24'
+          assert cfg['velocity_point_count'] == 4608
+          assert cfg['relaxation_mapping'] == 'sqrt(2)*Kn0/sqrt(pi) in c0 coordinates'
+          assert cfg['collision'] == 'Shakhov'
+          assert cfg['wall_observable'] == 'linear_extrapolated_wall'
+          assert cfg['cfl_equal_in_both_arms'] == 0.2
+          assert cfg['limiter_theta'] == 1.5
+          assert cfg['physical_parameter_retuning'] is False
+          assert [row['scheme'] for row in summary['rows']] == [
+              'first_order_upwind', 'muscl_ssprk2'
+          ]
+          for row in summary['rows']:
+              for key in (
+                  'final_change', 'predicted_qav', 'literature_qav',
+                  'qav_relative_error', 'wall_mass_balance_relative_error',
+                  'minimum_distribution', 'minimum_temperature',
+                  'maximum_temperature', 'dt', 'work_proxy',
+              ):
+                  assert math.isfinite(row[key])
+              metrics = row['velocity_metrics']
+              for key in ('relative_rms', 'sign_agreement', 'relative_l1'):
+                  assert math.isfinite(metrics[key])
+              assert row['wall_mass_balance_relative_error'] < 1e-10
+              assert row['minimum_distribution'] > 0.0
+              assert row['minimum_temperature'] > 0.0
+          for value in summary['comparison'].values():
+              assert math.isfinite(value)
+          assert summary['decision'] in {
+              'muscl_screen_positive_stage38_high_resolution_confirmation',
+              'muscl_screen_mixed_stage38_transport_collision_interaction_audit',
+              'muscl_screen_negative_stage38_collision_model_audit',
+              'transport_audit_nonconvergence_stage38_numerical_stability',
+          }
+          arrays = np.load(root / 'fields_and_profiles.npz')
+          for scheme in ('first_order', 'muscl'):
+              for key in (
+                  f'bottom_heat_flux_{scheme}',
+                  f'residual_history_{scheme}',
+                  f'T_{scheme}',
+                  f'rho_{scheme}',
+                  f'table_velocity_linear_extrapolated_wall_{scheme}',
+              ):
+                  assert np.isfinite(arrays[key]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage37-low-kn-transport-audit
+          path: /tmp/stage37_low_kn_transport_audit
+          retention-days: 30
