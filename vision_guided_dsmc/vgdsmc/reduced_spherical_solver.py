@@ -341,6 +341,9 @@ def solve_reduced_case(
                 converged = True
                 break
 
+    # Incoming diffuse-wall states must match the final post-collision distribution.
+    # Reusing the states built before the last update creates a false mass-balance error.
+    left, right, bottom, top = wall_incoming(distribution, cfg, quadrature)
     assert left is not None and right is not None and bottom is not None and top is not None
     fields = macroscopic(distribution, quadrature)
     wall_velocity = left_wall_tangential_velocity(distribution, left, quadrature)
