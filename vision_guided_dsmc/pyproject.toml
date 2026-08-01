@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vision-guided-dsmc"
-version = "3.2.0"
+version = "3.3.0"
 description = "Physical Argon VHS/SBT DSMC with deterministic DVM supervision"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
@@ -48,6 +48,7 @@ vgdsmc-stage30-reduced-spherical = "vgdsmc.reduced_spherical_solver:main"
 vgdsmc-stage31-cross-kn = "vgdsmc.stage31_cross_kn_extension:main"
 vgdsmc-stage32-observable-audit = "vgdsmc.stage32_near_continuum_observable_audit:main"
 vgdsmc-stage33-spatial-extrapolation = "vgdsmc.stage33_asymptotic_spatial_extrapolation:main"
+vgdsmc-stage34-velocity-scale = "vgdsmc.stage34_velocity_scale_consistency:main"
 vgdsmc-validate-collisions = "vgdsmc.collision_validation:main"
 
 [tool.setuptools.packages.find]
