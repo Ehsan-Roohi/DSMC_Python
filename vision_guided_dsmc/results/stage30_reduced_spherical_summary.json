@@ -1,0 +1,65 @@
+{
+  "stage": 30,
+  "workflow": {
+    "run_id": 30683909906,
+    "job_id": 91326040432,
+    "status": "completed",
+    "conclusion": "success",
+    "tests_passed": 16,
+    "tests_failed": 0,
+    "artifact_id": 8813429748,
+    "artifact_name": "stage30-reduced-spherical-cavity",
+    "artifact_size_bytes": 13469,
+    "artifact_sha256": "7f94feb354c62adebc1b5d48d04ec0a90ef9ac5a494e831dad35e5d72fd7e47c"
+  },
+  "configuration": {
+    "grid": [12, 12],
+    "kn0": 1.0,
+    "cold_hot_ratio": 0.1,
+    "max_steps": 4200,
+    "tolerance": 0.00003,
+    "transport": "first-order upwind",
+    "collision": "Shakhov",
+    "wall_model": "bottom hot, top cold, side walls linear hot-to-cold",
+    "physical_parameter_retuning": false
+  },
+  "cartesian_midpoint_nv19": {
+    "point_count": 6859,
+    "iterations": 2500,
+    "converged": true,
+    "final_change": 0.000025529404398316746,
+    "predicted_qav": 0.19421452882974255,
+    "literature_qav": 0.148,
+    "qav_relative_error": 0.31226032993069297,
+    "wall_velocity_relative_rms": 4.295002070781321,
+    "wall_velocity_sign_agreement": 0.0,
+    "wall_mass_balance_relative_error": 1.8295460274262497e-16,
+    "minimum_distribution": 1e-30,
+    "minimum_temperature": 0.23698164720018616,
+    "maximum_temperature": 0.692323276422749,
+    "work_proxy": 2469240000
+  },
+  "spherical_matched_r16_mu12_phi24": {
+    "point_count": 4608,
+    "iterations": 1700,
+    "converged": true,
+    "final_change": 0.00002699530439931319,
+    "predicted_qav": 0.16078706648046737,
+    "literature_qav": 0.148,
+    "qav_relative_error": 0.08639909784099577,
+    "wall_velocity_relative_rms": 0.2733045144741894,
+    "wall_velocity_sign_agreement": 1.0,
+    "wall_mass_balance_relative_error": 1.4091781221145667e-16,
+    "minimum_distribution": 1.111859859437482e-30,
+    "minimum_temperature": 0.19789449995576178,
+    "maximum_temperature": 0.7271306047312335,
+    "work_proxy": 1128038400
+  },
+  "comparative_metrics": {
+    "spherical_qav_error_ratio_to_cartesian": 0.27668931836513555,
+    "spherical_velocity_error_ratio_to_cartesian": 0.06363315080415584,
+    "spherical_materially_better_on_both_literature_metrics": true
+  },
+  "decision": "extend_spherical_solver_to_kn0_0p1_and_10",
+  "scientific_conclusion": "The matched spherical-product quadrature materially improves both Table 6 heat flux and Table 3 wall-velocity comparisons at Kn0=1 while using fewer velocity points and preserving wall mass balance. This supports a fixed-physics extension to Kn0=0.1 and 10; it does not justify retuning Knudsen, collision, wall, or normalization parameters."
+}
