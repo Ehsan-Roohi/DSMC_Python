@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vision-guided-dsmc"
-version = "2.8.0"
+version = "2.9.0"
 description = "Physical Argon VHS/SBT DSMC with deterministic DVM supervision"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
@@ -44,6 +44,7 @@ vgdsmc-linear-sidewall-validation = "vgdsmc.linear_sidewall_validation:main"
 vgdsmc-stage27-attribution = "vgdsmc.stage27_discretization_attribution:main"
 vgdsmc-stage28-second-order = "vgdsmc.second_order_transport:main"
 vgdsmc-stage29-quadrature-audit = "vgdsmc.velocity_quadrature_audit:main"
+vgdsmc-stage30-reduced-spherical = "vgdsmc.reduced_spherical_solver:main"
 vgdsmc-validate-collisions = "vgdsmc.collision_validation:main"
 
 [tool.setuptools.packages.find]
