@@ -1,0 +1,240 @@
+{
+  "stage": 36,
+  "description": "Paper-consistent high-resolution cross-Knudsen spherical-quadrature validation following the exact Stage 35 covariance pass",
+  "workflow_provenance": {
+    "workflow_name": "Vision-guided DSMC Stage 36",
+    "run_id": 30701613390,
+    "job_id": 91373486559,
+    "workflow_status": "completed",
+    "workflow_conclusion": "success",
+    "tests_passed": 36,
+    "tests_failed": 0,
+    "artifact_id": 8820765269,
+    "artifact_name": "stage36-high-resolution-cross-kn",
+    "artifact_size_bytes": 33950,
+    "artifact_sha256": "568206f62ecbacf31662d9dad53e3c2c7a51dced74ffdb91fad31d8f2c8d5e19",
+    "source_head_sha": "a5759c6508d136cca64b659c4bd363d0b84765eb"
+  },
+  "configuration": {
+    "cases": [
+      {
+        "name": "kn0p1_24x24",
+        "kn0": 0.1,
+        "grid": [
+          24,
+          24
+        ]
+      },
+      {
+        "name": "kn0p1_36x36",
+        "kn0": 0.1,
+        "grid": [
+          36,
+          36
+        ]
+      },
+      {
+        "name": "kn1p0_24x24",
+        "kn0": 1.0,
+        "grid": [
+          24,
+          24
+        ]
+      },
+      {
+        "name": "kn10p0_24x24",
+        "kn0": 10.0,
+        "grid": [
+          24,
+          24
+        ]
+      }
+    ],
+    "cold_hot_ratio": 0.1,
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "transport": "first-order upwind",
+    "collision": "Shakhov",
+    "wall_observable": "linear_extrapolated_wall",
+    "max_steps": 14000,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false
+  },
+  "stage35_12x12_baselines": {
+    "0.1": {
+      "grid": [
+        12,
+        12
+      ],
+      "iterations": 1600,
+      "converged": true,
+      "final_change": 1.885076686490572e-05,
+      "predicted_qav": 0.07954802746383147,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.10483371477543713,
+      "best_wall_observable": "linear_extrapolated_wall",
+      "wall_velocity_relative_rms": 1.9402797092765636,
+      "wall_velocity_sign_agreement": 0.6,
+      "wall_mass_balance_relative_error": 2.396774623369399e-16
+    },
+    "1.0": {
+      "grid": [
+        12,
+        12
+      ],
+      "iterations": 1500,
+      "converged": true,
+      "final_change": 1.876206721151963e-05,
+      "predicted_qav": 0.1532141835930005,
+      "literature_qav": 0.148,
+      "qav_relative_error": 0.03523097022297649,
+      "best_wall_observable": "linear_extrapolated_wall",
+      "wall_velocity_relative_rms": 0.30127320602229624,
+      "wall_velocity_sign_agreement": 1.0,
+      "wall_mass_balance_relative_error": 1.600569125474438e-16
+    },
+    "10.0": {
+      "grid": [
+        12,
+        12
+      ],
+      "iterations": 4100,
+      "converged": true,
+      "final_change": 2.8348192986360488e-05,
+      "predicted_qav": 0.18323830533804605,
+      "literature_qav": 0.178,
+      "qav_relative_error": 0.02942868167441608,
+      "best_wall_observable": "linear_extrapolated_wall",
+      "wall_velocity_relative_rms": 0.26087668938553804,
+      "wall_velocity_sign_agreement": 1.0,
+      "wall_mass_balance_relative_error": 1.4029124140826564e-16
+    }
+  },
+  "rows": [
+    {
+      "case": "kn0p1_24x24",
+      "kn0": 0.1,
+      "grid": [
+        24,
+        24
+      ],
+      "iterations": 3200,
+      "converged": true,
+      "final_change": 1.7391815292137035e-05,
+      "predicted_qav": 0.07460201631883724,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.036139115539406214,
+      "velocity_observable": "linear_extrapolated_wall",
+      "velocity_metrics": {
+        "relative_rms": 0.9006380440004526,
+        "sign_agreement": 0.8,
+        "relative_l1": 0.9276604985957498
+      },
+      "wall_mass_balance_relative_error": 1.6713371204475987e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.14752702071562382,
+      "maximum_temperature": 0.900387814621166,
+      "work_proxy": 8493465600,
+      "comparison_to_stage35_12x12": {
+        "qav_error_ratio": 0.3447279877167314,
+        "velocity_error_ratio": 0.4641794890161774,
+        "sign_agreement_change": 0.20000000000000007
+      }
+    },
+    {
+      "case": "kn0p1_36x36",
+      "kn0": 0.1,
+      "grid": [
+        36,
+        36
+      ],
+      "iterations": 5200,
+      "converged": true,
+      "final_change": 1.5026217704616068e-05,
+      "predicted_qav": 0.0729750813492751,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.013542796517709883,
+      "velocity_observable": "linear_extrapolated_wall",
+      "velocity_metrics": {
+        "relative_rms": 0.9266806666880097,
+        "sign_agreement": 0.8,
+        "relative_l1": 1.0269364320857388
+      },
+      "wall_mass_balance_relative_error": 2.139677787130385e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.13830191792830054,
+      "maximum_temperature": 0.9126240519644577,
+      "work_proxy": 31054233600,
+      "comparison_to_stage35_12x12": {
+        "qav_error_ratio": 0.12918359848947186,
+        "velocity_error_ratio": 0.4776015861308595,
+        "sign_agreement_change": 0.20000000000000007
+      }
+    },
+    {
+      "case": "kn1p0_24x24",
+      "kn0": 1.0,
+      "grid": [
+        24,
+        24
+      ],
+      "iterations": 3000,
+      "converged": true,
+      "final_change": 1.5181588213786235e-05,
+      "predicted_qav": 0.15003391564117627,
+      "literature_qav": 0.148,
+      "qav_relative_error": 0.013742673251191054,
+      "velocity_observable": "linear_extrapolated_wall",
+      "velocity_metrics": {
+        "relative_rms": 0.29926372113416533,
+        "sign_agreement": 1.0,
+        "relative_l1": 0.28882188946310233
+      },
+      "wall_mass_balance_relative_error": 1.6589915848505315e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1756301656848605,
+      "maximum_temperature": 0.7763220966768727,
+      "work_proxy": 7962624000,
+      "comparison_to_stage35_12x12": {
+        "qav_error_ratio": 0.3900736529313215,
+        "velocity_error_ratio": 0.9933300245492718,
+        "sign_agreement_change": 0.0
+      }
+    },
+    {
+      "case": "kn10p0_24x24",
+      "kn0": 10.0,
+      "grid": [
+        24,
+        24
+      ],
+      "iterations": 8400,
+      "converged": true,
+      "final_change": 1.890614654198597e-05,
+      "predicted_qav": 0.18049400345936706,
+      "literature_qav": 0.178,
+      "qav_relative_error": 0.014011255389702623,
+      "velocity_observable": "linear_extrapolated_wall",
+      "velocity_metrics": {
+        "relative_rms": 0.22618451874335033,
+        "sign_agreement": 1.0,
+        "relative_l1": 0.19526788263847522
+      },
+      "wall_mass_balance_relative_error": 1.5881189147843136e-16,
+      "minimum_distribution": 1.000125422359526e-30,
+      "minimum_temperature": 0.18825786360252064,
+      "maximum_temperature": 0.6750347031956268,
+      "work_proxy": 22295347200,
+      "comparison_to_stage35_12x12": {
+        "qav_error_ratio": 0.4761088364309351,
+        "velocity_error_ratio": 0.8670169775463621,
+        "sign_agreement_change": 0.0
+      }
+    }
+  ],
+  "low_kn_profile_change_24x24_to_36x36": 0.24659632808808882,
+  "all_cases_converged": true,
+  "decision": "high_kn_supported_low_kn_requires_transport_or_collision_audit_stage37",
+  "interpretation_guard": "Only spatial resolution and the predeclared case matrix change. The paper-consistent relaxation mapping, Knudsen numbers, wall temperatures, Shakhov model, viscosity law, Prandtl number, spherical quadrature, transport order, normalization, and wall observable remain fixed. Negative changes relative to the exact Stage 35 baselines are retained."
+}
