@@ -1,0 +1,129 @@
+{
+  "stage": 38,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 38",
+    "run_id": 30714512141,
+    "job_id": 91407706438,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "378a5e2028c284b5df11128720345b756d9c65a1",
+    "tests_passed": 54,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.30,
+    "artifact": {
+      "id": 8823968646,
+      "name": "stage38-transport-collision-interaction-audit",
+      "size_bytes": 15586,
+      "sha256": "b9d17b291c2cefe5ead6b0953de2547296ec617ed2855c825d8c15610b06159d",
+      "created_at": "2026-08-01T20:57:26Z",
+      "expires_at": "2026-08-31T20:57:25Z"
+    }
+  },
+  "description": "Fixed-physics 2x2 transport-order/operator-splitting interaction audit using exact retained Stage 37 Lie-explicit endpoints and new symmetric half-collision/full-transport/half-collision runs",
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [24, 24],
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "collision": "Shakhov",
+    "transport_orders": [
+      "first_order_upwind",
+      "muscl_ssprk2"
+    ],
+    "couplings": [
+      "retained_lie_explicit",
+      "strang_explicit_half_collision"
+    ],
+    "wall_observable": "linear_extrapolated_wall",
+    "cfl_equal_in_all_arms": 0.2,
+    "limiter_theta": 1.5,
+    "max_steps": 16000,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false
+  },
+  "retained_stage37_rows": {
+    "first_order_lie_explicit": {
+      "iterations": 4600,
+      "converged": true,
+      "final_change": 1.6202831369938053e-05,
+      "predicted_qav": 0.07473044968217635,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.03792291225244935,
+      "velocity_relative_rms": 0.8947813193174375,
+      "velocity_sign_agreement": 0.8,
+      "velocity_relative_l1": 0.921349764565591,
+      "wall_mass_balance_relative_error": 1.9293558552538705e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.14756557196392397,
+      "maximum_temperature": 0.900196703039309,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 12209356800
+    },
+    "muscl_lie_explicit": {
+      "iterations": 5900,
+      "converged": true,
+      "final_change": 1.9700071770266045e-05,
+      "predicted_qav": 0.04324014823991044,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.39944238555679945,
+      "velocity_relative_rms": 2.7885335044977855,
+      "velocity_sign_agreement": 1.0,
+      "velocity_relative_l1": 1.884477062793814,
+      "wall_mass_balance_relative_error": 2.415988193870213e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1187404588444163,
+      "maximum_temperature": 0.8697436824351845,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 15659827200
+    }
+  },
+  "new_rows": {
+    "first_order_strang_explicit": {
+      "iterations": 5500,
+      "converged": true,
+      "final_change": 1.3511402530752559e-05,
+      "predicted_qav": 0.0726173364328985,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.008574117123590345,
+      "velocity_relative_rms": 1.0091453484689894,
+      "velocity_sign_agreement": 0.9,
+      "velocity_relative_l1": 0.7591131331922547,
+      "wall_mass_balance_relative_error": 2.3230252114543756e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.14505974877606181,
+      "maximum_temperature": 0.8932652435230649,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 14598144000
+    },
+    "muscl_strang_explicit": {
+      "iterations": 5900,
+      "converged": true,
+      "final_change": 1.9608199012477456e-05,
+      "predicted_qav": 0.04329230501615015,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.39871798588680346,
+      "velocity_relative_rms": 2.7865958679189817,
+      "velocity_sign_agreement": 1.0,
+      "velocity_relative_l1": 1.8820772849261393,
+      "wall_mass_balance_relative_error": 1.4110879655551492e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1187404588444163,
+      "maximum_temperature": 0.869695706803884,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 15659827200
+    }
+  },
+  "comparison": {
+    "first_order_strang_to_lie_qav_error_ratio": 0.2260933196932038,
+    "first_order_strang_to_lie_velocity_error_ratio": 1.127812267290953,
+    "muscl_strang_to_lie_qav_error_ratio": 0.9981864727024744,
+    "muscl_strang_to_lie_velocity_error_ratio": 0.9993051413670739,
+    "muscl_strang_to_first_lie_qav_error_ratio": 10.513907350589912,
+    "muscl_strang_to_first_lie_velocity_error_ratio": 3.114275865800003,
+    "muscl_strang_sign_change_from_first_lie": 0.19999999999999996
+  },
+  "decision": "no_coupling_rescue_stage39_collision_model_or_benchmark_audit",
+  "scientific_conclusion": "Symmetric collision-transport coupling reduced the first-order Table 6 heat-flux error from 3.792291225244935% to 0.8574117123590345%, but worsened the first-order Table 3 relative RMS from 0.8947813193174375 to 1.0091453484689894. It did not rescue MUSCL: the MUSCL heat-flux and velocity errors remained approximately 39.87% and 2.7866. Operator splitting therefore does not explain the second-order failure. All mixed and negative outcomes are retained, and no physical parameter was retuned."
+}
