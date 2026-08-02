@@ -1,9 +1,6 @@
 name: Bird-QK Gate 2
 
 on:
-  push:
-    branches:
-      - qk-gate2-validation
   pull_request:
     branches:
       - main
@@ -11,6 +8,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: bird-qk-gate2
+  cancel-in-progress: true
 
 jobs:
   validate:
