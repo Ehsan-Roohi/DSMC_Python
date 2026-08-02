@@ -1,0 +1,114 @@
+{
+  "stage": 43,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 43",
+    "run_id": 30733957628,
+    "job_id": 91459088187,
+    "status": "completed",
+    "conclusion": "success",
+    "source_head_sha": "27f33f1be007cf81ea97a1cc452c248e07d83470",
+    "tests_passed": 53,
+    "tests_failed": 0,
+    "artifact": {
+      "id": 8830544995,
+      "name": "stage43-projected-polar-resolution-sequence",
+      "size_bytes": 46042,
+      "sha256": "70bb2a08a1e49cfe31091ce91cf26c286c7652ae7c341855a4ec1dc81de528dd"
+    }
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grids": [[8, 8], [12, 12], [16, 16]],
+    "polar_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-5,
+    "physical_parameter_retuning": false,
+    "velocity_quadrature_retuning": false
+  },
+  "cases": [
+    {
+      "grid": [8, 8],
+      "iterations": 500,
+      "converged": true,
+      "final_change": 6.2007343704095774e-12,
+      "predicted_qav": 0.08915883055151558,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.238317090993272,
+      "velocity_relative_rms": 4.342029169274619,
+      "velocity_relative_l1": 4.959838161846321,
+      "velocity_sign_agreement": 0.2,
+      "wall_mass_balance_relative_error": 1.1235845505305666e-16,
+      "maximum_phi_clipped_weight_fraction": 0.0017852355264458817,
+      "maximum_psi_clipped_weight_fraction": 0.004012338285911872
+    },
+    {
+      "grid": [12, 12],
+      "iterations": 500,
+      "converged": true,
+      "final_change": 3.7981160950703585e-08,
+      "predicted_qav": 0.08396748983687087,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.1662151366232066,
+      "velocity_relative_rms": 2.865977641932405,
+      "velocity_relative_l1": 3.257663819533537,
+      "velocity_sign_agreement": 0.2,
+      "wall_mass_balance_relative_error": 1.4419748593860802e-16,
+      "maximum_phi_clipped_weight_fraction": 0.0016899302611877696,
+      "maximum_psi_clipped_weight_fraction": 0.004442271031805693
+    },
+    {
+      "grid": [16, 16],
+      "iterations": 500,
+      "converged": true,
+      "final_change": 1.9979318251275857e-06,
+      "predicted_qav": 0.0814053328666412,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.13062962314779453,
+      "velocity_relative_rms": 2.0834768337668104,
+      "velocity_relative_l1": 2.357676714858226,
+      "velocity_sign_agreement": 0.2,
+      "wall_mass_balance_relative_error": 1.4780919171369843e-16,
+      "maximum_phi_clipped_weight_fraction": 0.0019625644653364113,
+      "maximum_psi_clipped_weight_fraction": 0.004751847239489797,
+      "table_velocity": [
+        0.0044983536901870985,
+        0.0033595034323805695,
+        0.0025388603631742845,
+        0.0019255545960640092,
+        0.0015045702395754773,
+        0.0012841160966272694,
+        0.0013499756163744478,
+        0.0019093348441055612,
+        0.003117631398644011,
+        0.005108457373763799
+      ]
+    }
+  ],
+  "monotonicity": {
+    "qav_error_nonincreasing": true,
+    "velocity_rms_nonincreasing": true
+  },
+  "linear_h_extrapolation": {
+    "model": "observable(h)=slope*h+intercept with h=1/N",
+    "extrapolated_qav": 0.07363747230158418,
+    "qav_fit_r2": 0.9999897182184871,
+    "extrapolated_qav_relative_error": 0.02274267085533596,
+    "velocity_fit_r2": 0.999544568005691,
+    "extrapolated_velocity_relative_rms": 0.44548020112226394
+  },
+  "decision": "projected_polar_spatial_improvement_not_converged_stage44_finer_grid",
+  "scientific_conclusion": "With all physical parameters, the projected Shakhov collision model and the 32x96 mapped-polar velocity rule frozen, refinement from 8x8 to 12x12 to 16x16 monotonically reduced the average heat-flux error from 23.8317% to 16.6215% to 13.0630% and reduced wall-velocity relative RMS from 4.3420 to 2.8660 to 2.0835. The sequence is improving but not spatially converged: the 12x12-to-16x16 profile change remains too large for a cross-Knudsen claim. A linear-in-h extrapolation gives qav=0.0736375 (2.2743% from the literature value) and wall-velocity RMS 0.4455, but this extrapolation is diagnostic rather than validation. No physical or velocity-quadrature parameter was retuned."
+}
