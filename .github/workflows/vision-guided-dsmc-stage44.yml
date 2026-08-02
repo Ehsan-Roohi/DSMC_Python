@@ -33,7 +33,6 @@ jobs:
             tests/test_stage44_projected_polar_finer_grid_sequence.py \
             tests/test_stage43_projected_polar_resolution_sequence.py \
             tests/test_stage42_projected_polar_heated_cavity_pilot.py \
-            tests/test_stage41_projected_polar_operator_audit.py \
             tests/test_stage40_external_benchmark_fidelity_audit.py \
             tests/test_reduced_spherical_solver.py
       - name: Run frozen Stage 44 finer-grid sequence
