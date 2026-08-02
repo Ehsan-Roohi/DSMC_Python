@@ -1,13 +1,14 @@
 name: Bird-QK Gate 2
 
 on:
-  pull_request:
-    branches:
-      - main
+  issues:
+    types:
+      - opened
   workflow_dispatch:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: bird-qk-gate2
@@ -16,6 +17,7 @@ concurrency:
 jobs:
   validate:
     name: Validate number-changing Q-K chemistry
+    if: github.event_name == 'workflow_dispatch' || github.event.issue.title == '[CI] RUN_QK_GATE2'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -74,3 +76,34 @@ jobs:
             qk_gate2/validation_output/
             qk_gate2/fortran_runs/
           if-no-files-found: warn
+
+      - name: Report result on trigger issue
+        if: always() && github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = 'The validation report was not generated.';
+            try {
+              report = fs.readFileSync('qk_gate2/validation_output/QK_GATE2_VALIDATION_REPORT.txt', 'utf8');
+            } catch (error) {
+              report += `\n\nRead error: ${error.message}`;
+            }
+            const status = '${{ job.status }}';
+            const body = [
+              `## Bird-QK Gate 2: ${status.toUpperCase()}`,
+              '',
+              '```text',
+              report.slice(0, 60000),
+              '```',
+              '',
+              status === 'success'
+                ? 'Marker: `GITHUB_ACTIONS_QK_GATE2_PASS`'
+                : 'The workflow did not pass. Inspect the uploaded artifact and job log.'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
