@@ -1,0 +1,103 @@
+{
+  "stage": 47,
+  "description": "Frozen-physics 48x48 confirmation of the improving but unresolved Stage 46 projected phi/psi mapped-polar spatial sequence",
+  "workflow": {
+    "run_id": 30755677448,
+    "job_id": 91517302666,
+    "conclusion": "success",
+    "tests_passed": 49,
+    "tests_failed": 0,
+    "artifact_id": 8838257601,
+    "artifact_size_bytes": 78522,
+    "artifact_sha256": "58ef46902d6e80f3e2c198fa6d33f0f9209331da08e14664b9c4e22b1ddb0227",
+    "source_head_sha": "10eba2a345c8d6b0942bce6bbed2c0d030dc005a"
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [48, 48],
+    "combined_sequence_grids": [20, 24, 32, 40, 48],
+    "polar_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false,
+    "velocity_quadrature_retuning": false
+  },
+  "new_case": {
+    "grid": [48, 48],
+    "iterations": 1200,
+    "converged": true,
+    "final_change": 1.48828827501446e-05,
+    "predicted_qav": 0.07643318669591011,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.06157203744319602,
+    "velocity_metrics": {
+      "relative_rms": 0.5272365313931947,
+      "relative_l1": 0.5745980077213692,
+      "sign_agreement": 0.8
+    },
+    "wall_mass_balance_relative_error": 2.1351859343697615e-16,
+    "minimum_phi": 1e-30,
+    "minimum_psi": 1e-30,
+    "maximum_phi_clipped_weight_fraction": 0.002952525420025651,
+    "maximum_psi_clipped_weight_fraction": 0.004908712341779989,
+    "finite": true,
+    "work_proxy": 8493465600,
+    "table_velocity": [
+      0.0025841673664771764,
+      0.0014070949476494127,
+      0.0003687553431730256,
+      -0.00047945415584926143,
+      -0.0011607680412823252,
+      -0.0016605378969302414,
+      -0.001885070415301367,
+      -0.0016557618579879196,
+      -0.0006589371340178195,
+      0.0015838397879820172
+    ]
+  },
+  "finest_grid_changes": {
+    "qav_change_40x40_to_48x48": 0.006335307032227753,
+    "profile_change_40x40_to_48x48": 0.18646422342166047,
+    "qav_error_improves": true,
+    "velocity_rms_improves": true
+  },
+  "linear_h_extrapolation": {
+    "model": "observable(h)=slope*h+intercept with h=1/N",
+    "grid_sizes": [20, 24, 32, 40, 48],
+    "qav_slope": 0.11842525997811858,
+    "extrapolated_qav": 0.07395789393397725,
+    "qav_fit_r2": 0.9999708457603254,
+    "extrapolated_qav_relative_error": 0.02719297130523971,
+    "velocity_fit_r2": 0.9996861713985387,
+    "extrapolated_velocity_relative_rms": 0.29568589473918305
+  },
+  "positive_findings": [
+    "The 48x48 solution converged, remained finite and positive, and retained wall-mass balance to 2.14e-16.",
+    "Heat-flux error improved from 6.83% at 40x40 to 6.16% at 48x48.",
+    "Wall-velocity relative RMS improved from 0.677 to 0.527 while sign agreement remained 80%.",
+    "The 40x40-to-48x48 heat-flux change was only 0.634%."
+  ],
+  "negative_findings": [
+    "The wall-velocity profile changed by 18.65%, exceeding the preregistered 10% convergence threshold.",
+    "Positivity clipping persisted at about 0.295% for phi and 0.491% for psi by weighted fraction.",
+    "The spatial sequence is still not converged, so a cross-Knudsen extension is not yet justified.",
+    "The linear-h extrapolation is diagnostic only and is not an external validation claim."
+  ],
+  "decision": "projected_polar_48x48_improving_not_converged_stage48_56x56_confirmation",
+  "interpretation_guard": "Stage 47 changed only physical-grid resolution. Knudsen number, temperatures, projected Shakhov model, Prandtl number, viscosity law, relaxation mapping, mapped-polar velocity rule, source relaxation, positivity floor, transport order, stopping criteria and observables remained frozen. Extrapolation remains diagnostic and is not validation."
+}
