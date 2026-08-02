@@ -71,6 +71,7 @@ def _case(
     vrms: float,
     scale: float,
     *,
+    table_velocity: list[float] | None = None,
     converged: bool = True,
 ) -> dict[str, object]:
     return {
@@ -81,7 +82,11 @@ def _case(
             "relative_l1": vrms,
             "sign_agreement": 0.4,
         },
-        "table_velocity": [scale * (index + 1) for index in range(10)],
+        "table_velocity": (
+            table_velocity
+            if table_velocity is not None
+            else [scale * (index + 1) for index in range(10)]
+        ),
         "finite": True,
         "minimum_phi": 1.0e-30,
         "minimum_psi": 1.0e-30,
@@ -92,13 +97,26 @@ def _case(
 
 def test_stage45_decision_retains_all_endpoints() -> None:
     retained = copy.deepcopy(STAGE44_RETAINED_CASES[-1])
+    retained_profile = [float(value) for value in retained["table_velocity"]]
 
-    converging = _case(0.0780, 0.083, 1.10, 0.98)
+    converging = _case(
+        0.0780,
+        0.083,
+        1.10,
+        0.98,
+        table_velocity=[0.98 * value for value in retained_profile],
+    )
     assert stage45_decision(retained, converging) == (
         "projected_polar_32x32_converging_stage46_cross_kn_extension"
     )
 
-    unresolved = _case(0.0760, 0.056, 1.10, 0.70)
+    unresolved = _case(
+        0.0760,
+        0.056,
+        1.10,
+        0.70,
+        table_velocity=[0.70 * value for value in retained_profile],
+    )
     assert stage45_decision(retained, unresolved) == (
         "projected_polar_32x32_improving_not_converged_"
         "stage46_40x40_confirmation"
