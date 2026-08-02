@@ -1,0 +1,82 @@
+{
+  "stage": 46,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 46",
+    "run_id": 30753260337,
+    "job_id": 91510943443,
+    "status": "completed",
+    "conclusion": "success",
+    "source_head_sha": "9a7d48b7925b404513f1e2b40cff3c9588c60ce0",
+    "tests_passed": 45,
+    "tests_failed": 0,
+    "artifact": {
+      "id": 8835645496,
+      "name": "stage46-projected-polar-40x40-confirmation",
+      "size_bytes": 56107,
+      "sha256": "384af3378996f74f7f17905f064c86c9aa702cbb2f86549cacef3998f24886e8",
+      "created_at": "2026-08-02T15:44:05Z",
+      "expires_at": "2026-09-01T15:44:04Z"
+    }
+  },
+  "description": "Frozen-physics 40x40 confirmation of the improving but unresolved Stage 45 projected phi/psi mapped-polar spatial sequence",
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [40, 40],
+    "combined_sequence_grids": [20, 24, 32, 40],
+    "polar_rule": {"radial_nodes": 32, "angular_nodes": 96, "point_count": 3072},
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false,
+    "velocity_quadrature_retuning": false
+  },
+  "new_case": {
+    "grid": [40, 40],
+    "iterations": 1025,
+    "converged": true,
+    "final_change": 1.2884848201499821e-05,
+    "predicted_qav": 0.07691741440108028,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.06829742223722624,
+    "velocity_metrics": {"relative_rms": 0.6767910267583875, "relative_l1": 0.7455075134434416, "sign_agreement": 0.8},
+    "wall_mass_balance_relative_error": 1.8272734223688737e-16,
+    "minimum_phi": 1e-30,
+    "minimum_psi": 1e-30,
+    "maximum_phi_clipped_weight_fraction": 0.002831966864582501,
+    "maximum_psi_clipped_weight_fraction": 0.004914176009276124,
+    "finite": true,
+    "work_proxy": 5038080000,
+    "table_velocity": [0.0027800270702341757, 0.0015922435966530667, 0.0005708568915356494, -0.0002564131195976637, -0.0009161317429350799, -0.0013933468141399737, -0.0015931924002603986, -0.001332742785050453, -0.00029288504235082066, 0.001983402475669999]
+  },
+  "finest_grid_changes": {
+    "qav_change_32x32_to_40x40": 0.009529783062290546,
+    "profile_change_32x32_to_40x40": 0.2878084800426498,
+    "qav_error_improves": true,
+    "velocity_rms_improves": true
+  },
+  "linear_h_extrapolation": {
+    "model": "observable(h)=slope*h+intercept with h=1/N",
+    "grid_sizes": [20, 24, 32, 40],
+    "h": [0.05, 0.041666666666666664, 0.03125, 0.025],
+    "qav_slope": 0.11878079302928184,
+    "extrapolated_qav": 0.07394272165659227,
+    "qav_fit_r2": 0.9999793498258568,
+    "extrapolated_qav_relative_error": 0.026982245230448267,
+    "extrapolated_table_velocity": [0.0016225612581054615, 0.0004153420950196004, -0.0007296287667108324, -0.001699720432686301, -0.00251368746773982, -0.0031592288907808675, -0.0035425948810775157, -0.0034825884264424573, -0.0026030880397320496, -0.00017596383303676675],
+    "velocity_fit_r2": 0.9998160177891736,
+    "extrapolated_velocity_relative_rms": 0.30915033533591363
+  },
+  "decision": "projected_polar_40x40_improving_not_converged_stage47_48x48_confirmation",
+  "scientific_conclusion": "At fixed physics and the unchanged 32x96 mapped-polar velocity rule, the 40x40 solution remains stable and improves both benchmark errors: average heat-flux error falls from 7.8478% at 32x32 to 6.8297%, and wall-velocity relative RMS falls from 0.9049 to 0.6768 with sign agreement increasing from 60% to 80%. The heat-flux change is only 0.953%, but the wall-profile change is still 28.781%, exceeding the preregistered 10% convergence threshold. The sequence is therefore improving but not spatially converged; cross-Knudsen extension is not justified. The linear-h extrapolation is retained as diagnostic, not validation.",
+  "interpretation_guard": "Stage 46 changes only physical-grid resolution. Knudsen number, temperatures, projected Shakhov model, Prandtl number, viscosity law, relaxation mapping, mapped-polar velocity rule, source relaxation, positivity floor, transport order, stopping criteria and observables remain frozen. No failed physical parameter was retuned."
+}
