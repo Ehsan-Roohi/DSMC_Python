@@ -16,7 +16,13 @@ from .dvm_shakhov_corrected import (
 )
 
 
-TABLE3_Y = np.arange(0.05, 1.0, 0.10, dtype=np.float64)
+# Source-table coordinates are stored explicitly rather than generated with
+# np.arange, whose accumulated binary rounding prevents bitwise transcription
+# checks even though the intended decimal points are the same.
+TABLE3_Y = np.array(
+    [0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95],
+    dtype=np.float64,
+)
 TABLE3_UY_RATIO_0P1 = {
     0.1: np.array([1.7e-3, 8.8e-4, -1.5e-4, -1.1e-3, -1.8e-3,
                    -2.5e-3, -2.8e-3, -2.8e-3, -2.0e-3, -5.9e-5]),
