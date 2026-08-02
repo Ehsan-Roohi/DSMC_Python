@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - 'vision_guided_dsmc/vgdsmc/stage40_external_benchmark_fidelity_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/linear_sidewall_validation.py'
       - 'vision_guided_dsmc/tests/test_stage40_external_benchmark_fidelity_audit.py'
       - 'vision_guided_dsmc/results/stage39_collision_model_benchmark_audit_summary.json'
       - '.github/workflows/vision-guided-dsmc-stage40.yml'
   pull_request:
     paths:
       - 'vision_guided_dsmc/vgdsmc/stage40_external_benchmark_fidelity_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/linear_sidewall_validation.py'
       - 'vision_guided_dsmc/tests/test_stage40_external_benchmark_fidelity_audit.py'
       - 'vision_guided_dsmc/results/stage39_collision_model_benchmark_audit_summary.json'
       - '.github/workflows/vision-guided-dsmc-stage40.yml'
