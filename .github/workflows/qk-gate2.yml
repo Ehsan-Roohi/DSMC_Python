@@ -1,0 +1,109 @@
+name: Bird-QK Gate 2
+
+on:
+  issues:
+    types:
+      - opened
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: bird-qk-gate2
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate number-changing Q-K chemistry
+    if: github.event_name == 'workflow_dispatch' || github.event.issue.title == '[CI] RUN_QK_GATE2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install GFortran and Python dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+          python -m pip install --upgrade pip
+          python -m pip install numpy
+
+      - name: Reconstruct verified source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat qk_gate2_bundle/chunk_*.b64 | tr -d '\n\r' | base64 --decode > /tmp/qk_gate2_lean.tar.gz
+          echo "c5e8c050ae9657ef5afffd218dbfef92bc6736e7a6ff03fee719f73ad7db1e98  /tmp/qk_gate2_lean.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/qk_gate2_lean.tar.gz
+          chmod +x qk_gate2/run_qk_gate2_validation.sh
+          find qk_gate2 -maxdepth 1 -type f -printf '%f\n' | sort
+
+      - name: Run Gate 2 validation
+        working-directory: qk_gate2
+        run: ./run_qk_gate2_validation.sh
+
+      - name: Verify all Gate 2 markers
+        working-directory: qk_gate2
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'QK_GATE2_EVENT_SELFTEST_PASS' validation_output/event_selftest_stdout.txt
+          for seed in 56001 56002 56003; do
+            grep -q 'QK_GATE2_NUMBER_CHANGE_GATE_PASS' "fortran_runs/${seed}/stdout.txt"
+          done
+          grep -q 'QK_GATE2_CROSS_LANGUAGE_GATE_PASS' validation_output/comparison_stdout.txt
+          grep -q 'OVERALL=PASS' validation_output/QK_GATE2_VALIDATION_REPORT.txt
+          echo 'GITHUB_ACTIONS_QK_GATE2_PASS'
+
+      - name: Print final report
+        if: always()
+        working-directory: qk_gate2
+        run: |
+          if [ -f validation_output/QK_GATE2_VALIDATION_REPORT.txt ]; then
+            cat validation_output/QK_GATE2_VALIDATION_REPORT.txt
+          fi
+
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qk-gate2-validation-evidence
+          path: |
+            qk_gate2/validation_output/
+            qk_gate2/fortran_runs/
+          if-no-files-found: warn
+
+      - name: Report result on trigger issue
+        if: always() && github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = 'The validation report was not generated.';
+            try {
+              report = fs.readFileSync('qk_gate2/validation_output/QK_GATE2_VALIDATION_REPORT.txt', 'utf8');
+            } catch (error) {
+              report += `\n\nRead error: ${error.message}`;
+            }
+            const status = '${{ job.status }}';
+            const body = [
+              `## Bird-QK Gate 2: ${status.toUpperCase()}`,
+              '',
+              '```text',
+              report.slice(0, 60000),
+              '```',
+              '',
+              status === 'success'
+                ? 'Marker: `GITHUB_ACTIONS_QK_GATE2_PASS`'
+                : 'The workflow did not pass. Inspect the uploaded artifact and job log.'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
