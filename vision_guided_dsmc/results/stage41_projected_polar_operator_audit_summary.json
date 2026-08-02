@@ -1,0 +1,62 @@
+{
+  "stage": 41,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 41",
+    "run_id": 30727704751,
+    "job_id": 91442360250,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "ca0fa6215bbd8078b2ebc0b59f7eb3780ac5c56b",
+    "regression_tests_passed": 38,
+    "regression_tests_failed": 0,
+    "artifact": {
+      "id": 8827830725,
+      "name": "stage41-projected-polar-operator-audit",
+      "size_bytes": 28431,
+      "sha256": "0ed4c1c99a7424f1aaa67037121a1974c72f5dba1571615cde575f16e8776a05"
+    }
+  },
+  "retained_stage40_endpoint": {
+    "predicted_qav": 0.0726173364328985,
+    "source_shakhov_qav": 0.072,
+    "source_dsmc_qav": 0.0716,
+    "relative_error_to_source_shakhov": 0.008574117123590345,
+    "relative_error_to_source_dsmc": 0.014208609398023778,
+    "table3_independent_reference_available": false
+  },
+  "configuration": {
+    "coarse_rule": {
+      "radial_nodes": 16,
+      "angular_nodes": 48,
+      "point_count": 768
+    },
+    "fine_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "physical_parameter_retuning": false,
+    "heated_cavity_solved": false
+  },
+  "positive_findings": {
+    "fine_maxwellian_moment_error": 5.417417359154797e-08,
+    "fine_shakhov_invariant_error": 4.875995179049702e-08,
+    "fine_shakhov_heat_flux_closure_error": 0.00021704939264108322,
+    "diffuse_wall_mass_balance_relative_error": 3.5989022049905664e-17,
+    "homogeneous_maximum_conserved_moment_change": 1.133500697801099e-08
+  },
+  "negative_findings": {
+    "coarse_maxwellian_moment_error": 0.0009252128888357358,
+    "coarse_shakhov_invariant_error": 0.0009070192418336731,
+    "coarse_shakhov_heat_flux_closure_error": 0.1742002525064521,
+    "fine_to_source_velocity_point_ratio": 0.096,
+    "source_resolution_reproduced": false,
+    "table3_wall_velocity_externally_validated": false
+  },
+  "decision": "projected_polar_operators_pass_stage42_heated_cavity_pilot",
+  "scientific_conclusion": "The fine 32x96 projected-polar rule passes moment, Shakhov closure, diffuse-wall, and homogeneous-relaxation audits. The coarse 16x48 rule retains a 17.42% heat-flux-closure error and is not used as the Stage 42 production rule. No heated-cavity or Table 3 validation claim is made."
+}
