@@ -19,6 +19,7 @@ rm -rf "$OUTROOT"
 mkdir -p "$OUTROOT/fortran_runs" "$OUTROOT/python_runs" \
   "$OUTROOT/validation_output" "$OUTROOT/bin"
 OUTROOT="$(cd "$OUTROOT" && pwd)"
+export OUTROOT PYTHON_BIN ROOT
 
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
