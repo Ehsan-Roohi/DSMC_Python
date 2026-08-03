@@ -6,6 +6,11 @@ import pytest
 from vgdsmc.stage41_projected_polar_operator_audit import (
     STAGE41_CORRECTION_FLOOR,
     mapped_polar_quadrature,
+    projected_maxwellian,
+)
+from vgdsmc.stage56_conservative_projection_pilot import (
+    STAGE56_BOUND_TOLERANCE,
+    _retained_clipped_lower_bounds,
 )
 from vgdsmc.stage57_conservative_solver_pilot import (
     STAGE56_COMPLETED_ENDPOINT,
@@ -99,7 +104,7 @@ def test_stage57_design_rejects_correction_floor_retuning() -> None:
         validate_stage57_design(correction_floor=0.01)
 
 
-def test_conservative_equilibrium_closes_and_preserves_positive_floor() -> None:
+def test_conservative_equilibrium_closes_and_preserves_retained_lower_bound() -> None:
     quadrature = mapped_polar_quadrature(12, 32, radial_scale=2.0)
     fields = {
         "rho": np.array([[1.0, 0.9], [1.1, 1.0]]),
@@ -116,8 +121,34 @@ def test_conservative_equilibrium_closes_and_preserves_positive_floor() -> None:
     assert psi.shape == phi.shape
     assert np.isfinite(phi).all()
     assert np.isfinite(psi).all()
-    assert np.min(phi) > 0.0
-    assert np.min(psi) > 0.0
+    assert np.min(phi) >= 0.0
+    assert np.min(psi) >= 0.0
+
+    phi_maxwellian, psi_maxwellian = projected_maxwellian(
+        fields["rho"], fields["u"], fields["v"], fields["T"], quadrature
+    )
+    for i in range(2):
+        for j in range(2):
+            phi_lower, psi_lower = _retained_clipped_lower_bounds(
+                float(fields["rho"][i, j]),
+                float(fields["u"][i, j]),
+                float(fields["v"][i, j]),
+                float(fields["T"][i, j]),
+                float(fields["qx"][i, j]),
+                float(fields["qy"][i, j]),
+                phi_maxwellian[i, j],
+                psi_maxwellian[i, j],
+                quadrature,
+            )
+            phi_tolerance = STAGE56_BOUND_TOLERANCE * max(
+                float(np.max(phi_lower)), 1.0e-300
+            )
+            psi_tolerance = STAGE56_BOUND_TOLERANCE * max(
+                float(np.max(psi_lower)), 1.0e-300
+            )
+            assert np.all(phi[i, j] >= phi_lower - phi_tolerance)
+            assert np.all(psi[i, j] >= psi_lower - psi_tolerance)
+
     assert diagnostics["projection_success_fraction"] == 1.0
     assert diagnostics["rank_loss_count"] == 0.0
     assert diagnostics["maximum_floor_violation"] == 0.0
