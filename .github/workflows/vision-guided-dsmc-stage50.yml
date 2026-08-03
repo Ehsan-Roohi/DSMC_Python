@@ -1,0 +1,175 @@
+name: Vision-guided DSMC Stage 50
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage50_projected_polar_cross_kn_extension.py'
+      - 'vision_guided_dsmc/tests/test_stage50_projected_polar_cross_kn_extension.py'
+      - 'vision_guided_dsmc/results/stage49_projected_polar_64x64_confirmation_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage50.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage50_projected_polar_cross_kn_extension.py'
+      - 'vision_guided_dsmc/tests/test_stage50_projected_polar_cross_kn_extension.py'
+      - 'vision_guided_dsmc/results/stage49_projected_polar_64x64_confirmation_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage50.yml'
+
+jobs:
+  projected-polar-cross-kn-extension:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 50 and retained projected-polar infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage50_projected_polar_cross_kn_extension.py \
+            tests/test_stage49_projected_polar_64x64_confirmation.py \
+            tests/test_stage48_projected_polar_56x56_confirmation.py \
+            tests/test_stage47_projected_polar_48x48_confirmation.py \
+            tests/test_stage46_projected_polar_40x40_confirmation.py \
+            tests/test_stage45_projected_polar_32x32_confirmation.py \
+            tests/test_stage44_projected_polar_finer_grid_sequence.py \
+            tests/test_stage43_projected_polar_resolution_sequence.py \
+            tests/test_stage42_projected_polar_heated_cavity_pilot.py \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Run frozen Stage 50 Kn0=1 and 10 extension
+        run: |
+          python -m vgdsmc.stage50_projected_polar_cross_kn_extension \
+            --output-dir /tmp/stage50_projected_polar_cross_kn_extension
+      - name: Verify provenance, frozen design and explicit endpoint retention
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage50_projected_polar_cross_kn_extension')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 50
+
+          retained = summary['retained_stage49_endpoint']
+          assert retained['workflow_run_id'] == 30767671512
+          assert retained['workflow_job_id'] == 91549183689
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 57
+          assert retained['tests_failed'] == 0
+          assert retained['test_duration_seconds'] == 0.25
+          assert retained['artifact_id'] == 8841966863
+          assert retained['artifact_size_bytes'] == 136455
+          assert retained['artifact_sha256'] == (
+              '1955c345571e08dd338c324aef9febf2098ddc728395fd4ab08b77420e91023c'
+          )
+          assert retained['source_head_sha'] == (
+              '2bd8ae07fd8aaf007e724bba1fc254ca5cd8166b'
+          )
+          assert retained['decision'] == (
+              'projected_polar_64x64_converging_stage50_cross_kn_extension'
+          )
+
+          baseline = summary['retained_kn0_0p1_case']
+          assert baseline['kn0'] == 0.1
+          assert baseline['grid'] == [64, 64]
+          assert baseline['iterations'] == 1550
+          assert baseline['predicted_qav'] == 0.07583282640214684
+          assert baseline['qav_relative_error'] == 0.05323370002981724
+          assert baseline['velocity_metrics']['relative_rms'] == 0.34777209032506057
+          assert baseline['velocity_metrics']['sign_agreement'] == 0.8
+
+          cfg = summary['configuration']
+          assert cfg['knudsen_numbers'] == [1.0, 10.0]
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grid'] == [64, 64]
+          assert cfg['polar_rule'] == {
+              'radial_nodes': 32,
+              'angular_nodes': 96,
+              'point_count': 3072,
+          }
+          assert cfg['prandtl'] == 2.0 / 3.0
+          assert cfg['shakhov_correction_floor'] == 0.05
+          assert cfg['transport_iteration'] == 'steady_first_order_upwind_jacobi'
+          assert cfg['collision'] == 'projected_shakhov'
+          assert cfg['relaxation_mapping'] == (
+              'sqrt(2)*Kn0/sqrt(pi) in c0 coordinates'
+          )
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['max_iterations'] == 3000
+          assert cfg['minimum_iterations'] == 500
+          assert cfg['check_interval'] == 25
+          assert cfg['tolerance'] == 2e-5
+          assert cfg['qav_relative_error_screen'] == 0.10
+          assert cfg['velocity_relative_rms_screen'] == 0.50
+          assert cfg['sign_agreement_screen'] == 0.80
+          assert cfg['physical_parameter_retuning'] is False
+          assert cfg['velocity_quadrature_retuning'] is False
+          assert cfg['transport_retuning'] is False
+
+          cases = summary['new_cases']
+          assert [case['kn0'] for case in cases] == [1.0, 10.0]
+          for case in cases:
+              assert case['grid'] == [64, 64]
+              assert isinstance(case['converged'], bool)
+              assert isinstance(case['finite'], bool)
+              assert 1 <= case['iterations'] <= 3000
+              assert len(case['table_velocity']) == 10
+              if case['finite']:
+                  assert case['minimum_phi'] > 0.0
+                  assert case['minimum_psi'] > 0.0
+                  assert case['wall_mass_balance_relative_error'] < 1e-10
+                  for key in (
+                      'final_change', 'predicted_qav', 'literature_qav',
+                      'qav_relative_error', 'wall_mass_balance_relative_error',
+                      'minimum_phi', 'minimum_psi',
+                      'maximum_phi_clipped_weight_fraction',
+                      'maximum_psi_clipped_weight_fraction', 'work_proxy',
+                  ):
+                      assert math.isfinite(case[key])
+                  for value in case['velocity_metrics'].values():
+                      assert math.isfinite(value)
+                  assert np.isfinite(case['table_velocity']).all()
+
+          metrics = summary['cross_kn_metrics']
+          assert isinstance(metrics['all_converged'], bool)
+          assert isinstance(metrics['all_stable'], bool)
+          for key in (
+              'maximum_qav_relative_error',
+              'maximum_velocity_relative_rms',
+              'minimum_sign_agreement',
+              'maximum_wall_mass_balance_relative_error',
+          ):
+              assert math.isfinite(metrics[key])
+
+          assert summary['decision'] in {
+              'projected_polar_cross_kn_consistent_stage51_velocity_resolution_confirmation',
+              'projected_polar_cross_kn_heat_flux_consistent_velocity_unresolved_stage51_wall_profile_audit',
+              'projected_polar_cross_kn_velocity_consistent_heat_flux_unresolved_stage51_heat_flux_definition_audit',
+              'projected_polar_cross_kn_mixed_or_negative_stage51_space_velocity_coupling_audit',
+              'stage50_cross_kn_stable_nonconverged_stage51_fixed_point_convergence_audit',
+              'stage50_cross_kn_numerical_blocker_stage51_projected_operator_stability_audit',
+          }
+
+          by_kn = {case['kn0']: case for case in cases}
+          for kn0, filename in (
+              (1.0, 'kn1_fields_and_profiles.npz'),
+              (10.0, 'kn10_fields_and_profiles.npz'),
+          ):
+              arrays = np.load(root / filename)
+              if by_kn[kn0]['finite']:
+                  for key in arrays.files:
+                      assert np.isfinite(arrays[key]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage50-projected-polar-cross-kn-extension
+          path: /tmp/stage50_projected_polar_cross_kn_extension
+          retention-days: 30
