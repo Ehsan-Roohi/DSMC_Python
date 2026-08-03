@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate4_nozzle_pilot_bundle
-EXPECTED_SHA=9b6e2bae324b756c1674fca0753a2fdbfdd371da4b260e9505d463db13a24cc1
+EXPECTED_SHA=f820ebe13f5bf8940420ac3245e8aaddcbaa7446c0633b90434346c2d06d967f
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE4_NOZZLE
 TMPDIR_GATE4="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE4"' EXIT
