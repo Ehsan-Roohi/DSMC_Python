@@ -1,0 +1,102 @@
+{
+  "stage": 54,
+  "workflow_run_id": 30814308875,
+  "workflow_job_id": 91688181380,
+  "workflow_conclusion": "success",
+  "tests_passed": 96,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.53,
+  "artifact_id": 8858775690,
+  "artifact_size_bytes": 274998,
+  "artifact_sha256": "0b8ee8fae6ef5d74eafbb17802ce6f76846f0db95f007ab299e19f4db1726afb",
+  "source_head_sha": "0899356cd4ece46ca60417a00ba1c8ed0fdb7a65",
+  "summary_sha256": "9382cb1dc259faa5c1b86bc3f9a7629c08811fa530083f71e5a4a090b9820532",
+  "compressed_tail_diagnostics_sha256": "20c40eee36d1cbf95fe7f62c01115e9ec2c92c6254417ed7333bf617ac54f6bd",
+  "expanded_tail_diagnostics_sha256": "32e98c302be071bf4d6e791f11709f853e3833ba20c8c4112cdccbe2542ac7e3",
+  "description": "Actual-state projected Shakhov collision-moment audit on the exact completed Stage 53 Kn0=10 fields, comparing the retained positivity-clipped operator with the algebraically unclipped projected formula.",
+  "configuration": {
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "grid": [64, 64],
+    "radial_nodes": 32,
+    "angular_nodes": 96,
+    "point_count": 3072,
+    "mapping_cases": {
+      "compressed_tail": 0.5,
+      "expanded_tail": 2.0
+    },
+    "prandtl": 0.6666666666666666,
+    "retained_correction_floor": 0.05,
+    "current_conserved_defect_threshold": 0.001,
+    "current_heat_flux_closure_threshold": 0.01,
+    "unclipped_conserved_defect_threshold": 1e-05,
+    "unclipped_heat_flux_closure_threshold": 0.001,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "transport_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "quadrature_retuning": false,
+    "solver_rerun": false,
+    "unclipped_equilibrium_is_diagnostic_only": true
+  },
+  "case_audits": {
+    "compressed_tail": {
+      "current_clipped_operator": {
+        "maximum_conserved_moment_defect": 0.04309865613556182,
+        "rms_conserved_moment_defect": 0.023137874822881373,
+        "heat_flux_closure_relative_l2": 0.13468214129809145,
+        "maximum_x_momentum_defect": 0.018116089829927153,
+        "maximum_y_momentum_defect": 0.035809955442288335,
+        "maximum_internal_energy_defect": 0.04309865613556182,
+        "maximum_phi_clipped_weight_fraction": 0.016634360568532257,
+        "maximum_psi_clipped_weight_fraction": 0.03272060250014,
+        "fraction_cells_with_any_clipping": 1.0,
+        "clipping_conserved_defect_correlation": 0.9371178314193637
+      },
+      "unclipped_algebraic_diagnostic": {
+        "maximum_conserved_moment_defect": 1.375920648803481e-05,
+        "rms_conserved_moment_defect": 6.851967840227325e-06,
+        "heat_flux_closure_relative_l2": 0.00016924631198182437,
+        "maximum_x_momentum_defect": 3.8697086765915036e-06,
+        "maximum_y_momentum_defect": 1.375920648803481e-05,
+        "maximum_internal_energy_defect": 8.540691266569083e-06
+      }
+    },
+    "expanded_tail": {
+      "current_clipped_operator": {
+        "maximum_conserved_moment_defect": 0.04315799633347594,
+        "rms_conserved_moment_defect": 0.023134597442129475,
+        "heat_flux_closure_relative_l2": 0.13461578047455905,
+        "maximum_x_momentum_defect": 0.01796845910285694,
+        "maximum_y_momentum_defect": 0.036062802156804116,
+        "maximum_internal_energy_defect": 0.04315799633347594,
+        "maximum_phi_clipped_weight_fraction": 0.016360561848560596,
+        "maximum_psi_clipped_weight_fraction": 0.03255554624544505,
+        "fraction_cells_with_any_clipping": 1.0,
+        "clipping_conserved_defect_correlation": 0.95069234148672
+      },
+      "unclipped_algebraic_diagnostic": {
+        "maximum_conserved_moment_defect": 2.092378855195319e-08,
+        "rms_conserved_moment_defect": 1.151446374056411e-08,
+        "heat_flux_closure_relative_l2": 4.477883955960393e-07,
+        "maximum_x_momentum_defect": 8.834374425680979e-09,
+        "maximum_y_momentum_defect": 2.092378855195319e-08,
+        "maximum_internal_energy_defect": 6.636239869538881e-09
+      }
+    }
+  },
+  "positive_findings": [
+    "The expanded-tail unclipped formula closes all conserved moments to 2.10e-8 and heat flux to 4.48e-7 on the actual cavity state.",
+    "The compressed-tail unclipped formula closes heat flux to 1.69e-4 and misses the strict 1e-5 conserved-moment threshold only in y momentum, at 1.376e-5.",
+    "Density closure remains at machine precision in both mapping arms."
+  ],
+  "negative_findings": [
+    "The retained positivity floor produces approximately 4.31 percent maximum conserved-moment error and 13.46 percent heat-flux-closure error in both mapping arms.",
+    "Every cell is affected by some clipping, and clipping fraction correlates strongly with conserved-moment defect, with correlations 0.9371 and 0.9507.",
+    "Because the compressed-tail unclipped result exceeds the preregistered 1e-5 limit by 3.759e-6, Stage 54 correctly retained the strict formula-or-quadrature blocker endpoint rather than silently relaxing the threshold.",
+    "No physical, collision, transport, wall, normalization, quadrature, or stopping parameter was retuned, and the unclipped state was not substituted into a cavity solve."
+  ],
+  "decision": "projected_collision_formula_or_quadrature_blocker",
+  "next_stage_rationale": "Resolve whether the compressed-tail 1.376e-5 residual is radial-quadrature truncation by an orthogonal fixed-state radial/angular refinement audit before attempting a conservative positivity-preserving projection or requesting user input."
+}
