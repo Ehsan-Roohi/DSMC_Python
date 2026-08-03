@@ -1,0 +1,160 @@
+name: Vision-guided DSMC Stage 53
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage53_radial_mapping_tail_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage53_radial_mapping_tail_audit.py'
+      - 'vision_guided_dsmc/results/stage52_velocity_resolution_audit_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage53.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage53_radial_mapping_tail_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage53_radial_mapping_tail_audit.py'
+      - 'vision_guided_dsmc/results/stage52_velocity_resolution_audit_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage53.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  radial-mapping-tail-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 53 and retained projected-polar infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage53_radial_mapping_tail_audit.py \
+            tests/test_stage52_velocity_resolution_audit.py \
+            tests/test_stage51_heat_flux_definition_audit.py \
+            tests/test_stage50_projected_polar_cross_kn_extension.py \
+            tests/test_stage49_projected_polar_64x64_confirmation.py \
+            tests/test_stage48_projected_polar_56x56_confirmation.py \
+            tests/test_stage47_projected_polar_48x48_confirmation.py \
+            tests/test_stage46_projected_polar_40x40_confirmation.py \
+            tests/test_stage45_projected_polar_32x32_confirmation.py \
+            tests/test_stage44_projected_polar_finer_grid_sequence.py \
+            tests/test_stage43_projected_polar_resolution_sequence.py \
+            tests/test_stage42_projected_polar_heated_cavity_pilot.py \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Download exact completed Stage 52 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage52-velocity-resolution-audit
+          path: /tmp/stage52_velocity_resolution_audit
+          run-id: 30787293128
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run frozen Stage 53 radial mapping tail audit
+        run: |
+          python -m vgdsmc.stage53_radial_mapping_tail_audit \
+            --stage52-artifact-dir /tmp/stage52_velocity_resolution_audit \
+            --output-dir /tmp/stage53_radial_mapping_tail_audit
+      - name: Verify provenance, frozen design and explicit scientific endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage53_radial_mapping_tail_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 53
+          retained = summary['retained_stage52_endpoint']
+          assert retained['workflow_run_id'] == 30787293128
+          assert retained['workflow_job_id'] == 91603227075
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 79
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8851319553
+          assert retained['artifact_sha256'] == (
+              '3c496189886de4b764ff13f7bfd737415de874329b4ecd191c270d90c97fca4b'
+          )
+          assert summary['retained_stage52_decision'] == (
+              'velocity_resolution_small_or_mixed_effect_stage53_radial_mapping_tail_audit'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grid'] == [64, 64]
+          assert cfg['radial_nodes'] == 32
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3072
+          assert cfg['baseline_radial_scale'] == 1.0
+          assert cfg['audit_scales'] == [
+              {'name': 'compressed_tail', 'radial_scale': 0.5},
+              {'name': 'expanded_tail', 'radial_scale': 2.0},
+          ]
+          assert cfg['tail_temperatures'] == [0.1, 1.0]
+          assert cfg['maximum_tail_moment_relative_error'] == 1e-3
+          for key in (
+              'physical_parameter_retuning', 'collision_parameter_retuning',
+              'transport_retuning', 'wall_model_retuning',
+              'normalization_retuning', 'velocity_point_count_retuning',
+          ):
+              assert cfg[key] is False
+          assert cfg['radial_mapping_scale_is_preregistered_audit_variable'] is True
+
+          baseline = summary['baseline_case']
+          assert baseline['iterations'] == 775
+          assert baseline['converged'] is True
+          assert math.isclose(
+              baseline['predicted_qav'], 0.22492827563466516,
+              rel_tol=0.0, abs_tol=1e-15,
+          )
+          assert summary['baseline_tail_moment_audit'][
+              'passes_preregistered_tail_closure'
+          ] is True
+
+          names = ['compressed_tail', 'expanded_tail']
+          assert [case['name'] for case in summary['audit_cases']] == names
+          assert set(summary['comparisons_to_baseline']) == set(names)
+          for case in summary['audit_cases']:
+              assert case['kn0'] == 10.0
+              assert case['grid'] == [64, 64]
+              assert case['polar_rule']['radial_nodes'] == 32
+              assert case['polar_rule']['angular_nodes'] == 96
+              assert case['tail_moment_audit'][
+                  'passes_preregistered_tail_closure'
+              ] is True
+              assert isinstance(case['converged'], bool)
+              assert isinstance(case['finite'], bool)
+              path = root / f"{case['name']}_fields_and_profiles.npz"
+              with np.load(path) as data:
+                  assert {
+                      'T', 'rho', 'u', 'v', 'qx', 'qy', 'bottom_heat_flux'
+                  }.issubset(data.files)
+                  if case['finite']:
+                      assert math.isfinite(case['predicted_qav'])
+                      assert math.isfinite(case['qav_relative_error'])
+                      assert math.isfinite(case['velocity_metrics']['relative_rms'])
+                      assert np.isfinite(data['T']).all()
+
+          allowed = {
+              'compressed_tail_materially_improves_stage54_cross_kn_confirmation',
+              'expanded_tail_materially_improves_stage54_cross_kn_confirmation',
+              'radial_mapping_changes_solution_without_material_benchmark_improvement_stage54_projected_collision_moment_audit',
+              'radial_mapping_tail_does_not_explain_cross_kn_heat_flux_stage54_projected_collision_moment_audit',
+              'stage53_radial_mapping_tail_stable_nonconverged_stage54_fixed_point_audit',
+              'stage53_radial_mapping_tail_numerical_blocker',
+          }
+          assert summary['decision'] in allowed
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage53-radial-mapping-tail-audit
+          path: /tmp/stage53_radial_mapping_tail_audit
+          retention-days: 30
