@@ -18,7 +18,7 @@ or velocity projection is applied.
 Run this from any Unity login-node directory:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/jfm-kn001-heavy-reruns/jfm_rt05_kn001_heavy_rerun/submit_from_github.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/41c2566cc8cb031b8d93be61ca54832ee6c17b75/jfm_rt05_kn001_heavy_rerun/submit_from_github.sh)
 ```
 
 The bootstrap refreshes the code under
