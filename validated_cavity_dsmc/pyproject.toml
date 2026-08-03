@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "validated-cavity-dsmc"
+version = "0.1.0"
+description = "Reproducible CPU/GPU DSMC lid-driven cavity solver with selectable collision-pair algorithms"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+gpu-cuda12 = ["cupy-cuda12x>=13"]
+test = []
+
+[project.scripts]
+dsmc-cavity = "dsmc_cavity.cli:main"
+dsmc-cavity-validate = "dsmc_cavity.validation:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
