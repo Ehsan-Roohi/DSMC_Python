@@ -1,0 +1,80 @@
+{
+  "stage": 52,
+  "workflow_run_id": 30787293128,
+  "workflow_job_id": 91603227075,
+  "workflow_conclusion": "success",
+  "tests_passed": 79,
+  "tests_failed": 0,
+  "artifact_id": 8851319553,
+  "artifact_size_bytes": 393526,
+  "artifact_sha256": "3c496189886de4b764ff13f7bfd737415de874329b4ecd191c270d90c97fca4b",
+  "source_head_sha": "9633e52fa3cbe7c2bfb2932eabe20de9d5d5657b",
+  "description": "Orthogonal mapped-polar velocity-resolution audit at the worst Stage 50 cross-Knudsen endpoint.",
+  "configuration": {
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "grid": [64, 64],
+    "baseline_rule": [32, 96],
+    "audit_rules": {
+      "radial_refined": [40, 96],
+      "angular_refined": [32, 120],
+      "coupled_refined": [40, 120]
+    },
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "transport_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "radial_mapping_scale_retuning": false
+  },
+  "baseline": {
+    "predicted_qav": 0.22492827563466516,
+    "literature_qav": 0.178,
+    "qav_relative_error": 0.26364199794755716,
+    "velocity_relative_rms": 0.4249110488734276,
+    "velocity_sign_agreement": 1.0,
+    "maximum_phi_clipped_weight_fraction": 0.012995473412961285,
+    "maximum_psi_clipped_weight_fraction": 0.027552143031269263
+  },
+  "audit_cases": {
+    "radial_refined": {
+      "predicted_qav": 0.2249270521558107,
+      "qav_relative_error": 0.26363512447084675,
+      "qav_error_reduction_fraction": 0.00002607125102950771,
+      "velocity_relative_rms": 0.42461095697382567,
+      "velocity_rms_change_fraction": -0.0007062464023884257,
+      "velocity_sign_agreement": 1.0,
+      "materially_improves": false
+    },
+    "angular_refined": {
+      "predicted_qav": 0.22490932349470227,
+      "qav_relative_error": 0.26353552525113644,
+      "qav_error_reduction_fraction": 0.00040385332097924023,
+      "velocity_relative_rms": 0.4052432590195284,
+      "velocity_rms_change_fraction": -0.046286840283500975,
+      "velocity_sign_agreement": 1.0,
+      "materially_improves": false
+    },
+    "coupled_refined": {
+      "predicted_qav": 0.22490809889690072,
+      "qav_relative_error": 0.26352864548820637,
+      "qav_error_reduction_fraction": 0.0004299484157806237,
+      "velocity_relative_rms": 0.40494156611810816,
+      "velocity_rms_change_fraction": -0.04699685453759043,
+      "velocity_sign_agreement": 1.0,
+      "materially_improves": false
+    }
+  },
+  "positive_findings": [
+    "All three refined velocity rules converged and remained finite with wall-mass imbalance near machine precision.",
+    "Angular refinement reduced the velocity-profile RMS error by about 4.6 percent while preserving 100 percent sign agreement.",
+    "Radial refinement slightly reduced positivity clipping."
+  ],
+  "negative_findings": [
+    "Heat-flux error remained approximately 26.35 percent for every refined rule.",
+    "The best heat-flux error reduction was only 0.043 percent, far below the preregistered 10 percent material-improvement threshold.",
+    "Increasing radial or angular point count therefore did not explain the cross-Knudsen heat-flux discrepancy.",
+    "The results are diagnostic and do not establish external validation."
+  ],
+  "decision": "velocity_resolution_small_or_mixed_effect_stage53_radial_mapping_tail_audit"
+}
