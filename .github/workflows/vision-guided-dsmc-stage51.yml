@@ -1,0 +1,173 @@
+name: Vision-guided DSMC Stage 51
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage51_heat_flux_definition_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage51_heat_flux_definition_audit.py'
+      - 'vision_guided_dsmc/results/stage50_projected_polar_cross_kn_extension_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage51.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage51_heat_flux_definition_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage51_heat_flux_definition_audit.py'
+      - 'vision_guided_dsmc/results/stage50_projected_polar_cross_kn_extension_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage51.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  heat-flux-definition-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 51 and retained projected-polar infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage51_heat_flux_definition_audit.py \
+            tests/test_stage50_projected_polar_cross_kn_extension.py \
+            tests/test_stage49_projected_polar_64x64_confirmation.py \
+            tests/test_stage48_projected_polar_56x56_confirmation.py \
+            tests/test_stage47_projected_polar_48x48_confirmation.py \
+            tests/test_stage46_projected_polar_40x40_confirmation.py \
+            tests/test_stage45_projected_polar_32x32_confirmation.py \
+            tests/test_stage44_projected_polar_finer_grid_sequence.py \
+            tests/test_stage43_projected_polar_resolution_sequence.py \
+            tests/test_stage42_projected_polar_heated_cavity_pilot.py \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Download exact completed Stage 50 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage50-projected-polar-cross-kn-extension
+          path: /tmp/stage50_projected_polar_cross_kn_extension
+          run-id: 30776673982
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run frozen Stage 51 heat-flux definition audit
+        run: |
+          python -m vgdsmc.stage51_heat_flux_definition_audit \
+            --stage50-artifact-dir /tmp/stage50_projected_polar_cross_kn_extension \
+            --output-dir /tmp/stage51_heat_flux_definition_audit
+      - name: Verify provenance, exact metrics and negative endpoint retention
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage51_heat_flux_definition_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 51
+
+          retained = summary['retained_stage50_endpoint']
+          assert retained['workflow_run_id'] == 30776673982
+          assert retained['workflow_job_id'] == 91573366717
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 63
+          assert retained['tests_failed'] == 0
+          assert retained['test_duration_seconds'] == 0.42
+          assert retained['artifact_id'] == 8843553740
+          assert retained['artifact_size_bytes'] == 264879
+          assert retained['artifact_sha256'] == (
+              '51540b50188b5cf3ba95464141d9b18d3ebdd3465c6e4ffc0909a51cdecd97c2'
+          )
+          assert retained['source_head_sha'] == (
+              'df37f0a4e464130bc12ca4ae815b643602fc9521'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['knudsen_numbers'] == [1.0, 10.0]
+          assert cfg['grid'] == [64, 64]
+          assert cfg['polar_rule'] == {
+              'radial_nodes': 32,
+              'angular_nodes': 96,
+              'point_count': 3072,
+          }
+          assert cfg['physical_parameter_retuning'] is False
+          assert cfg['collision_parameter_retuning'] is False
+          assert cfg['velocity_quadrature_retuning'] is False
+          assert cfg['transport_retuning'] is False
+          assert cfg['rerun_solver'] is False
+
+          expected = {
+              '1.0': {
+                  'wall_face_total_energy_flux': 0.17195346890049845,
+                  'first_cell_center_peculiar_heat_flux': 0.17082152191149552,
+                  'two_row_linear_wall_extrapolation': 0.16958709739773153,
+                  'three_row_quadratic_wall_extrapolation': 0.16956508316764188,
+                  'best_error': 0.14571002140298572,
+                  'spread': 0.016137741438220093,
+              },
+              '10.0': {
+                  'wall_face_total_energy_flux': 0.22492827563466516,
+                  'first_cell_center_peculiar_heat_flux': 0.22467813216045263,
+                  'two_row_linear_wall_extrapolation': 0.2231457627645436,
+                  'three_row_quadratic_wall_extrapolation': 0.22310862634432568,
+                  'best_error': 0.25341924912542524,
+                  'spread': 0.010222748822131917,
+              },
+          }
+          for key, target in expected.items():
+              case = summary['case_audits'][key]
+              for name in (
+                  'wall_face_total_energy_flux',
+                  'first_cell_center_peculiar_heat_flux',
+                  'two_row_linear_wall_extrapolation',
+                  'three_row_quadratic_wall_extrapolation',
+              ):
+                  assert math.isclose(
+                      case['source_consistent_estimators'][name], target[name],
+                      rel_tol=0.0, abs_tol=2e-15,
+                  )
+              assert math.isclose(
+                  case['best_source_consistent_relative_error'],
+                  target['best_error'], rel_tol=0.0, abs_tol=2e-15,
+              )
+              assert math.isclose(
+                  case['source_consistent_spread_relative_to_literature'],
+                  target['spread'], rel_tol=0.0, abs_tol=2e-15,
+              )
+              diagnostics = case['normalization_diagnostics']
+              assert diagnostics['stored_source_scaled']['eligible_for_decision'] is True
+              assert diagnostics['omitted_sqrt2_conversion']['eligible_for_decision'] is False
+              assert diagnostics['double_applied_sqrt2_conversion']['eligible_for_decision'] is False
+
+          assert summary['artifact_input'] == {
+              'summary_filename': 'summary.json',
+              'kn1_filename': 'kn1_fields_and_profiles.npz',
+              'kn10_filename': 'kn10_fields_and_profiles.npz',
+              'summary_sha256': 'f2b71365e4fd7cd94157bdf888c1678a4609423168ba74934988860dd66bcf5d',
+              'kn1_sha256': '5afcb640e8185f33bc97c53746d97f42d0553d04c6b1559b65c3579cfe32bb28',
+              'kn10_sha256': '0d922ddfae58b26cd7e088e1ceadeec3109cd3e60d3e7f50057e4103d30359a0',
+          }
+          assert summary['decision'] == (
+              'heat_flux_definition_and_location_do_not_explain_cross_kn_error_'
+              'stage52_velocity_resolution_audit'
+          )
+
+          profiles = np.load(root / 'heat_flux_profiles.npz')
+          assert set(profiles.files) == {
+              'kn1_bottom_heat_flux', 'kn1_qy_row_means',
+              'kn10_bottom_heat_flux', 'kn10_qy_row_means',
+          }
+          for name in profiles.files:
+              assert profiles[name].shape == (64,)
+              assert np.isfinite(profiles[name]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage51-heat-flux-definition-audit
+          path: /tmp/stage51_heat_flux_definition_audit
+          retention-days: 30
