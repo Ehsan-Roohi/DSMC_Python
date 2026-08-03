@@ -1,0 +1,20 @@
+{
+  "name": "Bird-QK Gate 2",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "chmod +x qk_gate2_bundle/run_in_codespace.sh && qk_gate2_bundle/run_in_codespace.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
