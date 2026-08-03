@@ -5,7 +5,7 @@ ROOT=/project/pi_roohie_umass_edu/Combustion/QK_GATE3_UNITY
 REPO="$ROOT/DSMC_Python"
 BUNDLE="$ROOT/qk_gate3_source.tar.gz"
 SRC="$ROOT/qk_gate3_shock_induction"
-EXPECTED_SHA=2afabd49087a0bb3ebbf1b9ed014d5b4b4c672f2c1c9f5701232d9d7301639ce
+EXPECTED_SHA=ebe4ef97a2391a7b9c2aeb72a428e14f5bd4dccd8d0fdf1c1928766bef9696be
 
 mkdir -p "$ROOT/runs"
 if [[ -d "$REPO/.git" ]]; then
