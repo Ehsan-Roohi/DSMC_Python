@@ -148,6 +148,12 @@ CSV and JSON metrics are committed beside the figure.
 For the Unity 2080 Ti queue, a non-interactive `mamba run` launch template is
 provided in `hpc/unity_gpu_validation.slurm`.
 
+For a five-model GPU comparison starting from an empty Unity home directory,
+use `hpc/bootstrap_unity_kn01_matrix.sh`.  It fetches this GitHub branch,
+submits NTC-PreScan/SBT/GBT/SSBT/SGBT as separate array tasks, preserves equal
+physical time despite model-dependent `dt`, and creates the final CSV/Markdown
+table and overlay plot automatically.
+
 ## Output contract
 
 Each run creates:
