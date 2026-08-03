@@ -16,21 +16,21 @@ squeue -j "$JOB_ID" || true
 
 if [[ -f "$OUT" ]]; then
   echo "--- stdout tail ---"
-  tail -n 60 "$OUT"
+  tail -n 80 "$OUT"
 fi
 if [[ -f "$ERR" && -s "$ERR" ]]; then
   echo "--- stderr tail ---"
-  tail -n 60 "$ERR"
+  tail -n 80 "$ERR"
 fi
 
-REPORT="$RESULT_DIR/validation_output/QK_GATE2_VALIDATION_REPORT.txt"
+REPORT="$RESULT_DIR/validation_output_ensemble16/QK_GATE2_ENSEMBLE16_REPORT.txt"
 if [[ -f "$REPORT" ]]; then
   echo "--- final report ---"
   cat "$REPORT"
   if grep -q 'OVERALL=PASS' "$REPORT"; then
-    echo "UNITY_QK_GATE2_PASS"
+    echo "UNITY_QK_GATE2_ENSEMBLE16_PASS"
   else
-    echo "UNITY_QK_GATE2_REPORT_PRESENT_BUT_NOT_PASS"
+    echo "UNITY_QK_GATE2_ENSEMBLE16_REPORT_PRESENT_BUT_NOT_PASS"
   fi
 else
   echo "Final report not present yet: $REPORT"
