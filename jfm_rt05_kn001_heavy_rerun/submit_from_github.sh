@@ -2,10 +2,11 @@
 set -euo pipefail
 
 REPOSITORY="Ehsan-Roohi/DSMC_Python"
-REF="${JFM_GITHUB_REF:-agent/jfm-kn001-heavy-reruns}"
+# Immutable package snapshot containing all validated solver and workflow files.
+REF="${JFM_GITHUB_REF:-65beda519fb4c40b9d9367c3108265313974cc48}"
 PROJECT_ROOT="${JFM_PROJECT_ROOT:-/project/pi_roohie_umass_edu/JFM_revision_2026}"
 TARGET="${JFM_RERUN_ROOT:-$PROJECT_ROOT/JFM_RT05_KN001_HEAVY_RERUN}"
-ARCHIVE_URL="https://codeload.github.com/${REPOSITORY}/tar.gz/refs/heads/${REF}"
+ARCHIVE_URL="https://codeload.github.com/${REPOSITORY}/tar.gz/${REF}"
 
 for command_name in curl tar sbatch; do
   command -v "$command_name" >/dev/null || {
