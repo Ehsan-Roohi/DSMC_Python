@@ -1,0 +1,116 @@
+{
+  "stage": 49,
+  "description": "Frozen-physics 64x64 confirmation of the improving Stage 48 projected phi/psi mapped-polar spatial sequence",
+  "workflow": {
+    "run_id": 30767671512,
+    "job_id": 91549183689,
+    "conclusion": "success",
+    "tests_passed": 57,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.25,
+    "artifact_id": 8841966863,
+    "artifact_size_bytes": 136455,
+    "artifact_sha256": "1955c345571e08dd338c324aef9febf2098ddc728395fd4ab08b77420e91023c",
+    "source_head_sha": "2bd8ae07fd8aaf007e724bba1fc254ca5cd8166b"
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [64, 64],
+    "combined_sequence_grids": [20, 24, 32, 40, 48, 56, 64],
+    "polar_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false,
+    "velocity_quadrature_retuning": false
+  },
+  "new_case": {
+    "grid": [64, 64],
+    "iterations": 1550,
+    "converged": true,
+    "final_change": 1.673947904379247e-05,
+    "predicted_qav": 0.07583282640214684,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.05323370002981724,
+    "velocity_metrics": {
+      "relative_rms": 0.34777209032506057,
+      "relative_l1": 0.36774617638417995,
+      "sign_agreement": 0.8
+    },
+    "wall_mass_balance_relative_error": 2.051199878905107e-16,
+    "minimum_phi": 1e-30,
+    "minimum_psi": 1e-30,
+    "maximum_phi_clipped_weight_fraction": 0.003122144949217257,
+    "maximum_psi_clipped_weight_fraction": 0.005236378288354882,
+    "finite": true,
+    "work_proxy": 19503513600,
+    "table_velocity": [
+      0.002335752789234165,
+      0.0011821028253378354,
+      0.00012299908472434076,
+      -0.0007505126886615177,
+      -0.0014556823929926354,
+      -0.001979819462718378,
+      -0.002233084664853311,
+      -0.0020386338039931505,
+      -0.001096805758787821,
+      0.0010910284516402902
+    ]
+  },
+  "finest_grid_changes": {
+    "qav_change_56x56_to_64x64": 0.0033840851935676985,
+    "profile_change_56x56_to_64x64": 0.09048553892280058,
+    "qav_error_improves": true,
+    "velocity_rms_improves": true
+  },
+  "linear_h_extrapolation": {
+    "model": "observable(h)=slope*h+intercept with h=1/N",
+    "grid_sizes": [20, 24, 32, 40, 48, 56, 64],
+    "qav_slope": 0.11791014345312935,
+    "extrapolated_qav": 0.07397868412362596,
+    "qav_fit_r2": 0.9999555562623188,
+    "extrapolated_qav_relative_error": 0.027481723939249515,
+    "extrapolated_table_velocity": [
+      0.0016102489035052427,
+      0.00045058270624119827,
+      -0.0006844348532762871,
+      -0.0016456741910211177,
+      -0.002445484423760769,
+      -0.003072729603033067,
+      -0.003439454313250495,
+      -0.0033722636114680024,
+      -0.0025379809779339374,
+      -0.0002759999920572192
+    ],
+    "velocity_fit_r2": 0.9994559034028709,
+    "extrapolated_velocity_relative_rms": 0.2758967944737467
+  },
+  "positive_findings": [
+    "The 64x64 solution converged in 1550 iterations and remained finite and positive with wall-mass balance 2.051199878905107e-16.",
+    "Heat-flux error decreased from 5.679793259945467% at 56x56 to 5.323370002981724% at 64x64.",
+    "Table-3 relative RMS decreased from 0.42365149047170675 to 0.34777209032506057 while sign agreement remained 80%.",
+    "The 56x56-to-64x64 heat-flux and complete-profile changes were 0.33840851935676985% and 9.048553892280058%, satisfying the preregistered 3% and 10% cross-Knudsen thresholds."
+  ],
+  "negative_findings": [
+    "The finite-grid Table-6 error remains 5.323370002981724%; the 64x64 result is not exact agreement with the published value.",
+    "The finite-grid Table-3 relative RMS remains 0.34777209032506057 and sign agreement remains only 80%.",
+    "Weighted positivity clipping persists at 0.3122144949217257% for phi and 0.5236378288354882% for psi.",
+    "The h-to-zero extrapolation is diagnostic only: it leaves 2.7481723939249515% heat-flux error and 0.2758967944737467 Table-3 relative RMS."
+  ],
+  "decision": "projected_polar_64x64_converging_stage50_cross_kn_extension",
+  "interpretation_guard": "Stage 49 changed only physical-grid resolution. Knudsen number, temperatures, projected Shakhov model, Prandtl number, viscosity law, relaxation mapping, mapped-polar velocity rule, source relaxation, positivity floor, transport order, stopping criteria and observables remained frozen. The convergence screen permits a cross-Knudsen extension but does not itself establish external validation."
+}
