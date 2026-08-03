@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=qk_gate2
+#SBATCH --job-name=qk_gate2_e16
 #SBATCH --account=pi_roohie_umass_edu
 #SBATCH --partition=cpu
 #SBATCH --nodes=1
@@ -12,9 +12,10 @@
 
 set -euo pipefail
 
-export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-4}"
-export OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-4}"
-export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-4}"
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMBA_NUM_THREADS=1
 
 ROOT=/project/pi_roohie_umass_edu/Combustion/QK_GATE2_UNITY
 REPO="$ROOT/DSMC_Python"
@@ -25,7 +26,6 @@ module purge >/dev/null 2>&1 || true
 if ! command -v gfortran >/dev/null 2>&1; then
   module load gcc >/dev/null 2>&1 || module load gcc/12.2.0 >/dev/null 2>&1 || true
 fi
-
 if ! command -v gfortran >/dev/null 2>&1; then
   echo "ERROR: gfortran not found after module loading." >&2
   exit 2
@@ -55,23 +55,21 @@ fi
 cd "$REPO"
 cat qk_gate2_bundle/chunk_*.b64 | tr -d '\n\r' | base64 --decode > "$RUN_DIR/qk_gate2_lean.tar.gz"
 echo "c5e8c050ae9657ef5afffd218dbfef92bc6736e7a6ff03fee719f73ad7db1e98  $RUN_DIR/qk_gate2_lean.tar.gz" | sha256sum -c -
-
 tar -xzf "$RUN_DIR/qk_gate2_lean.tar.gz" -C "$RUN_DIR"
-cd "$RUN_DIR/qk_gate2"
-chmod +x run_qk_gate2_validation.sh
 
-# Ensure the validation scripts use the known Python interpreter.
 export PATH="$(dirname "$PYTHON"):$PATH"
+export PYTHON="$PYTHON"
+chmod +x "$REPO/qk_gate2_bundle/run_gate2_ensemble16.sh"
 
-./run_qk_gate2_validation.sh 2>&1 | tee "$RUN_DIR/gate2_full.log"
+"$REPO/qk_gate2_bundle/run_gate2_ensemble16.sh" "$RUN_DIR/qk_gate2" 2>&1 | tee "$RUN_DIR/gate2_ensemble16_full.log"
 
-cp -a validation_output "$RUN_DIR/"
-cp -a fortran_runs "$RUN_DIR/"
+cp -a "$RUN_DIR/qk_gate2/validation_output_ensemble16" "$RUN_DIR/"
+cp -a "$RUN_DIR/qk_gate2/fortran_runs_ensemble16" "$RUN_DIR/"
 
-REPORT="$RUN_DIR/validation_output/QK_GATE2_VALIDATION_REPORT.txt"
+REPORT="$RUN_DIR/validation_output_ensemble16/QK_GATE2_ENSEMBLE16_REPORT.txt"
 grep -q 'OVERALL=PASS' "$REPORT"
-grep -q 'QK_GATE2_CROSS_LANGUAGE_GATE_PASS' "$RUN_DIR/validation_output/comparison_stdout.txt"
+grep -q 'QK_GATE2_CROSS_LANGUAGE_GATE_PASS' "$RUN_DIR/validation_output_ensemble16/comparison_stdout.txt"
 
-echo "UNITY_QK_GATE2_PASS"
+echo "UNITY_QK_GATE2_ENSEMBLE16_PASS"
 echo "RESULT_DIR=$RUN_DIR"
 echo "REPORT=$REPORT"
