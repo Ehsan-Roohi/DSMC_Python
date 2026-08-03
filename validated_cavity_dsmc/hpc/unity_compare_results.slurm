@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=cavity-compare
+#SBATCH --partition=cpu
 #SBATCH --output=logs/cavity-compare-%j.out
 #SBATCH --error=logs/cavity-compare-%j.err
 #SBATCH --time=00:30:00

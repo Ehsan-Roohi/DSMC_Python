@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=cavity-models
+#SBATCH --partition=gpu
 #SBATCH --output=logs/cavity-%A_%a.out
 #SBATCH --error=logs/cavity-%A_%a.err
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
-#SBATCH --gres=gpu:1
+#SBATCH --gpus=1
 #SBATCH --constraint=2080ti
 #SBATCH --array=0-4
 
