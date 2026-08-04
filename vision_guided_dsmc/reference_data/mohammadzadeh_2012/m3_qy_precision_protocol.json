@@ -1,0 +1,53 @@
+{
+  "anti_circularity": {
+    "external_thresholds": "unchanged from validation_protocol.json",
+    "matching_rule": "no smoothing, seed replacement, selective reporting, post-outcome tuning, or threshold relaxation",
+    "seed_bank": "m3_qy_precision_seed_bank.json"
+  },
+  "basis_file": "m3_r100_basis.json",
+  "physical_case": {
+    "collision_backend": "numpy_fast_after_locked_event_backend_parity",
+    "collision_model": "VHS_NTC",
+    "dt_safety": 0.2,
+    "grid": 100,
+    "knudsen": 0.05,
+    "lid_speed_m_per_s": 100.0,
+    "particles_per_cell": 32,
+    "wall_model": "fully_diffuse_chronological_event_streaming",
+    "wall_temperature_K": 300.0
+  },
+  "precision_design": {
+    "independent_seed_count": 8,
+    "original_R100_post_burn_steps": 18750,
+    "post_burn_multiplier": 5,
+    "predicted_qy_profile_rse_from_locked_R100": 0.163776019924668,
+    "prediction_rule": "0.7324286272718353/sqrt((8*5)/(2*1))",
+    "sample_count": 3000
+  },
+  "runtime_contract": {
+    "maximum_events_per_particle_per_step": 32,
+    "nonoverlapping_sampling_blocks": 10,
+    "sample_count": 3000,
+    "sample_schedule": "round(linspace(sample_start, steps_minus_one, sample_count))",
+    "wall_events_sampled_every_post_burn_in_step": true
+  },
+  "stage": {
+    "authorized": true,
+    "checkpoint_interval_steps": 1000,
+    "grid": 100,
+    "name": "QY100_precision",
+    "sample_start": 12500,
+    "seed_group": "development.QY100_precision",
+    "steps": 106250
+  },
+  "statistical_gates": {
+    "all_seed_mechanics_must_pass": true,
+    "all_seed_stationarity_must_pass": true,
+    "normalized_qy_profile_global_rse_max": 0.2,
+    "qy_nrmse_max": 0.2,
+    "qy_sign_agreement_min": 0.9,
+    "stationarity_abs_z_max": 2.0
+  },
+  "status": "locked_after_R100_and_before_any_M3_trajectory",
+  "validation_claim_policy": "M3 remains development-only unless every preregistered mechanics, stationarity, precision, and external-profile gate passes"
+}

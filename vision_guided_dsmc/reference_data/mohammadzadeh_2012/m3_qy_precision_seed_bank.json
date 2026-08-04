@@ -1,0 +1,6 @@
+{
+  "development": {
+    "QY100_precision": [91901, 91902, 91903, 91904, 91905, 91906, 91907, 91908]
+  },
+  "status": "locked_before_any_M3_trajectory"
+}

@@ -1,0 +1,158 @@
+{
+  "protocol_version": "M1R-preregistered-2026-08-03",
+  "status": "locked_after_M1_postmortem_and_before_any_M1R_physical_trajectory",
+  "scope": "isolated wall-streaming repair and exact S1 rerun; no S2 or confirmatory authorization",
+  "inherits_scientific_gates_from": "validation_protocol.json#M0-locked-2026-08-03",
+  "scientific_threshold_changes": "none",
+  "preexisting_evidence": {
+    "M1_decision": "hold_M1_S1_for_diagnosis",
+    "M1_lock_manifest": "m1_lock_manifest.json",
+    "diagnosed_defect": "legacy full-step transport mirrored geometric overshoot but did not propagate unspent time with the diffusely reflected velocity; fixed x-before-y processing also broke corner chronology and wall-event phase classification",
+    "permitted_intervention": "replace only the free-flight/wall integration path with earliest-time-of-impact event streaming; collision, gas, Kn mapping, sampling estimators, reference data, orientations, and thresholds remain unchanged"
+  },
+  "reference_bundle": [
+    "validation_protocol.json",
+    "benchmark_metadata.json",
+    "fig4_wall_slip_profiles.csv",
+    "fig5_wall_temperature_profiles.csv",
+    "fig9b_dsmc_qy_profile_y08.csv",
+    "fig9b_dsmc_temperature_profile_x08.csv",
+    "m1_lock_manifest.json"
+  ],
+  "primary_case": {
+    "knudsen": 0.05,
+    "lid_speed_m_per_s": 100.0,
+    "wall_temperature_K": 300.0,
+    "gas": "monatomic argon",
+    "collision_model": "VHS",
+    "collision_selection": "NTC",
+    "wall_model": "fully diffuse",
+    "particles_per_cell": 32
+  },
+  "isolated_source_change": {
+    "legacy_sequence": "pos += vel*dt; then overshoot-and-fold diffuse wall processing",
+    "repaired_sequence": "advance to earliest wall time; sample diffuse velocity; advance the unspent time with that velocity; repeat chronologically for multiple hits",
+    "legacy_files_are_immutable": true,
+    "M1_artifacts_must_not_be_overwritten": true,
+    "position_clipping_is_forbidden": true,
+    "event_cap_exhaustion_is_a_hard_failure": true
+  },
+  "runtime_contract": {
+    "sample_stride": 20,
+    "nonoverlapping_sampling_blocks": 8,
+    "checkpoint_interval_steps": 500,
+    "checkpoint_write": "atomic_npz_plus_canonical_json",
+    "resume_requires_exact_config_protocol_seed_and_source_fingerprint": true,
+    "ntc_majorant_probability_clipping": false,
+    "wall_events_sampled_every_post_burn_in_step": true,
+    "volume_fields_sampled_at_stride": true,
+    "minimum_wall_event_coverage_per_lid_bin": 1,
+    "maximum_events_per_particle_per_step": 32
+  },
+  "event_mechanics_gates": {
+    "particle_count_delta": 0,
+    "relative_particle_weight_delta_abs_max": 1e-12,
+    "incident_reflected_count_difference_per_wall": 0,
+    "incident_reflected_weight_relative_difference_per_wall_max": 1e-12,
+    "incident_wall_relative_sign_violations": 0,
+    "reflected_wall_relative_sign_violations": 0,
+    "nonmonotone_hit_times": 0,
+    "out_of_domain_final_positions": 0,
+    "fallback_position_clips": 0,
+    "event_cap_exhaustions": 0,
+    "multiple_hit_and_exact_corner_events": "report_counts_and_test_chronology_not_required_to_be_nonzero_in_each_physical_seed"
+  },
+  "stationarity_contract": {
+    "required": true,
+    "comparison": "first_four_vs_last_four_nonoverlapping_block_means",
+    "tracked_quantities": [
+      "macroscopic_lid_slip_center",
+      "microscopic_lid_slip_center",
+      "temperature_min_K",
+      "temperature_max_K",
+      "qy_profile_min_normalized",
+      "qy_profile_max_normalized"
+    ],
+    "criterion": "absolute_half_difference_not_greater_than_two_combined_standard_errors",
+    "minimum_finite_blocks_per_half": 3
+  },
+  "stages": {
+    "P0_event_mechanics": {
+      "grid": 8,
+      "steps": 1000,
+      "sample_start": 200,
+      "dt_safety": 0.2,
+      "backend": "reference",
+      "seed_group": "development.P0_event_mechanics",
+      "purpose": "wall_event_invariants_only_no_external_reference_evaluation",
+      "go_requirements": [
+        "all_event_mechanics_gates_pass",
+        "majorant_violations_equal_zero",
+        "finite_particle_state",
+        "checkpoint_resume_bitwise_identity"
+      ]
+    },
+    "P1_event_backend_parity": {
+      "grid": 8,
+      "steps": 240,
+      "sample_start": 80,
+      "dt_safety": 0.2,
+      "backend_pair": [
+        "reference",
+        "numpy_fast"
+      ],
+      "seed_group": "development.P1_event_backend_parity",
+      "purpose": "implementation_equivalence_only_no_external_reference_evaluation",
+      "authorization_effect": "a pass permits numpy_fast only in later separately locked development pilots; it does not change S1R backend"
+    },
+    "S1R_mechanics_32": {
+      "grid": 32,
+      "steps": 10000,
+      "sample_start": 4000,
+      "dt_safety": 0.2,
+      "backend": "reference",
+      "seed_group": "development.S1R_mechanics_32",
+      "purpose": "exact_M1_S1_design_rerun_with_only_wall_streaming_repaired_not_external_validation",
+      "go_requirements": [
+        "all_event_mechanics_gates_pass",
+        "majorant_violations_equal_zero",
+        "finite_nonempty_fields",
+        "complete_lid_event_bin_coverage",
+        "stationarity_pass",
+        "heat_flux_sign_agreement_at_least_locked_M0_threshold",
+        "heat_flux_zero_crossing_error_below_locked_M0_threshold"
+      ],
+      "aggregation_rule": "both preregistered seeds must complete; no partial S1R advance decision",
+      "advance_rule": "advance beyond S1R only if every mechanical/stationarity/topology requirement passes; external accuracy metrics are diagnostic at this coarse grid"
+    }
+  },
+  "reporting_contract": {
+    "heat_flux_zero_crossing_count_must_be_reported": true,
+    "M1_and_M1R_results_must_be_kept_side_by_side": true,
+    "repair_may_not_be_described_as_external_validation": true,
+    "macroscopic_wall_adjacent_profile_location_must_be_reported": true,
+    "confidence_intervals_with_two_seeds_use_student_t_df_1_not_1_96": true,
+    "bar_charts_for_profile_comparisons": false,
+    "required_comparison_visuals": [
+      "overlaid_line_profiles_with_uncertainty",
+      "temperature_and_heat_flux_contours_when_spatially_interpretable"
+    ]
+  },
+  "anti_circularity": {
+    "source_pdf_sha256": "9582052a1c9a7a6ab7df93decd8ccfa6d61c13788f9338f31bde1894ead0e93c",
+    "seed_bank": "m1r_seed_bank.json",
+    "all_M1R_seeds_disjoint_from_M1": true,
+    "source_and_lock_manifest_must_be_frozen_before_first_P0_trajectory": true,
+    "no_post_outcome_changes": [
+      "scientific thresholds",
+      "Kn mapping",
+      "VHS convention",
+      "wall estimator",
+      "profile orientation",
+      "sample stride",
+      "block count",
+      "stationarity rule",
+      "M1R seeds"
+    ]
+  }
+}

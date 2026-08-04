@@ -1,0 +1,124 @@
+{
+  "protocol_version": "M1-locked-2026-08-03",
+  "status": "locked_before_M1_development_outcomes",
+  "inherits_scientific_gates_from": "validation_protocol.json#M0-locked-2026-08-03",
+  "scientific_gate_changes": "none",
+  "reference_bundle": [
+    "validation_protocol.json",
+    "benchmark_metadata.json",
+    "fig4_wall_slip_profiles.csv",
+    "fig5_wall_temperature_profiles.csv",
+    "fig9b_dsmc_qy_profile_y08.csv",
+    "fig9b_dsmc_temperature_profile_x08.csv"
+  ],
+  "primary_case": {
+    "knudsen": 0.05,
+    "lid_speed_m_per_s": 100.0,
+    "wall_temperature_K": 300.0,
+    "gas": "monatomic argon",
+    "collision_model": "VHS",
+    "collision_selection": "NTC",
+    "wall_model": "fully diffuse",
+    "particles_per_cell": 32
+  },
+  "runtime_contract": {
+    "sample_stride": 20,
+    "nonoverlapping_sampling_blocks": 8,
+    "checkpoint_interval_steps": 500,
+    "checkpoint_write": "atomic_npz_plus_canonical_json",
+    "resume_requires_exact_config_and_protocol_fingerprint": true,
+    "ntc_majorant_probability_clipping": false,
+    "wall_events_sampled_every_post_burn_in_step": true,
+    "volume_fields_sampled_at_stride": true,
+    "minimum_wall_event_coverage_per_lid_bin": 1,
+    "wall_relative_net_mass_imbalance_max": 0.001
+  },
+  "stationarity_contract": {
+    "required": true,
+    "comparison": "first_four_vs_last_four_nonoverlapping_block_means",
+    "tracked_quantities": [
+      "macroscopic_lid_slip_center",
+      "microscopic_lid_slip_center",
+      "temperature_min_K",
+      "temperature_max_K",
+      "qy_profile_min_normalized",
+      "qy_profile_max_normalized"
+    ],
+    "criterion": "absolute_half_difference_not_greater_than_two_combined_standard_errors",
+    "minimum_finite_blocks_per_half": 3
+  },
+  "stages": {
+    "S1_mechanics_32": {
+      "grid": 32,
+      "steps": 10000,
+      "sample_start": 4000,
+      "dt_safety": 0.2,
+      "backend": "reference",
+      "seed_group": "development.S1_mechanics_32",
+      "purpose": "mechanics_and_topology_only_not_external_validation",
+      "go_requirements": [
+        "majorant_violations_equal_zero",
+        "finite_nonempty_fields",
+        "complete_lid_event_bin_coverage",
+        "wall_mass_imbalance_below_locked_limit",
+        "stationarity_pass",
+        "heat_flux_sign_and_zero_crossing_topology_pass"
+      ]
+    },
+    "S2_spatial_50": {
+      "grid": 50,
+      "steps": 50000,
+      "sample_start": 20000,
+      "dt_safety": 0.2,
+      "backend": "reference",
+      "seed_group": "development.S2_spatial_50",
+      "purpose": "spatial_futility_screen_not_external_validation"
+    },
+    "S3_development_100": {
+      "grid": 100,
+      "steps": 100000,
+      "sample_start": 40000,
+      "dt_safety": 0.2,
+      "backend": "reference",
+      "seed_group": "development.S3_development_100",
+      "purpose": "development_gate_not_confirmatory"
+    },
+    "S4_timestep_100": {
+      "grid": 100,
+      "steps": 200000,
+      "sample_start": 80000,
+      "dt_safety": 0.1,
+      "backend": "reference",
+      "seed_group": "development.S4_timestep_100",
+      "purpose": "paired_timestep_sensitivity",
+      "bulk_profile_relative_change_max": 0.02,
+      "heat_flux_profile_relative_change_max": 0.08
+    },
+    "S5_confirmatory_200": {
+      "grid": 200,
+      "steps": 200000,
+      "sample_start": 80000,
+      "dt_safety": 0.2,
+      "backend": "reference",
+      "seed_group": "confirmatory_200",
+      "purpose": "external_validation",
+      "minimum_complete_seeds": 8,
+      "partial_outcomes_are_not_final": true
+    }
+  },
+  "anti_circularity": {
+    "source_pdf_sha256": "9582052a1c9a7a6ab7df93decd8ccfa6d61c13788f9338f31bde1894ead0e93c",
+    "seed_bank": "m1_seed_bank.json",
+    "no_post_outcome_changes": [
+      "scientific gates",
+      "Kn mapping",
+      "VHS convention",
+      "wall estimator",
+      "profile orientation",
+      "sample stride",
+      "block count",
+      "stationarity rule",
+      "development or confirmatory seeds"
+    ]
+  }
+}

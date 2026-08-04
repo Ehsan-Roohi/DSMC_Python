@@ -23,6 +23,24 @@ python -m pip install -e '.[full]'
 pytest -q
 ```
 
+## Mohammadzadeh M3 heat-flux precision run on Unity
+
+The locked M3 stage keeps the validated `100x100` spatial grid and targets the
+remaining heat-flux uncertainty with eight independent seeds, a five-times
+longer post-burn sampling window, and 3000 exact moment snapshots per seed.
+It is resume-safe and does not authorize a `200x200` run or an external
+validation claim by itself.
+
+On UMass Unity, submit the array plus dependent aggregation/verifier job with:
+
+```bash
+bash scripts/submit_m3_qy_precision_unity.sh
+```
+
+The postprocessor creates `M3_QY100_RETURN_BUNDLE.tar.gz` and its SHA-256 file.
+Plots are unsmoothed line-profile and contour comparisons; no bar charts are
+generated.
+
 ## Critical corrections
 
 ### Wall-reflection writeback

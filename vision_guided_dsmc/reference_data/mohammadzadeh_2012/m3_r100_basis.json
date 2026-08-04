@@ -1,0 +1,18 @@
+{
+  "artifact_hashes": {
+    "artifact_manifest_sha256": "2298518e59073ab1432a416cfc7966981fe45163e14a526fbed0c655087f87ca",
+    "ensemble_fields_sha256": "214f02ddb5bc8559363c3bd6c3816ec036d816451650a0a872bbe550f8a79bf0",
+    "summary_sha256": "916d1c6fd05850c28c45c9e53a742c86c2813b322ff9b9be8ed43d90379c031d"
+  },
+  "decision": "authorize_QY100_precision_before_any_R200_trajectory",
+  "observed_R100": {
+    "macroscopic_slip_max_absolute_error": 0.06980788279745812,
+    "macroscopic_slip_nrmse": 0.09849738012696073,
+    "normalized_qy_profile_rse": 0.7324286272718353,
+    "qy_nrmse": 0.795531301698012,
+    "qy_sign_agreement": 0.7837837837837838,
+    "stationarity_pass_by_seed": [true, false]
+  },
+  "reason": "R100 passed the locked macroscopic-slip NRMSE target, while heat flux remained statistically unresolved; precision must be improved before R200.",
+  "status": "attested_after_complete_R100_and_before_any_M3_trajectory"
+}
