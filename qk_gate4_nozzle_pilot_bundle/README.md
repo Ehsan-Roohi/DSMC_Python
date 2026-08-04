@@ -1,4 +1,6 @@
-# Q-K Gate 4D + reactive-nozzle pilot bundle
+# Q-K Gate 4E + reactive-nozzle pilot bundle
+
+Gate 4E stabilizes `ENTER2` during the first 100 samples. The inlet uses the prescribed `PIN/FTMP/VFX/VFY` reservoir, while outlet and downstream-buffer backflow use `POUT/FTMP`. The characteristic local-property boundary resumes after startup. The previous global-row diagnostic is replaced by a true cell-containment assertion.
 
 Gate 4D bounds the legacy `COLLMR` loop to the 4200 physically active cells (`100*30 + 30*40`) instead of the array capacity `MNC=5000`. It audits every active `CC(N)` before NTC collision selection and fails closed on nonpositive cell area. This fixes the Gate 4C divide-by-zero at Fortran line 2524/2525.
 
