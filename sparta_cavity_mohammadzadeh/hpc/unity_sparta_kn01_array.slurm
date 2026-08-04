@@ -12,7 +12,12 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="${SPARTA_CASE_ROOT:-${SLURM_SUBMIT_DIR:-}}"
+if [[ -z "${ROOT_DIR}" || ! -d "${ROOT_DIR}" ]]; then
+  echo "SPARTA_CASE_ROOT/SLURM_SUBMIT_DIR does not identify the case directory." >&2
+  exit 2
+fi
+ROOT_DIR="$(cd "${ROOT_DIR}" && pwd)"
 SPARTA_BIN="${SPARTA_BIN:-${ROOT_DIR}/third_party/sparta/src/spa_mpi}"
 OPENMPI_MODULE="${UNITY_OPENMPI_MODULE:-openmpi/5.0.3}"
 SEEDS=(20260803 20260819 20260831)
