@@ -1,0 +1,117 @@
+name: Vision-guided DSMC Stage 62
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage62_finite_kn_normalization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage62_finite_kn_normalization_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage62.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage62_finite_kn_normalization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage62_finite_kn_normalization_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage62.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  finite-kn-normalization-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 62 and retained Stage 61 endpoint
+        run: |
+          pytest -q \
+            tests/test_stage62_finite_kn_normalization_audit.py \
+            tests/test_stage61_characteristic_transport_audit.py \
+            tests/test_stage60_transport_wall_equation_audit.py
+      - name: Download exact completed Stage 61 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage61-characteristic-transport-audit
+          path: /tmp/stage61_characteristic_transport_audit
+          run-id: 30911134793
+          github-token: ${{ github.token }}
+      - name: Run Stage 62 finite-Kn normalization audit
+        run: |
+          python -m vgdsmc.stage62_finite_kn_normalization_audit \
+            --stage61-artifact-dir /tmp/stage61_characteristic_transport_audit \
+            --output-dir /tmp/stage62_finite_kn_normalization_audit
+      - name: Verify provenance, frozen design and guarded decision
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('/tmp/stage62_finite_kn_normalization_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 62
+          retained = summary['retained_stage61_endpoint']
+          assert retained['workflow_run_id'] == 30911134793
+          assert retained['workflow_job_id'] == 91997890514
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 13
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8895505466
+          assert retained['artifact_size_bytes'] == 2741
+          assert retained['artifact_sha256'] == (
+              'e478c02ba435c0bd70dd154b21713c4ad856880bff34fbe396357f26cb1f0889'
+          )
+          assert retained['summary_sha256'] == (
+              '0da47d675f25fd100016665e9aba79d367a474fde88bc33733973be7dad78ad1'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['viscosity_exponent'] == 0.5
+          assert cfg['velocity_rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['spatial_cell_width'] == 1.0 / 64.0
+          assert cfg['prandtl'] == 2.0 / 3.0
+          assert cfg['solver_rerun'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          audits = summary['audits']
+          assert audits['coordinate_scale']['maximum_scale_error_from_sqrt2'] < 1e-8
+          assert audits['collision_frequency']['maximum_relative_collision_frequency_error'] < 1e-12
+          assert audits['collision_frequency']['tau_prefactor_relative_error'] < 1e-12
+          assert audits['transport_collision_ratio']['maximum_relative_ratio_error'] < 1e-12
+          assert audits['observable_normalization']['maximum_relative_velocity_conversion_error'] < 1e-14
+          assert audits['observable_normalization']['maximum_relative_heat_flux_conversion_error'] < 1e-14
+          assert audits['shakhov_target_equivalence']['maximum_relative_phi_target_error'] < 1e-12
+          assert audits['shakhov_target_equivalence']['maximum_relative_psi_target_error'] < 1e-12
+
+          allowed = {
+              'stage62_nonfinite_equation_audit_blocker',
+              'stage62_velocity_coordinate_identification_blocker',
+              'stage62_relaxation_frequency_mapping_blocker',
+              'stage62_transport_collision_ratio_blocker',
+              'stage62_observable_normalization_blocker',
+              'stage62_projected_shakhov_coordinate_transform_blocker',
+              'stage62_finite_kn_relaxation_and_normalization_close_stage63_collision_target_equivalence_audit',
+          }
+          assert summary['decision'] in allowed
+          assert len(summary['positive_findings']) >= 4
+          assert len(summary['negative_findings']) >= 3
+          assert 'not external validation' in summary['interpretation_guard']
+          assert summary['scientifically_justified_next_scope']
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage62-finite-kn-normalization-audit
+          path: /tmp/stage62_finite_kn_normalization_audit
+          retention-days: 30
