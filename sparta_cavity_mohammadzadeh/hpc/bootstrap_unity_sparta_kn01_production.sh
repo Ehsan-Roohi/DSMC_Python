@@ -40,7 +40,7 @@ mkdir -p logs runs
 
 BUILD_SUBMISSION="$(
   sbatch --parsable \
-    --export="ALL,UNITY_OPENMPI_MODULE=${OPENMPI_MODULE}" \
+    --export="ALL,SPARTA_CASE_ROOT=${ROOT_DIR},UNITY_OPENMPI_MODULE=${OPENMPI_MODULE}" \
     hpc/unity_sparta_build.slurm
 )"
 BUILD_JOB_ID="${BUILD_SUBMISSION%%;*}"
@@ -48,14 +48,14 @@ ARRAY_SUBMISSION="$(
   sbatch --parsable \
     --dependency="afterok:${BUILD_JOB_ID}" \
     --kill-on-invalid-dep=yes \
-    --export="ALL,UNITY_OPENMPI_MODULE=${OPENMPI_MODULE}" \
+    --export="ALL,SPARTA_CASE_ROOT=${ROOT_DIR},UNITY_OPENMPI_MODULE=${OPENMPI_MODULE}" \
     hpc/unity_sparta_kn01_array.slurm
 )"
 ARRAY_JOB_ID="${ARRAY_SUBMISSION%%;*}"
 COLLECT_SUBMISSION="$(
   sbatch --parsable \
     --dependency="afterany:${ARRAY_JOB_ID}" \
-    --export="ALL,SPARTA_ARRAY_JOB_ID=${ARRAY_JOB_ID}" \
+    --export="ALL,SPARTA_CASE_ROOT=${ROOT_DIR},SPARTA_ARRAY_JOB_ID=${ARRAY_JOB_ID}" \
     hpc/unity_sparta_kn01_collect.slurm
 )"
 COLLECT_JOB_ID="${COLLECT_SUBMISSION%%;*}"
