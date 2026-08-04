@@ -8,7 +8,7 @@ case "$MODE" in
 esac
 
 REPOSITORY="Ehsan-Roohi/DSMC_Python"
-REF="${JFM_GITHUB_REF:-__PINNED_COMMIT__}"
+REF="${JFM_GITHUB_REF:-fa8f65ef5fce01ffc8058264f9aced032508ae6a}"
 PROJECT_ROOT="${JFM_PROJECT_ROOT:-/project/pi_roohie_umass_edu/JFM_revision_2026}"
 TARGET="${JFM_HIGHSTAT_ROOT:-$PROJECT_ROOT/JFM_HIGHSTAT_FIGURES}"
 ARCHIVE_URL="https://codeload.github.com/${REPOSITORY}/tar.gz/${REF}"
