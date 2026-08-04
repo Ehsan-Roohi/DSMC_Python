@@ -8,7 +8,7 @@ TMPDIR_GATE4="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE4"' EXIT
 
 for index in 00 01 02 03 04 05 06; do
-  curl -fsSL "$REPO_RAW/chunks/chunk_$index" -o "$TMPDIR_GATE4/chunk_$index"
+  curl -fsSL "$REPO_RAW/chunks/chunk_$index?v=$EXPECTED_SHA" -o "$TMPDIR_GATE4/chunk_$index"
 done
 
 ARCHIVE="$TMPDIR_GATE4/payload.tar.gz"
