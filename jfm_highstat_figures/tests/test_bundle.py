@@ -69,6 +69,7 @@ assert "PARTICLES=80000000" in run_script
 assert "--sample-start 100000 --sample-every 2" in run_script
 assert "--steps 5000000" in run_script
 assert "--qos=long" not in submit_script
+assert submit_script.count("--kill-on-invalid-dep=yes") == 2
 assert "low|" not in submit_script
 assert "JFM_HIGHSTAT_FIGURES_80M_S100K" in bootstrap
 

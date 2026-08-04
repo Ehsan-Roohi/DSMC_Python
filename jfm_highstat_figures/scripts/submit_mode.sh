@@ -42,6 +42,7 @@ PREFLIGHT_JOB="$(sbatch --parsable \
 
 RUN_JOB="$(sbatch --parsable \
   --dependency="afterok:$PREFLIGHT_JOB" \
+  --kill-on-invalid-dep=yes \
   --job-name="jfm-${MODE}-prod" \
   --partition=gpu --gpus=1 --constraint="$CONSTRAINT" \
   --cpus-per-task=8 --mem="$RUN_MEM" --time="$RUN_TIME" \
@@ -52,6 +53,7 @@ RUN_JOB="$(sbatch --parsable \
 
 SUMMARY_JOB="$(sbatch --parsable \
   --dependency="afterok:$RUN_JOB" \
+  --kill-on-invalid-dep=yes \
   --job-name="jfm-${MODE}-sum" \
   --partition=cpu --cpus-per-task=4 --mem=32G --time=08:00:00 \
   --output="$ROOT/slurm/jfm-${MODE}-summary-%j.out" \
