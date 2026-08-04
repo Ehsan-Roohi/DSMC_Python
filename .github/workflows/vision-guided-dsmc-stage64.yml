@@ -1,0 +1,135 @@
+name: Vision-guided DSMC Stage 64
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage64_source_step_consistency_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage64_source_step_consistency_audit.py'
+      - 'vision_guided_dsmc/results/stage63_collision_target_equivalence_audit_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage64.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage64_source_step_consistency_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage64_source_step_consistency_audit.py'
+      - 'vision_guided_dsmc/results/stage63_collision_target_equivalence_audit_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage64.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  source-step-consistency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 64 and retained collision-equation endpoints
+        run: |
+          pytest -q \
+            tests/test_stage64_source_step_consistency_audit.py \
+            tests/test_stage63_collision_target_equivalence_audit.py \
+            tests/test_stage62_finite_kn_normalization_audit.py \
+            tests/test_stage61_characteristic_transport_audit.py
+      - name: Download exact completed Stage 63 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage63-collision-target-equivalence-audit
+          path: /tmp/stage63_collision_target_equivalence_audit
+          run-id: 30938577712
+          github-token: ${{ github.token }}
+      - name: Run Stage 64 homogeneous source-step audit
+        run: |
+          python -m vgdsmc.stage64_source_step_consistency_audit \
+            --stage63-artifact-dir /tmp/stage63_collision_target_equivalence_audit \
+            --output-dir /tmp/stage64_source_step_consistency_audit
+      - name: Verify provenance, frozen design and guarded source-step result
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+
+          root = Path('/tmp/stage64_source_step_consistency_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 64
+          retained = summary['retained_stage63_endpoint']
+          assert retained['workflow_run_id'] == 30938577712
+          assert retained['workflow_job_id'] == 92090852960
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 34
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8908675572
+          assert retained['artifact_size_bytes'] == 3846
+          assert retained['artifact_sha256'] == (
+              '461ece7b7b9d70bbf6638f0dc042d7bde164fdce28859dc4556561e909987ac6'
+          )
+          assert retained['summary_sha256'] == (
+              'b49cfd6af534b777a48b8316fe841f7b6beddbf199a7a25b10c1df7afe70e5be'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['kn0_investigation_scope'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['viscosity_exponent'] == 0.5
+          assert cfg['velocity_rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['prandtl'] == 2.0 / 3.0
+          assert cfg['retained_correction_floor'] == 0.05
+          assert cfg['frozen_state_count'] == 5
+          assert cfg['source_fractions'] == [0.05, 0.25, 0.5, 1.0]
+          assert cfg['active_arm'] == 'retained_clipped_active'
+          assert cfg['diagnostic_arms'] == [
+              'unclipped_paper_diagnostic',
+              'bounded_conservative_diagnostic',
+          ]
+          assert cfg['solver_rerun'] is False
+          assert cfg['signed_manufactured_initial_state'] is True
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['conservative_projection_adopted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          aggregate = summary['aggregate']
+          assert aggregate['state_count'] == 5
+          assert aggregate['source_fraction_count'] == 4
+          assert set(aggregate['arms']) == {
+              'retained_clipped_active',
+              'unclipped_paper_diagnostic',
+              'bounded_conservative_diagnostic',
+          }
+          for value in (
+              aggregate['maximum_initial_state_error'],
+              aggregate['maximum_initial_heat_flux_error'],
+          ):
+              assert math.isfinite(value)
+          for arm in aggregate['arms'].values():
+              for value in arm.values():
+                  assert math.isfinite(value)
+
+          assert summary['decision'] in {
+              'stage64_nonfinite_source_step_audit_blocker',
+              'stage64_source_step_raw_moment_identity_blocker',
+              'stage64_manufactured_initial_state_blocker',
+              'stage64_conservative_diagnostic_projection_blocker',
+              'stage64_unclipped_source_step_consistency_blocker',
+              'stage64_conservative_diagnostic_source_step_blocker',
+              'stage64_source_update_algebraically_consistent_retained_clipping_injects_material_collision_defects_stage65_local_activation_map_audit',
+              'stage64_no_material_source_defect_stop',
+          }
+          assert 'does not rerun' in summary['interpretation_guard']
+          assert summary['scientifically_justified_next_scope']
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage64-source-step-consistency-audit
+          path: /tmp/stage64_source_step_consistency_audit
+          retention-days: 30
