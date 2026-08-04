@@ -19,5 +19,5 @@ ENV_NAME="${DSMC_CAVITY_ENV:-dsmc-gpu}"
 # not need outbound package downloads.
 mamba run -n "${ENV_NAME}" python -c \
   "import cupy as cp; print(cp.cuda.runtime.getDeviceCount(), cp.cuda.runtime.runtimeGetVersion())"
-mamba run -n "${ENV_NAME}" python -m pinstall -e . --no-deps
+mamba run -n "${ENV_NAME}" python -m pip install -e . --no-deps
 mamba run -n "${ENV_NAME}" dsmc-cavity --config "${CONFIG_PATH}" --backend gpu
