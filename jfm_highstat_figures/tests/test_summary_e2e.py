@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-CASE_TABLE = ROOT / "cases" / "high48_40m.csv"
+CASE_TABLE = ROOT / "cases" / "high48_80m.csv"
 
 
 def stem(row):
@@ -48,9 +48,9 @@ with tempfile.TemporaryDirectory(prefix="jfm-summary-test-") as tmp:
             rho=np.ones(shape),
         )
         metrics = {
-            "particles": 40_000_000,
+            "particles": 80_000_000,
             "steps": 5_000_000,
-            "profile_samples": 2_000_000,
+            "profile_samples": 2_450_000,
             "last_block_velocity_rmse_vs_all_samples": value / 10,
         }
         (input_dir / f"{name}_metrics.json").write_text(
@@ -69,9 +69,9 @@ with tempfile.TemporaryDirectory(prefix="jfm-summary-test-") as tmp:
     manifest = json.loads(
         (output_dir / "ALL_HIGHSTAT_ENSEMBLES.json").read_text(encoding="utf-8")
     )
-    assert len(manifest) == 5
-    assert len(list(output_dir.glob("*_RAW_UNFILTERED.dat"))) == 5
-    assert len(list(output_dir.glob("*_RAW_UNFILTERED.npz"))) == 5
-    assert len(list(output_dir.glob("*_profile_y0p25.csv"))) == 5
-    assert len(list(output_dir.glob("*_diagnostic.png"))) == 5
+    assert len(manifest) == 7
+    assert len(list(output_dir.glob("*_RAW_UNFILTERED.dat"))) == 7
+    assert len(list(output_dir.glob("*_RAW_UNFILTERED.npz"))) == 7
+    assert len(list(output_dir.glob("*_profile_y0p25.csv"))) == 7
+    assert len(list(output_dir.glob("*_diagnostic.png"))) == 7
 print("[OK] synthetic end-to-end high-statistics summary test passed")

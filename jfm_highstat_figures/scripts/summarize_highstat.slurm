@@ -6,17 +6,7 @@ ROUTE="${JFM_ROUTE:?JFM_ROUTE is required}"
 OUTPUT_ROOT="${JFM_OUTPUT_ROOT:-$ROOT/run_output}"
 cd "$ROOT"
 
-if [[ "$ROUTE" == "low" ]]; then
-  # shellcheck disable=SC1090
-  source "$OUTPUT_ROOT/$ROUTE/mode.env"
-  if [[ "$JFM_LOW_MODE" == "40m" ]]; then
-    CASE_FILE="$ROOT/cases/low_40m.csv"
-  else
-    CASE_FILE="$ROOT/cases/low_20m_split.csv"
-  fi
-else
-  CASE_FILE="${JFM_CASE_TABLE:?JFM_CASE_TABLE is required}"
-fi
+CASE_FILE="${JFM_CASE_TABLE:?JFM_CASE_TABLE is required}"
 
 SUMMARY_DIR="$OUTPUT_ROOT/$ROUTE/summary"
 mkdir -p "$SUMMARY_DIR" "$ROOT/.matplotlib"

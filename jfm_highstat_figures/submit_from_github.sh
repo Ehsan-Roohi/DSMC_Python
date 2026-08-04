@@ -3,14 +3,14 @@ set -euo pipefail
 
 MODE="${1:-}"
 case "$MODE" in
-  low|vram48|vram80) ;;
-  *) echo "Usage: $0 {low|vram48|vram80}" >&2; exit 2 ;;
+  vram48|vram80) ;;
+  *) echo "Usage: $0 {vram48|vram80}" >&2; exit 2 ;;
 esac
 
 REPOSITORY="Ehsan-Roohi/DSMC_Python"
-REF="${JFM_GITHUB_REF:-fa8f65ef5fce01ffc8058264f9aced032508ae6a}"
+REF="${JFM_GITHUB_REF:-b243a7ac1878eafd6ece51a7553a631b50a2e389}"
 PROJECT_ROOT="${JFM_PROJECT_ROOT:-/project/pi_roohie_umass_edu/JFM_revision_2026}"
-TARGET="${JFM_HIGHSTAT_ROOT:-$PROJECT_ROOT/JFM_HIGHSTAT_FIGURES}"
+TARGET="${JFM_HIGHSTAT_ROOT:-$PROJECT_ROOT/JFM_HIGHSTAT_FIGURES_80M_S100K}"
 ARCHIVE_URL="https://codeload.github.com/${REPOSITORY}/tar.gz/${REF}"
 
 for command_name in curl tar sbatch; do

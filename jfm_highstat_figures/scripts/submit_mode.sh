@@ -3,8 +3,8 @@ set -euo pipefail
 
 MODE="${1:-}"
 case "$MODE" in
-  low|vram48|vram80) ;;
-  *) echo "Usage: $0 {low|vram48|vram80}" >&2; exit 2 ;;
+  vram48|vram80) ;;
+  *) echo "Usage: $0 {vram48|vram80}" >&2; exit 2 ;;
 esac
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -14,33 +14,23 @@ mkdir -p "$OUTPUT_ROOT/$MODE" "$ROOT/slurm"
 bash scripts/preflight_local.sh
 
 case "$MODE" in
-  low)
-    CONSTRAINT=2080ti
-    ARRAY='0-29%20'
-    RUN_TIME='336:00:00'
-    RUN_MEM=48G
-    CASE_TABLE=''
-    ;;
   vram48)
     CONSTRAINT=vram48
-    ARRAY='0-14%8'
-    RUN_TIME='240:00:00'
+    ARRAY='0-20%8'
+    RUN_TIME='336:00:00'
     RUN_MEM=96G
-    CASE_TABLE="$ROOT/cases/high48_40m.csv"
+    CASE_TABLE="$ROOT/cases/high48_80m.csv"
     ;;
   vram80)
     CONSTRAINT=vram80
-    ARRAY='0-14%4'
-    RUN_TIME='168:00:00'
+    ARRAY='0-20%4'
+    RUN_TIME='336:00:00'
     RUN_MEM=128G
-    CASE_TABLE="$ROOT/cases/high80_40m.csv"
+    CASE_TABLE="$ROOT/cases/high80_80m.csv"
     ;;
 esac
 
-COMMON_EXPORT="ALL,JFM_ROOT=$ROOT,JFM_OUTPUT_ROOT=$OUTPUT_ROOT,JFM_ROUTE=$MODE"
-if [[ -n "$CASE_TABLE" ]]; then
-  COMMON_EXPORT="$COMMON_EXPORT,JFM_CASE_TABLE=$CASE_TABLE"
-fi
+COMMON_EXPORT="ALL,JFM_ROOT=$ROOT,JFM_OUTPUT_ROOT=$OUTPUT_ROOT,JFM_ROUTE=$MODE,JFM_CASE_TABLE=$CASE_TABLE"
 
 PREFLIGHT_JOB="$(sbatch --parsable \
   --job-name="jfm-${MODE}-mem" \
@@ -53,7 +43,7 @@ PREFLIGHT_JOB="$(sbatch --parsable \
 RUN_JOB="$(sbatch --parsable \
   --dependency="afterok:$PREFLIGHT_JOB" \
   --job-name="jfm-${MODE}-prod" \
-  --partition=gpu --qos=long --gpus=1 --constraint="$CONSTRAINT" \
+  --partition=gpu --gpus=1 --constraint="$CONSTRAINT" \
   --cpus-per-task=8 --mem="$RUN_MEM" --time="$RUN_TIME" \
   --array="$ARRAY" \
   --output="$ROOT/slurm/jfm-${MODE}-%A_%a.out" \

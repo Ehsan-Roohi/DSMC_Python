@@ -14,6 +14,8 @@ EXPECTED_CASES = {
     ("HS", 20.0, 0.2, "Figure5"),
     ("BGK", 20.0, 0.2, "Figure5"),
     ("SHAKHOV", 20.0, 0.2, "Figure5"),
+    ("SHAKHOV", 5.0, 0.5, "Figure6"),
+    ("SHAKHOV", 10.0, 0.5, "Figure6"),
     ("SHAKHOV", 20.0, 0.5, "Figure6"),
     ("HS", 30.0, 0.5, "Figure2d"),
 }
@@ -33,15 +35,13 @@ for relative, expected in EXPECTED_SHA.items():
     assert actual == expected, (relative, actual)
 
 tables = {
-    "high48_40m.csv": 3,
-    "high80_40m.csv": 3,
-    "low_40m.csv": 3,
-    "low_20m_split.csv": 6,
+    "high48_80m.csv": 3,
+    "high80_80m.csv": 3,
 }
 all_seed_sets = []
 for name, repetitions in tables.items():
     rows = read(ROOT / "cases" / name)
-    assert len(rows) == 5 * repetitions, (name, len(rows))
+    assert len(rows) == 7 * repetitions, (name, len(rows))
     counts = Counter(
         (row["model"], float(row["kn"]), float(row["rt"]), row["figure"])
         for row in rows
@@ -53,12 +53,24 @@ for name, repetitions in tables.items():
     all_seed_sets.append(seeds)
 
 assert all_seed_sets[0].isdisjoint(all_seed_sets[1])
-assert all_seed_sets[0].isdisjoint(all_seed_sets[2])
-assert all_seed_sets[1].isdisjoint(all_seed_sets[2])
 
-high_particle_time = 3 * 40_000_000 * 2_000_000
-low_split_particle_time = 6 * 20_000_000 * 2_000_000
-assert high_particle_time == low_split_particle_time
+new_particle_time = 3 * 80_000_000 * 2_450_000
+old_particle_time = 3 * 22_000_000 * 800_000
+assert np.isclose(new_particle_time / old_particle_time, 11.136363636363637)
+
+run_script = (ROOT / "scripts" / "run_highstat.slurm").read_text(encoding="utf-8")
+submit_script = (ROOT / "scripts" / "submit_mode.sh").read_text(encoding="utf-8")
+bootstrap = (ROOT / "submit_from_github.sh").read_text(encoding="utf-8")
+preflight_script = (ROOT / "scripts" / "gpu_preflight.slurm").read_text(
+    encoding="utf-8"
+)
+assert "--particles 80000000" in preflight_script
+assert "PARTICLES=80000000" in run_script
+assert "--sample-start 100000 --sample-every 2" in run_script
+assert "--steps 5000000" in run_script
+assert "--qos=long" not in submit_script
+assert "low|" not in submit_script
+assert "JFM_HIGHSTAT_FIGURES_80M_S100K" in bootstrap
 
 spec = importlib.util.spec_from_file_location(
     "summarize_highstat", ROOT / "tools" / "summarize_highstat.py"

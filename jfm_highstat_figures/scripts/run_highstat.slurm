@@ -4,33 +4,16 @@ set -euo pipefail
 ROOT="${JFM_ROOT:-${SLURM_SUBMIT_DIR:?}}"
 ROUTE="${JFM_ROUTE:?JFM_ROUTE is required}"
 OUTPUT_ROOT="${JFM_OUTPUT_ROOT:-$ROOT/run_output}"
-MODE_FILE="$OUTPUT_ROOT/$ROUTE/mode.env"
 cd "$ROOT"
 
-if [[ "$ROUTE" == "low" ]]; then
-  test -s "$MODE_FILE"
-  # shellcheck disable=SC1090
-  source "$MODE_FILE"
-  if [[ "$JFM_LOW_MODE" == "40m" ]]; then
-    CASE_FILE="$ROOT/cases/low_40m.csv"
-    PARTICLES=40000000
-    ACTIVE_TASKS=15
-    REQUIRE_FREE=9.0
-  elif [[ "$JFM_LOW_MODE" == "20m_split" ]]; then
-    CASE_FILE="$ROOT/cases/low_20m_split.csv"
-    PARTICLES=20000000
-    ACTIVE_TASKS=30
-    REQUIRE_FREE=8.5
-  else
-    echo "Unknown low-memory mode: $JFM_LOW_MODE" >&2
-    exit 2
-  fi
-else
-  CASE_FILE="${JFM_CASE_TABLE:?JFM_CASE_TABLE is required}"
-  PARTICLES=40000000
-  ACTIVE_TASKS=15
-  REQUIRE_FREE=20.0
-fi
+CASE_FILE="${JFM_CASE_TABLE:?JFM_CASE_TABLE is required}"
+PARTICLES=80000000
+ACTIVE_TASKS=21
+case "$ROUTE" in
+  vram48) REQUIRE_FREE=40.0 ;;
+  vram80) REQUIRE_FREE=60.0 ;;
+  *) echo "Unknown route: $ROUTE" >&2; exit 2 ;;
+esac
 
 if (( SLURM_ARRAY_TASK_ID >= ACTIVE_TASKS )); then
   echo "[SKIP] task $SLURM_ARRAY_TASK_ID is unused in $ROUTE mode"
@@ -55,7 +38,7 @@ else
 fi
 
 echo "case=$CASE_ID route=$ROUTE figure=$FIGURE model=$MODEL Kn=$KN RT=$RT seed=$SEED"
-echo "particles=$PARTICLES steps=5000000 sample_window=1000000:5000000:2"
+echo "particles=$PARTICLES steps=5000000 sample_window=100000:5000000:2"
 echo "host=$(hostname) job=$SLURM_JOB_ID task=$SLURM_ARRAY_TASK_ID"
 nvidia-smi --query-gpu=name,memory.total,memory.free,compute_cap --format=csv
 
@@ -67,7 +50,7 @@ fi
 
 COMMON=(
   --kn "$KN" --rt "$RT" --particles "$PARTICLES"
-  --steps 5000000 --sample-start 1000000 --sample-every 2
+  --steps 5000000 --sample-start 100000 --sample-every 2
   --time-blocks 8 --seed "$SEED" --progress-every 10000
   --require-free-gb "$REQUIRE_FREE" --output "$OUTPUT_DIR"
 )

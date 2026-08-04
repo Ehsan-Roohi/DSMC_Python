@@ -235,8 +235,10 @@ def main() -> None:
     for row in rows:
         key = (row["model"], float(row["kn"]), float(row["rt"]), row["figure"])
         groups[key].append(row)
-    if len(groups) != 5:
-        raise ValueError(f"Expected five physical cases, found {len(groups)}")
+    if len(groups) != 7:
+        raise ValueError(f"Expected seven physical cases, found {len(groups)}")
+    if any(len(group_rows) != 3 for group_rows in groups.values()):
+        raise ValueError("Every physical case must contain exactly three seeds")
 
     summaries = []
     for key in sorted(groups, key=lambda value: (value[3], value[0], value[1], value[2])):
@@ -261,7 +263,7 @@ def main() -> None:
         writer.writeheader()
         for summary in summaries:
             writer.writerow({field: summary[field] for field in fields})
-    print(f"[OK] wrote five high-statistics ensembles to {args.output}")
+    print(f"[OK] wrote seven high-statistics ensembles to {args.output}")
 
 
 if __name__ == "__main__":
