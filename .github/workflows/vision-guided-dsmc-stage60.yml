@@ -1,0 +1,124 @@
+name: Vision-guided DSMC Stage 60
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage60_transport_wall_equation_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage60_transport_wall_equation_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage60.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage60_transport_wall_equation_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage60_transport_wall_equation_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage60.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  transport-wall-equation-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 60 and retained Stage 59 endpoint
+        run: |
+          pytest -q \
+            tests/test_stage60_transport_wall_equation_audit.py \
+            tests/test_stage59_independent_reference_audit.py
+      - name: Download exact completed Stage 59 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage59-independent-reference-audit
+          path: /tmp/stage59_independent_reference_audit
+          run-id: 30884941157
+          github-token: ${{ github.token }}
+      - name: Run Stage 60 transport and diffuse-wall equation audit
+        run: |
+          python -m vgdsmc.stage60_transport_wall_equation_audit \
+            --stage59-artifact-dir /tmp/stage59_independent_reference_audit \
+            --output-dir /tmp/stage60_transport_wall_equation_audit
+      - name: Verify provenance, equation closure and interpretation guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('/tmp/stage60_transport_wall_equation_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 60
+          retained = summary['retained_stage59_endpoint']
+          assert retained['workflow_run_id'] == 30884941157
+          assert retained['workflow_job_id'] == 91913958890
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 14
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8885375771
+          assert retained['artifact_sha256'] == (
+              '416dc86d095e4dae745d246e31912d47e57e0474878f153712021cb899b548db'
+          )
+          assert retained['summary_sha256'] == (
+              'd562563b58c5cb08aea638278cc2486b03e2ea526cd89e369956c6bb39b0929b'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['diagnostic_grid'] == [7, 5]
+          assert cfg['velocity_rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['kn0_scope'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['solver_rerun'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          checks = summary['checks']
+          assert checks['transport_conservation_pass'] is True
+          assert checks['collision_off_isothermal_fixed_point_pass'] is True
+          assert checks['diffuse_wall_mass_pass'] is True
+          assert checks['diffuse_wall_energy_pass'] is True
+          assert checks['wall_heat_flux_observable_identity_pass'] is True
+
+          transport = summary['transport_conservation']
+          threshold = summary['thresholds']['transport_balance']
+          assert transport['phi_telescoping_relative_error'] <= threshold
+          assert transport['psi_telescoping_relative_error'] <= threshold
+          assert transport['mass_balance_identity_relative_error'] <= threshold
+          assert transport['energy_balance_identity_relative_error'] <= threshold
+
+          isothermal = summary['collision_off_isothermal']
+          assert isothermal['phi_fixed_point_relative_error'] <= summary['thresholds']['isothermal_fixed_point']
+          assert isothermal['psi_fixed_point_relative_error'] <= summary['thresholds']['isothermal_fixed_point']
+          assert isothermal['maximum_wall_mass_balance_error'] <= summary['thresholds']['wall_mass']
+          assert isothermal['maximum_absolute_bottom_wall_heat_flux'] <= summary['thresholds']['isothermal_fixed_point']
+
+          wall = summary['diffuse_wall_half_space']
+          assert len(wall['rows']) == 12
+          assert wall['maximum_relative_mass_balance_error'] <= summary['thresholds']['wall_mass']
+          assert wall['maximum_incoming_energy_per_mass_relative_error'] <= summary['thresholds']['half_space_energy']
+          assert wall['maximum_net_energy_exchange_relative_error'] <= summary['thresholds']['half_space_energy']
+          assert wall['maximum_bottom_observable_identity_relative_error'] <= summary['thresholds']['wall_observable_identity']
+
+          assert summary['decision'] == (
+              'stage60_transport_and_diffuse_wall_equations_close_'
+              'discrepancy_not_explained_characteristic_audit_next'
+          )
+          assert len(summary['positive_findings']) >= 4
+          assert len(summary['negative_findings']) >= 3
+          assert 'does not validate' in summary['interpretation_guard']
+          assert 'characteristic-based' in summary['scientifically_justified_next_scope']
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage60-transport-wall-equation-audit
+          path: /tmp/stage60_transport_wall_equation_audit
+          retention-days: 30
