@@ -1,0 +1,82 @@
+{
+  "stage": 62,
+  "description": "Equation-level audit of the finite-Knudsen collision frequency, transport-to-collision ratio, velocity/heat-flux normalization and projected Shakhov coordinate transformation at the unresolved Kn0=10 endpoint.",
+  "configuration": {
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "viscosity_exponent": 0.5,
+    "velocity_rule": [40, 96],
+    "radial_scale": 2.0,
+    "spatial_cell_width": 0.015625,
+    "prandtl": 0.6666666666666666,
+    "solver_rerun": false,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "transport_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "cross_knudsen_extension_permitted": false
+  },
+  "exact_metrics": {
+    "coordinate_scale": {
+      "mass_error": 1.1102230246251565e-16,
+      "temperature_error": 1.50982337743244e-10,
+      "inferred_c_over_zeta_scale_x": 1.4142135625332362,
+      "inferred_c_over_zeta_scale_y": 1.4142135625332362,
+      "maximum_scale_error_from_sqrt2": 1.6014101156258675e-10
+    },
+    "collision_frequency": {
+      "implemented_tau_prefactor": 7.978845608028654,
+      "expected_c_tau_prefactor": 7.978845608028654,
+      "tau_prefactor_relative_error": 0.0,
+      "maximum_relative_collision_frequency_error": 3.479868143935541e-16
+    },
+    "transport_collision_ratio": {
+      "zeta_values": [439.169013206836, 901.4521850035055, 1160.6185718696702],
+      "c_values": [439.169013206836, 901.4521850035055, 1160.6185718696702],
+      "maximum_relative_ratio_error": 0.0
+    },
+    "observable_normalization": {
+      "conversion_factor_c_moment_to_paper": 0.7071067811865475,
+      "maximum_relative_velocity_conversion_error": 1.3552527156068805e-16,
+      "maximum_relative_heat_flux_conversion_error": 1.4608197692436271e-16
+    },
+    "shakhov_target_equivalence": {
+      "maximum_relative_phi_target_error": 0.0,
+      "maximum_relative_psi_target_error": 0.0,
+      "maximum_phi_clipped_weight_fraction": 0.0,
+      "maximum_psi_clipped_weight_fraction": 0.0,
+      "minimum_paper_phi_factor": 0.9996812120966988,
+      "minimum_paper_psi_factor": 0.9996812120186079
+    }
+  },
+  "decision": "stage62_finite_kn_relaxation_and_normalization_close_stage63_collision_target_equivalence_audit",
+  "recorded_scientific_conclusion": "The c=sqrt(2)*zeta mapping, transformed collision frequency, streaming-to-collision ratio, velocity and heat-flux conversions, and the unclipped projected-Shakhov target all close within the preregistered tolerances. These identities rule out retuning Kn0, the sqrt(2) conversion, the relaxation prefactor, or output normalization as a scientifically justified response to the greater-than-25% Stage-59 heat-flux discrepancy. They do not validate the finite-Kn cavity solution; the nonlinear clipped collision target remains unresolved.",
+  "negative_findings": [
+    "The audit does not explain the greater-than-25% Stage-59 heat-flux discrepancy.",
+    "The audit does not rehabilitate the failed MUSCL endpoint, adopt the conservative projection, or authorize cross-Knudsen extension.",
+    "The nonlinear clipped collision target and its interaction with the finite-Kn steady iteration remain unresolved."
+  ],
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 62",
+    "run_id": 30919066526,
+    "job_id": 92024594771,
+    "job_name": "finite-kn-normalization-audit",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "8a67dccbcba01c2752e8129c80f8dbab34b4b943",
+    "tests_passed": 23,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.35,
+    "artifact": {
+      "id": 8903379367,
+      "name": "stage62-finite-kn-normalization-audit",
+      "size_bytes": 2583,
+      "sha256": "560afeb69a6a1a8c1c055c68b6e44029a74432294ff952625141f60a664541ea",
+      "summary_sha256": "c01131443fa1188cbf604f340aa2598b493ed629ac8be4aa66e91318c310a026",
+      "created_at": "2026-08-04T18:01:43Z",
+      "expires_at": "2026-09-03T18:01:43Z"
+    }
+  }
+}
