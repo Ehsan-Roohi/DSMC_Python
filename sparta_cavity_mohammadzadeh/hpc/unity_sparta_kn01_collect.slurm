@@ -11,7 +11,12 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="${SPARTA_CASE_ROOT:-${SLURM_SUBMIT_DIR:-}}"
+if [[ -z "${ROOT_DIR}" || ! -d "${ROOT_DIR}" ]]; then
+  echo "SPARTA_CASE_ROOT/SLURM_SUBMIT_DIR does not identify the case directory." >&2
+  exit 2
+fi
+ROOT_DIR="$(cd "${ROOT_DIR}" && pwd)"
 ARRAY_JOB_ID="${SPARTA_ARRAY_JOB_ID:?SPARTA_ARRAY_JOB_ID was not exported by the bootstrap script}"
 SEEDS=(20260803 20260819 20260831)
 MANIFEST_REL="runs/SPARTA_KN01_RESULTS_${ARRAY_JOB_ID}.manifest.txt"
