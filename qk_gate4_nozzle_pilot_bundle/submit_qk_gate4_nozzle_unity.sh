@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate4_nozzle_pilot_bundle
-EXPECTED_SHA=4609617b56195c416da53dd99e65b21d36e6c3c9a61d2e504456cebec814b714
+EXPECTED_SHA=df33426ba3e101cdd061741b3043b7a06e6b981fac1a8c637d9c06800f56985b
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE4_NOZZLE
 TMPDIR_GATE4="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE4"' EXIT
@@ -48,7 +48,7 @@ RESULT_DIR=$RESULT_DIR
 PAYLOAD_SHA256=$EXPECTED_SHA
 EOF
 
-echo "Submitted Gate 4D active-cell collision repair + Q-K nozzle map."
+echo "Submitted Gate 4E stable-startup reservoirs + Q-K nozzle map."
 echo "JOB_ID=$JOB_ID"
 echo "Status: squeue -j $JOB_ID"
 echo "Log: tail -f $OUT"
