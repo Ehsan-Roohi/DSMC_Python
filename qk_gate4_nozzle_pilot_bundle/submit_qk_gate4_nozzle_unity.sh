@@ -2,18 +2,18 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate4_nozzle_pilot_bundle
-EXPECTED_SHA=1fecd9a692456ac9508720fbb1eb98d1f6e7244797ef8847c2a1a4e89dbca9e9
+EXPECTED_SHA=4609617b56195c416da53dd99e65b21d36e6c3c9a61d2e504456cebec814b714
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE4_NOZZLE
 TMPDIR_GATE4="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE4"' EXIT
 
-for index in 00 01 02 03 04 05 06; do
+for index in 00 01 02 03 04 05; do
   curl -fsSL "$REPO_RAW/chunks/chunk_$index?v=$EXPECTED_SHA" -o "$TMPDIR_GATE4/chunk_$index"
 done
 
 ARCHIVE="$TMPDIR_GATE4/payload.tar.gz"
 : > "$ARCHIVE"
-for index in 00 01 02 03 04 05 06; do
+for index in 00 01 02 03 04 05; do
   base64 --decode "$TMPDIR_GATE4/chunk_$index" >> "$ARCHIVE"
 done
 
@@ -48,7 +48,7 @@ RESULT_DIR=$RESULT_DIR
 PAYLOAD_SHA256=$EXPECTED_SHA
 EOF
 
-echo "Submitted Gate 4C initialization/geometry repair + Q-K nozzle map."
+echo "Submitted Gate 4D active-cell collision repair + Q-K nozzle map."
 echo "JOB_ID=$JOB_ID"
 echo "Status: squeue -j $JOB_ID"
 echo "Log: tail -f $OUT"
