@@ -1,4 +1,6 @@
-# Q-K Gate 4 + reactive-nozzle pilot bundle
+# Q-K Gate 4C + reactive-nozzle pilot bundle
+
+Gate 4C hotfix restores `FNUM=5.E13` after Gate 4B initialized zero molecules with `2.E14`. It retains the continuous piecewise-wall bisection fix, adds a fail-closed `NM <= 0` guard, removes Windows-only cleanup commands, and compiles a symbolic debug executable for actionable Unity backtraces.
 
 One Unity submission advances both the chemistry-off nozzle recovery and the
 first chemistry-in-nozzle screen.
