@@ -1,0 +1,58 @@
+{
+  "stage": 63,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 63",
+    "run_id": 30938577712,
+    "job_id": 92090852960,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "4ec7ab5ae6cd01866447834994d73d39854eef5c",
+    "tests_passed": 34,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.43,
+    "artifact": {
+      "id": 8908675572,
+      "name": "stage63-collision-target-equivalence-audit",
+      "size_bytes": 3846,
+      "sha256": "461ece7b7b9d70bbf6638f0dc042d7bde164fdce28859dc4556561e909987ac6",
+      "summary_sha256": "b49cfd6af534b777a48b8316fe841f7b6beddbf199a7a25b10c1df7afe70e5be",
+      "created_at": "2026-08-04T20:54:31Z",
+      "expires_at": "2026-09-03T20:54:30Z"
+    }
+  },
+  "configuration": {
+    "kn0_investigation_scope": 10.0,
+    "cold_hot_ratio": 0.1,
+    "viscosity_exponent": 0.5,
+    "velocity_rule": [40, 96],
+    "radial_scale": 2.0,
+    "prandtl": 0.6666666666666666,
+    "retained_correction_floor": 0.05,
+    "frozen_state_count": 5,
+    "solver_rerun": false,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "normalization_retuning": false,
+    "transport_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "wall_model_retuning": false,
+    "cross_knudsen_extension_permitted": false,
+    "conservative_projection_adopted": false
+  },
+  "aggregate": {
+    "state_count": 5,
+    "states_with_material_clipping": 4,
+    "maximum_formula_transform_error": 9.250849950308205e-16,
+    "maximum_implementation_match_error": 6.54374831129248e-16,
+    "maximum_phi_clipped_weight_fraction": 0.01242842891528251,
+    "maximum_psi_clipped_weight_fraction": 0.026488117352021504,
+    "maximum_unclipped_conserved_moment_defect": 5.88803136305974e-10,
+    "maximum_unclipped_heat_flux_closure_error": 1.3821340652368086e-08,
+    "maximum_clipped_conserved_moment_defect": 0.03161541018885523,
+    "maximum_clipped_heat_flux_closure_error": 0.172460298615203
+  },
+  "decision": "stage63_collision_target_matches_independent_paper_equations_clipping_defects_material_stage64_source_step_consistency_audit",
+  "scientific_conclusion": "The implemented projected-Shakhov collision target matches an independently coded evaluation of the paper equations to below 1e-12 after the exact coordinate transformation. The unclipped target closes conserved moments and heat-flux relaxation to 5.89e-10 and 1.38e-8, respectively. The retained 0.05 factor clipping and density renormalization are implementation-faithful but introduce material defects: up to 3.1615% in a conserved moment and 17.2460% in heat-flux closure, with four of five frozen states materially clipped. This is a positive equation-equivalence result and a negative physical-conservation result; it does not validate the cavity benchmark or justify retuning.",
+  "scientifically_justified_next_scope": "Audit a homogeneous collision-only source update against independently integrated moment-relaxation identities on the same five frozen states. Keep the retained clipped target as the active arm, and retain unclipped and bounded-conservative targets as explicitly labeled diagnostics only, with no solver, physics, quadrature, floor, normalization or cross-Knudsen retuning."
+}
