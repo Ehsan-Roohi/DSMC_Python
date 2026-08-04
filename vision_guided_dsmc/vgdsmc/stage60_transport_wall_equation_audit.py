@@ -229,18 +229,34 @@ def transport_conservation_audit(
     )
     cell_mass = float(np.sum(cell_phi * weight))
     boundary_mass = float(np.sum(boundary_phi * weight))
+    mass_defect = cell_mass - boundary_mass
+    mass_flux_scale = float(np.sum(
+        (np.abs(cell_phi) + np.abs(boundary_phi)) * weight
+    ))
+    mass_relative = abs(mass_defect) / max(mass_flux_scale, 1.0e-14)
     speed2 = quadrature.vx**2 + quadrature.vy**2
     cell_energy = float(0.5 * np.sum((speed2 * cell_phi + cell_psi) * weight))
     boundary_energy = float(
         0.5 * np.sum((speed2 * boundary_phi + boundary_psi) * weight)
     )
+    energy_defect = cell_energy - boundary_energy
+    energy_flux_scale = float(0.5 * np.sum(
+        (
+            speed2 * (np.abs(cell_phi) + np.abs(boundary_phi))
+            + np.abs(cell_psi)
+            + np.abs(boundary_psi)
+        ) * weight
+    ))
+    energy_relative = abs(energy_defect) / max(energy_flux_scale, 1.0e-14)
     return {
         "phi_telescoping_relative_error": phi_relative,
         "psi_telescoping_relative_error": psi_relative,
-        "mass_balance_identity_relative_error":
-            _relative_pair_error(cell_mass, boundary_mass),
-        "energy_balance_identity_relative_error":
-            _relative_pair_error(cell_energy, boundary_energy),
+        "mass_balance_identity_relative_error": mass_relative,
+        "energy_balance_identity_relative_error": energy_relative,
+        "mass_balance_absolute_defect": float(mass_defect),
+        "mass_balance_weighted_l1_scale": mass_flux_scale,
+        "energy_balance_absolute_defect": float(energy_defect),
+        "energy_balance_weighted_l1_scale": energy_flux_scale,
         "cell_integrated_mass_residual": cell_mass,
         "boundary_mass_flux": boundary_mass,
         "cell_integrated_energy_residual": cell_energy,
@@ -493,6 +509,7 @@ def evaluate_stage60() -> dict[str, object]:
             "cold_hot_ratio": STAGE60_COLD_HOT_RATIO,
             "transport_operator": "steady_first_order_upwind_jacobi",
             "wall_operator": "projected_diffuse_fully_accommodating_zero_mass_flux",
+            "moment_identity_normalization": "absolute_defect_over_weighted_l1_flux_scale",
             "solver_rerun": False,
             "physical_parameter_retuning": False,
             "collision_parameter_retuning": False,
