@@ -115,14 +115,22 @@ MPI_RANKS=8 bash scripts/run_case.sh student mpi
 MPI_RANKS=16 bash scripts/run_case.sh production mpi
 ```
 
-Production is a CPU/MPI case. `hpc/unity_sparta_production.slurm` is a template
-for the UMass Unity cluster; inspect local module and partition names before
-submission:
+Production is a CPU/MPI case. On the UMass Unity cluster, this one-line command
+clones or updates the book branch, submits a CPU build of pinned MPI SPARTA,
+submits three independent production seeds as a dependent CPU job array, and
+submits a final collector job:
 
 ```bash
-mkdir -p logs
-sbatch hpc/unity_sparta_production.slurm
+bash <(curl -fsSL \
+  https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/validated-dsmc-cavity/sparta_cavity_mohammadzadeh/hpc/bootstrap_unity_sparta_kn01_production.sh)
 ```
+
+The production matrix uses a `200 x 200` grid, 32 initial simulator particles
+per cell, 16 MPI ranks, and seeds `20260803`, `20260819`, and `20260831`. It runs
+only on the `cpu` partition and asks for no GPU. The bootstrap prints the job
+IDs, monitoring commands, and the exact `SPARTA_KN01_RESULTS_<job>.tar.gz` file
+to return for ensemble post-processing and confidence intervals. Existing seed
+directories are never overwritten.
 
 GPU SPARTA requires a separate Kokkos/CUDA-enabled build. This repository does
 not silently request a GPU or describe a CPU binary as GPU-enabled.
