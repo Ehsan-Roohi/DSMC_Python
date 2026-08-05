@@ -1,0 +1,139 @@
+name: Vision-guided DSMC Stage 68
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage68_independent_transport_operator_residual_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage68_independent_transport_operator_residual_audit.py'
+      - 'vision_guided_dsmc/results/stage67_frozen_full_distribution_residual_decomposition_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage68.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage68_independent_transport_operator_residual_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage68_independent_transport_operator_residual_audit.py'
+      - 'vision_guided_dsmc/results/stage67_frozen_full_distribution_residual_decomposition_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage68.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  independent-transport-operator-residual-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 68 and retained equation-audit endpoints
+        run: |
+          pytest -q \
+            tests/test_stage68_independent_transport_operator_residual_audit.py \
+            tests/test_stage67_frozen_full_distribution_residual_decomposition.py \
+            tests/test_stage66_frozen_collision_source_observable_audit.py \
+            tests/test_stage65_local_clipping_activation_map_audit.py \
+            tests/test_stage64_source_step_consistency_audit.py \
+            tests/test_stage63_collision_target_equivalence_audit.py \
+            tests/test_stage62_finite_kn_normalization_audit.py \
+            tests/test_stage60_transport_wall_equation_audit.py
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+      - name: Run Stage 68 frozen independent transport operator audit
+        run: |
+          python -m vgdsmc.stage68_independent_transport_operator_residual_audit \
+            --stage67-artifact-dir /tmp/stage67_frozen_full_distribution_residual_decomposition \
+            --output-dir /tmp/stage68_independent_transport_operator_residual_audit
+      - name: Verify provenance, frozen configuration, operator maps, and guards
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage68_independent_transport_operator_residual_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 68
+          endpoint = summary['retained_stage67_endpoint']
+          assert endpoint['workflow_run_id'] == 30991124477
+          assert endpoint['workflow_job_id'] == 92257254811
+          assert endpoint['artifact_id'] == 8931272132
+          assert endpoint['tests_passed'] == 71
+          assert endpoint['tests_failed'] == 0
+          assert endpoint['artifact_sha256'] == (
+              '5b871e94bdca02bce33846657f8f4dc263d68af9e671d7eb137ca7c83da198d4'
+          )
+          assert endpoint['summary_sha256'] == (
+              'e04043a1913b2fa9ae57fe1561aa26c70627830d648e91204093c8f1fb57b3d1'
+          )
+          assert endpoint['distributions_sha256'] == (
+              'd4002a2765137ba517abec2d0483a3e5adcf13f415c53259018556bd14d612d1'
+          )
+          assert endpoint['residual_maps_sha256'] == (
+              '08722bd5b2036eee1b42b09d37583701ffcc3ef5e4f7d7c68642ea5103f11ced'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['material_heat_flux_ratio'] == 0.10
+          assert cfg['solver_rerun_count'] == 0
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          consistency = summary['retained_operator_consistency']
+          assert consistency['within_guard'] is True
+          assert consistency['maximum_relative_l2_error'] <= 1.0e-10
+          ratio = summary['normal_heat_flux_operator_difference_ratio']
+          assert math.isfinite(ratio)
+          assert summary['finite'] is True
+          allowed = {
+              'stage68_nonfinite_transport_operator_blocker',
+              'stage68_retained_transport_reconstruction_blocker',
+              'stage68_material_higher_order_transport_residual_without_observable_causality_stage69_frozen_grid_transfer_residual_scaling_audit',
+              'stage68_higher_order_transport_residual_not_material_stage69_wall_flux_discretization_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'not an adjoint sensitivity' in summary['interpretation_guard']
+          assert 'failed Stage-28 MUSCL endpoint remains negative' in summary['interpretation_guard']
+          assert 'before any solver experiment' in summary['scientifically_justified_next_scope']
+
+          with np.load(root / 'transport_operator_moment_maps.npz') as maps:
+              components = {
+                  'retained_first_order', 'independent_second_order', 'difference'
+              }
+              moments = {'mass', 'momentum_x', 'momentum_y', 'energy', 'qx', 'qy'}
+              assert set(maps.files) == {
+                  f'{component}_{moment}'
+                  for component in components
+                  for moment in moments
+              }
+              for name in maps.files:
+                  assert maps[name].shape == (64, 64)
+                  assert np.all(np.isfinite(maps[name]))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage68-independent-transport-operator-residual-audit
+          path: /tmp/stage68_independent_transport_operator_residual_audit
+          retention-days: 30
