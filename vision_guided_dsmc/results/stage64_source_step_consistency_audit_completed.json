@@ -1,0 +1,94 @@
+{
+  "stage": 64,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 64",
+    "run_id": 30950873919,
+    "job_id": 92132317102,
+    "job_name": "source-step-consistency-audit",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "8d689fb80cb5eaa7ad2d691563e313fbb15712c1",
+    "tests_passed": 35,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.45,
+    "artifact": {
+      "id": 8913290588,
+      "name": "stage64-source-step-consistency-audit",
+      "size_bytes": 9374,
+      "sha256": "6e4f94bc03fd53a45d63b007ab6d427e9587e2435add439ebb901f10cd521e1e",
+      "summary_sha256": "e620f120b9a031215279561bc3a89cafca5b55dcbaa3a9c22c04497bb2951c92",
+      "created_at": "2026-08-05T00:03:16Z",
+      "expires_at": "2026-09-04T00:03:15Z"
+    }
+  },
+  "configuration": {
+    "kn0_investigation_scope": 10.0,
+    "cold_hot_ratio": 0.1,
+    "viscosity_exponent": 0.5,
+    "velocity_rule": [40, 96],
+    "radial_scale": 2.0,
+    "prandtl": 0.6666666666666666,
+    "retained_correction_floor": 0.05,
+    "frozen_state_count": 5,
+    "source_fractions": [0.05, 0.25, 0.5, 1.0],
+    "active_arm": "retained_clipped_active",
+    "diagnostic_arms": [
+      "unclipped_paper_diagnostic",
+      "bounded_conservative_diagnostic"
+    ],
+    "solver_rerun": false,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_fraction_retuning": false,
+    "normalization_retuning": false,
+    "transport_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "wall_model_retuning": false,
+    "cross_knudsen_extension_permitted": false,
+    "conservative_projection_adopted": false
+  },
+  "aggregate": {
+    "state_count": 5,
+    "source_fraction_count": 4,
+    "materially_clipped_state_count": 4,
+    "conservative_projection_failure_count": 0,
+    "maximum_initial_state_error": 1.5675119932215662e-09,
+    "maximum_initial_heat_flux_error": 1.4057119462169771e-08,
+    "arms": {
+      "retained_clipped_active": {
+        "maximum_raw_moment_identity_error": 2.3299163036621257e-16,
+        "maximum_conserved_state_drift": 0.03604125397757674,
+        "maximum_ideal_shakhov_heat_flux_law_error": 0.05748676620506754,
+        "minimum_phi": -0.1222738251412249,
+        "minimum_psi": -0.0314508410871767
+      },
+      "unclipped_paper_diagnostic": {
+        "maximum_raw_moment_identity_error": 2.3308098941881896e-16,
+        "maximum_conserved_state_drift": 1.5171219835963257e-09,
+        "maximum_ideal_shakhov_heat_flux_law_error": 1.358461827294134e-08,
+        "minimum_phi": -0.12217026562474857,
+        "minimum_psi": -0.031603136205801685
+      },
+      "bounded_conservative_diagnostic": {
+        "maximum_raw_moment_identity_error": 2.330809895990407e-16,
+        "maximum_conserved_state_drift": 1.4891373848310456e-09,
+        "maximum_ideal_shakhov_heat_flux_law_error": 1.3353952957039323e-08,
+        "minimum_phi": -0.12360772667103269,
+        "minimum_psi": -0.0314508410871767
+      }
+    }
+  },
+  "thresholds": {
+    "raw_moment_identity": 1e-12,
+    "manufactured_initial_moments": 1e-06,
+    "unclipped_conserved": 1e-06,
+    "unclipped_heat_flux": 1e-05,
+    "conservative_conserved": 1e-09,
+    "conservative_heat_flux": 1e-08,
+    "material_source_defect": 0.01
+  },
+  "decision": "stage64_conservative_diagnostic_source_step_blocker",
+  "scientific_conclusion": "The frozen homogeneous source update satisfies the independent raw-moment linear-relaxation identity to about 2.33e-16 for every arm. The retained clipped active target nevertheless injects material state and heat-flux-law errors, reaching 3.6041% and 5.7487%, respectively, across the five preregistered states. The unclipped paper target and bounded-conservative diagnostic reduce those errors to the 1e-9 and 1e-8 scale, but the bounded-conservative maxima exceed the unchanged strict 1e-9 and 1e-8 thresholds by 4.89e-10 and 3.35e-9. The strict blocker is retained; neither diagnostic replaces the active solver, failed parameters are not retuned, and the failed MUSCL endpoint remains negative.",
+  "scientifically_justified_next_scope": "Quantify where and how often the retained 0.05 clipping activates in the exact completed 64x64 full-cavity endpoint, and map local conserved-state and heat-flux source defects without rerunning the solver, changing the quadrature, adopting the conservative projection, or retuning any physical or numerical parameter."
+}
