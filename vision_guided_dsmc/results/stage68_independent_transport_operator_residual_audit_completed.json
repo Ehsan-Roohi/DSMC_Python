@@ -1,0 +1,69 @@
+{
+  "stage": 68,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 68",
+    "run_id": 31010112390,
+    "job_id": 92319799599,
+    "job_name": "independent-transport-operator-residual-audit",
+    "status": "completed",
+    "conclusion": "success",
+    "tests_passed": 87,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.74,
+    "source_head_sha": "1703bbb0d15d9d34fe972f565ec7da9a07693489"
+  },
+  "artifact": {
+    "id": 8938442470,
+    "name": "stage68-independent-transport-operator-residual-audit",
+    "size_bytes": 446487,
+    "sha256": "d38fcf90e998341a8ed1ad443ac3de8a1597a91a89c454e8430491ff75751ea6",
+    "summary_sha256": "67e8ab90c900d57f39ac1fe5f0835ca0346684da26964fb786bfb3f1c10bd06d",
+    "transport_operator_moment_maps_sha256": "0e8ba77f6c6cd1ca98bc7d22c0e4b41d81e7ba99c0fcca922809804f79d3ad7d"
+  },
+  "frozen_configuration": {
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "radial_nodes": 40,
+    "angular_nodes": 96,
+    "velocity_points": 3840,
+    "radial_scale": 2.0,
+    "limiter": "minmod",
+    "second_order_operator": "conservative_muscl_piecewise_linear_frozen_field",
+    "material_heat_flux_ratio": 0.1,
+    "solver_rerun_count": 0,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false
+  },
+  "positive_findings": {
+    "retained_operator_reproduced": true,
+    "maximum_retained_operator_absolute_error": 1.6365381272365198e-14,
+    "maximum_retained_operator_relative_l2_error": 3.4571613424959186e-12,
+    "all_operator_maps_finite": true,
+    "conservative_second_order_global_difference_means_near_zero": true
+  },
+  "negative_findings": {
+    "normal_heat_flux_operator_difference_ratio": 2.711059451870935,
+    "mass_operator_difference_ratio": 39.09316538254259,
+    "momentum_x_operator_difference_ratio": 35.84307186110497,
+    "momentum_y_operator_difference_ratio": 19.480240273274173,
+    "energy_operator_difference_ratio": 28.940055572530724,
+    "tangential_heat_flux_operator_difference_ratio": 5.180718500083135,
+    "normal_heat_flux_difference_rms": 0.07057591967836976,
+    "normal_heat_flux_difference_wall_band_absolute_share": 0.6047289196255863,
+    "normal_heat_flux_difference_vs_collision_correlation": -0.3038207098838063,
+    "observable_causality_established": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "validation_claim_supported": false
+  },
+  "decision": "stage68_material_higher_order_transport_residual_without_observable_causality_stage69_frozen_grid_transfer_residual_scaling_audit",
+  "scientific_conclusion": "The exact retained first-order transport moments are independently reproduced to 1.64e-14 absolute and 3.46e-12 relative L2 error. The conservative minmod-limited frozen operator differs materially: its normal heat-flux residual difference is 2.711 times the retained first-order residual RMS, and 60.47% of the absolute difference lies in the frozen four-cell wall band. This is an operator-level defect, not a converged observable response or validation result. The failed Stage-28 MUSCL endpoint remains negative. The next justified stage is a conservative frozen 16x16, 32x32, 64x64 grid-transfer scaling audit before any solver experiment."
+}
