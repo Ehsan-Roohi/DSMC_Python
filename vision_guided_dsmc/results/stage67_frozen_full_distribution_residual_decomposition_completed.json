@@ -1,0 +1,82 @@
+{
+  "stage": 67,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 67",
+    "run_id": 30991124477,
+    "job_id": 92257254811,
+    "job_name": "frozen-full-distribution-residual-decomposition",
+    "status": "completed",
+    "conclusion": "success",
+    "tests_passed": 71,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.43,
+    "source_head_sha": "87e6ca98637754e72482b897492147edfcfcf4d9"
+  },
+  "artifact": {
+    "id": 8931272132,
+    "name": "stage67-frozen-full-distribution-residual-decomposition",
+    "size_bytes": 173096061,
+    "sha256": "5b871e94bdca02bce33846657f8f4dc263d68af9e671d7eb137ca7c83da198d4",
+    "summary_sha256": "e04043a1913b2fa9ae57fe1561aa26c70627830d648e91204093c8f1fb57b3d1",
+    "converged_full_distributions_sha256": "d4002a2765137ba517abec2d0483a3e5adcf13f415c53259018556bd14d612d1",
+    "steady_residual_moment_maps_sha256": "08722bd5b2036eee1b42b09d37583701ffcc3ef5e4f7d7c68642ea5103f11ced"
+  },
+  "frozen_configuration": {
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "radial_nodes": 40,
+    "angular_nodes": 96,
+    "velocity_points": 3840,
+    "radial_scale": 2.0,
+    "retained_correction_floor": 0.05,
+    "source_relaxation": 1.0,
+    "tolerance": 2e-05,
+    "maximum_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false
+  },
+  "replay": {
+    "finite": true,
+    "converged": true,
+    "iterations": 775,
+    "final_change": 1.5074674996828561e-05,
+    "predicted_qav": 0.2249270610451477,
+    "published_dsmc_qav": 0.179,
+    "signed_qav_excess": 0.04592706104514771,
+    "relative_qav_excess": 0.25657576002875815,
+    "maximum_phi_clipped_weight_fraction": 0.0120978661125171,
+    "maximum_psi_clipped_weight_fraction": 0.02598317914952256,
+    "minimum_phi": 1e-30,
+    "minimum_psi": 1e-30,
+    "wall_mass_balance_relative_error": 1.8746540060514265e-16,
+    "maximum_stage58_absolute_replay_error": 6.661338147750939e-16,
+    "maximum_stage58_relative_l2_replay_error": 4.462040397426284e-14
+  },
+  "residual_balance": {
+    "normal_heat_flux_residual_ratio": 0.0003501464108267257,
+    "conserved_residual_ratio": 0.0017027953817483612,
+    "dominant_normal_component": "interior_transport",
+    "normal_component_rms": {
+      "collision": 0.025939545756601075,
+      "interior_transport": 0.14343482579374786,
+      "diffuse_wall": 0.1382018287526822,
+      "total": 0.0001076967025918284
+    },
+    "collision_qy_wall_band_absolute_share": 0.1935380721558182,
+    "diffuse_wall_qy_wall_band_absolute_share": 0.9999999999999999,
+    "stage66_source_bias_vs_active_collision_qy_correlation": 0.7630797772699528
+  },
+  "decision": "stage67_frozen_replay_and_residual_balance_close_stage68_independent_transport_operator_residual_audit",
+  "scientific_conclusion": "The exact frozen replay reproduces every retained Stage-58 field within 6.67e-16 absolute and 4.47e-14 relative L2 error while preserving the positive 25.6576% heat-flux discrepancy. Collision, first-order interior transport and diffuse-wall residual moments close to 0.0350% for normal heat flux and 0.1703% for conserved moments. This verifies the retained discrete fixed point and exposes full phi/psi fields, but does not validate the benchmark, establish causal sensitivity, rehabilitate failed MUSCL transport, or authorize cross-Knudsen extension. The next justified stage is a frozen independent second-order control-volume transport-operator residual audit without solving or tuning."
+}
