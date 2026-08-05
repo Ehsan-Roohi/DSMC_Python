@@ -1,0 +1,73 @@
+{
+  "stage": 69,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 69",
+    "run_id": 31027231271,
+    "job_id": 92378691275,
+    "job_name": "frozen-grid-transfer-residual-scaling-audit",
+    "status": "completed",
+    "conclusion": "success",
+    "tests_passed": 107,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.74,
+    "source_head_sha": "45a757bf0c3ed25c27f1aacdb9273d8816f69f42"
+  },
+  "artifact": {
+    "id": 8942482076,
+    "name": "stage69-frozen-grid-transfer-residual-scaling-audit",
+    "size_bytes": 587209,
+    "sha256": "8040126435a35726fe995360e5c5c3a807f6bfa6ed27d139405a53f1a5775e78",
+    "summary_sha256": "512e8cc0ed5cee547c08968b965a8c45c74352ea7ffe9e21d12d15417512bac8",
+    "grid_transfer_transport_moment_maps_sha256": "aacceab9597ba7f4607911f1e983fdb4d9f310529ce18c5ddbeb4e08ad3607be"
+  },
+  "frozen_configuration": {
+    "grids": [16, 32, 64],
+    "fine_grid": 64,
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "radial_nodes": 40,
+    "angular_nodes": 96,
+    "velocity_points": 3840,
+    "radial_scale": 2.0,
+    "limiter": "minmod",
+    "restriction": "conservative_cell_average_from_exact_stage67_64x64_distribution",
+    "wall_band_physical_fraction": 0.0625,
+    "material_heat_flux_ratio": 0.1,
+    "solver_rerun_count": 0,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false
+  },
+  "positive_findings": {
+    "tests_passed": 107,
+    "restriction_conservative": true,
+    "provenance_consistent": true,
+    "exact_stage68_endpoint_reproduced": true,
+    "full_difference_rms_sequence": [0.10877543871074247, 0.09041419771152007, 0.07057591967836976],
+    "interior_difference_rms_sequence": [0.09206242616072545, 0.0344528762535247, 0.01769293153102099],
+    "full_monotonic_decrease": true,
+    "interior_monotonic_decrease": true,
+    "interior_observed_order_32_to_64": 0.9614513223807256
+  },
+  "negative_findings": {
+    "fine_grid_normal_heat_flux_operator_difference_ratio": 2.711059451870935,
+    "fine_grid_normal_heat_flux_difference_rms": 0.07057591967836976,
+    "fine_grid_wall_band_absolute_share": 0.6047289196255863,
+    "full_observed_order_16_to_32": 0.2667315940699481,
+    "full_observed_order_32_to_64": 0.3573733127246497,
+    "wall_dominated_slow_full_scaling": true,
+    "observable_causality_established": false,
+    "converged_solution_response_established": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "validation_claim_supported": false
+  },
+  "decision": "stage69_monotone_but_wall_dominated_slow_full_scaling_stage70_independent_wall_face_flux_discretization_audit",
+  "scientific_conclusion": "The frozen second-order-minus-first-order normal heat-flux residual decreases monotonically from 16x16 to 64x64. The interior sequence approaches first-order scaling, but the full-domain sequence converges much more slowly and 60.47% of the fine-grid absolute defect lies in the fixed physical wall band. The fine-grid defect remains 2.711 times the retained first-order residual RMS. These are operator-localization results only: they do not predict a converged heat-flux change, validate either operator, or rehabilitate the failed Stage-28 MUSCL endpoint. The next justified stage is an independent diffuse-wall face-flux discretization audit before any response or solver experiment."
+}
