@@ -15,14 +15,21 @@ five-minute collector job.
 
 - `Running` and `Pending`, including Slurm's reason;
 - `Blocked` by a failed or invalid dependency;
-- `Attention` for `FAILED`, `OUT_OF_MEMORY`, `TIMEOUT`, `NODE_FAIL`,
-  `CANCELLED`, and related states;
+- `Attention` for recent `FAILED`, `OUT_OF_MEMORY`, `TIMEOUT`, `NODE_FAIL`,
+  and related failure states;
+- `Cancelled` as a noncritical historical outcome, including intentional
+  `CANCELLED 0:0` jobs;
 - `Completed—unverified` when Slurm finished but no configured acceptance
   artifact proves the scientific result;
 - `Validated` when required project-specific artifacts exist.
 
 A historical failure is no longer considered unresolved when a newer job with
-the same canonical job name succeeds or is currently running.
+the same canonical job name succeeds or is currently running. The main table
+contains all active jobs plus the newest terminal attempt from the last 24
+hours; the full 14-day accounting window remains in `reports/status.json`.
+Job-name patterns take priority over the submission working directory, so a
+job submitted while the shell is inside a different repository is still
+assigned to the correct campaign.
 
 ## Default project registry
 
