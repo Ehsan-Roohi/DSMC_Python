@@ -6,8 +6,9 @@ project membership, follows failed dependencies, checks selected validation
 artifacts, sanitizes the report, and pushes meaningful changes to the private
 `Ehsan-Roohi/UnityMonitor` GitHub repository.
 
-It sends **no email** and contains no `scancel`, requeue, retry, or scientific
-job-submission logic. The only Slurm job it submits is its own low-priority,
+It sends **no email** and never cancels, requeues, retries, or modifies a
+scientific job. Its stop helper may cancel only the currently recorded
+Watchtower collector. The only Slurm job it submits is its own low-priority,
 five-minute collector job.
 
 ## What the dashboard distinguishes
