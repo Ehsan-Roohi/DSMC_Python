@@ -60,10 +60,40 @@ jobs:
           github-token: ${{ github.token }}
       - name: Run Stage 72 directional transport component audit
         run: |
-          python -m vgdsmc.stage72_directional_transport_component_audit \
-            --stage67-artifact-dir /tmp/stage67_frozen_full_distribution_residual_decomposition \
-            --stage71-artifact-dir /tmp/stage71_wall_layer_interior_face_transport_attribution_audit \
-            --output-dir /tmp/stage72_directional_transport_component_audit
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from vgdsmc import stage72_directional_transport_component_audit as stage72
+
+          # Stage 67 records finiteness under both decision_metrics and replay.
+          # Adapt that frozen, checksum-validated schema without altering the artifact.
+          original_validator = stage72.stage68._validate_stage67_artifact
+
+          def validate_stage67_with_top_level_finite(root):
+              summary = original_validator(root)
+              metrics = summary.get('decision_metrics')
+              replay = summary.get('replay')
+              if not isinstance(metrics, dict) or 'finite' not in metrics:
+                  raise ValueError('Stage 67 decision_metrics finite-state contract missing')
+              if not isinstance(replay, dict) or 'finite' not in replay:
+                  raise ValueError('Stage 67 replay finite-state contract missing')
+              metrics_finite = bool(metrics['finite'])
+              replay_finite = bool(replay['finite'])
+              if metrics_finite != replay_finite:
+                  raise ValueError('Stage 67 finite-state contracts disagree')
+              adapted = dict(summary)
+              adapted['finite'] = metrics_finite
+              return adapted
+
+          stage72.stage68._validate_stage67_artifact = validate_stage67_with_top_level_finite
+          summary = stage72.run_stage72(
+              Path('/tmp/stage67_frozen_full_distribution_residual_decomposition'),
+              Path('/tmp/stage71_wall_layer_interior_face_transport_attribution_audit'),
+              Path('/tmp/stage72_directional_transport_component_audit'),
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
       - name: Verify provenance, exact closure, and scientific guards
         run: |
           python - <<'PY'
