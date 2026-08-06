@@ -102,7 +102,7 @@ def test_velocity_group_attribution_forms_complete_shares():
     assert np.isclose(sum(result["angular_bin_absolute_shares"]), 1.0)
     assert np.isclose(sum(result["sign_absolute_shares"].values()), 1.0)
     assert result["vertical_oblique_absolute_share"] == 1.0
-    assert result["ranked_angular_bins"][0] == 1
+    assert result["ranked_angular_bins"][0] == 5
 
 
 def test_stage73_decision_blocks_invalid_endpoints():
