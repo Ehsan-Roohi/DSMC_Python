@@ -97,22 +97,27 @@ fi
 export GIT_TERMINAL_PROMPT=0
 export GIT_ASKPASS="${ASKPASS}"
 export UNITY_MONITOR_TOKEN_FILE="${TOKEN_FILE}"
+export UNITY_MONITOR_GITHUB_USERNAME="${owner}"
+
+git_auth() {
+  git -c credential.helper= -c credential.username="${owner}" "$@"
+}
 
 if [[ ! -d "${STATUS_REPO}/.git" ]]; then
-  git -C "${STATUS_REPO}" init -b "${BRANCH}"
-  git -C "${STATUS_REPO}" remote add origin "https://github.com/${REPOSITORY}.git"
+  git_auth -C "${STATUS_REPO}" init -b "${BRANCH}"
+  git_auth -C "${STATUS_REPO}" remote add origin "https://github.com/${REPOSITORY}.git"
 fi
-git -C "${STATUS_REPO}" config user.name "Unity Watchtower"
-git -C "${STATUS_REPO}" config user.email "unity-watchtower@users.noreply.github.com"
-git -C "${STATUS_REPO}" remote set-url origin "https://github.com/${REPOSITORY}.git"
+git_auth -C "${STATUS_REPO}" config user.name "Unity Watchtower"
+git_auth -C "${STATUS_REPO}" config user.email "unity-watchtower@users.noreply.github.com"
+git_auth -C "${STATUS_REPO}" remote set-url origin "https://github.com/${REPOSITORY}.git"
 
-remote_head="$(git -C "${STATUS_REPO}" ls-remote --heads origin "${BRANCH}" | awk 'NR==1{print $1}')"
+remote_head="$(git_auth -C "${STATUS_REPO}" ls-remote --heads origin "${BRANCH}" | awk 'NR==1{print $1}')"
 if [[ -n "${remote_head}" ]]; then
-  git -C "${STATUS_REPO}" fetch origin "${BRANCH}"
-  if git -C "${STATUS_REPO}" rev-parse --verify HEAD >/dev/null 2>&1; then
-    git -C "${STATUS_REPO}" merge --ff-only "origin/${BRANCH}"
+  git_auth -C "${STATUS_REPO}" fetch origin "${BRANCH}"
+  if git_auth -C "${STATUS_REPO}" rev-parse --verify HEAD >/dev/null 2>&1; then
+    git_auth -C "${STATUS_REPO}" merge --ff-only "origin/${BRANCH}"
   else
-    git -C "${STATUS_REPO}" checkout -B "${BRANCH}" "origin/${BRANCH}"
+    git_auth -C "${STATUS_REPO}" checkout -B "${BRANCH}" "origin/${BRANCH}"
   fi
 fi
 
