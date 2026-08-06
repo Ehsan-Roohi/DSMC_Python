@@ -6,8 +6,10 @@
   "work_root": "/work/pi_roohie_umass_edu/roohie_umass_edu",
   "runtime_dir": "/project/pi_roohie_umass_edu/UNITY_MONITOR/runtime",
   "history_event_limit": 2000,
+  "internal_job_name_patterns": ["unity-watch*", "sys/dashboard/*", "ood-*"],
   "scan": {
     "lookback_days": 14,
+    "terminal_attention_hours": 24,
     "max_jobs": 2500,
     "max_log_bytes": 262144,
     "max_error_lines": 12,
@@ -33,7 +35,7 @@
         "/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK",
         "/project/pi_roohie_umass_edu/github_sync/DSMC_Python/sparta_cavity_mohammadzadeh"
       ],
-      "job_name_patterns": ["sparta-*", "sparta_*", "moh-*", "moh_*"],
+      "job_name_patterns": ["sparta-*", "sparta_*", "moh-*", "moh_*", "cavity-models*"],
       "validation_mode": "any",
       "artifact_checks": [
         {
@@ -110,7 +112,7 @@
         "/project/pi_roohie_umass_edu/Combustion/QK_GATE4_NOZZLE",
         "/project/pi_roohie_umass_edu/Combustion/QK_GATE5"
       ],
-      "job_name_patterns": ["qk-*", "qk_*"],
+      "job_name_patterns": ["qk-*", "qk_*", "bqk*"],
       "artifact_checks": []
     },
     {
@@ -179,7 +181,7 @@
       "roots": [
         "/project/pi_roohie_umass_edu/Ab-initio-shock/ABINITIO_SHOCK_TESTS_v2"
       ],
-      "job_name_patterns": ["abinitio*", "ab-*m10*", "m10-*"],
+      "job_name_patterns": ["abinitio*", "ab-*m10*", "m10-*", "ulj_*", "ds2v_*", "bird_*"],
       "artifact_checks": []
     }
   ]
