@@ -1,0 +1,49 @@
+{
+  "paths": {
+    "results_root": "G:/Ahmad/project/Cylinder-ML/Results-Kn/ALL_KN_FINAL_ANALYSIS"
+  },
+  "geometry": {"diameter_m": 0.3048},
+  "freestream": {"u_inf_m_s": null},
+  "analysis": {
+    "common_n": 200,
+    "pod": {
+      "theta_min": 120, "theta_max": 179, "ntheta": 60,
+      "xi_min": -1.0, "xi_max": 4.0, "nxi": 260,
+      "physical_wall_buffer_R": 0.02,
+      "marker_wall_exclude_R": 0.25,
+      "variables": ["D", "MA", "TTR", "TRT", "P"],
+      "run_multivariate": true, "run_variablewise": true,
+      "run_split_half": false, "split_variables": ["D", "TRT"],
+      "n_pod_modes": 30, "dmd_rank": 40, "n_dmd_modes": 30,
+      "write_mode_fields": 3, "do_spod": false,
+      "spod_nfft": 64, "spod_overlap": 0.5, "spod_pod_rank": 50
+    },
+    "temporal_coarse_graining": {
+      "group_sizes": [1, 2, 4, 8, 16],
+      "theta_smooth_rays": [1, 3, 5],
+      "theta_min": 120, "theta_max": 179, "ntheta": 60,
+      "nr_raw": 900, "smax_R": 8.0,
+      "wall_exclude_R": 0.25, "smooth_sigma": 4.0
+    },
+    "correlated_noise": {
+      "bootstrap": 200, "controls": 40, "phi_grid": 500,
+      "max_acf_lag": 8, "far_angle_deg": 15.0, "seed": 12031
+    },
+    "power_exclusion": {
+      "reference_case": "Kn0p01", "replicates": 40,
+      "phi_grid": 220, "seed": 40231,
+      "amplitude_multipliers": [0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0]
+    }
+  },
+  "cases": [
+    {"label":"Kn0p01","kn":0.01,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.01/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.01/**/MODAL_OUTPUT_LOG*.csv","dt_star":0.288,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p025","kn":0.025,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.025/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.025/**/MODAL_OUTPUT_LOG*.csv","dt_star":null,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p050","kn":0.05,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.05/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.05/**/MODAL_OUTPUT_LOG*.csv","dt_star":null,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p075","kn":0.075,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.075/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.075/**/MODAL_OUTPUT_LOG*.csv","dt_star":null,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p10","kn":0.1,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.1/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.1/**/MODAL_OUTPUT_LOG*.csv","dt_star":0.369,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p15","kn":0.15,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.15/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.15/**/MODAL_OUTPUT_LOG*.csv","dt_star":null,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p25","kn":0.25,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.25/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.25/**/MODAL_OUTPUT_LOG*.csv","dt_star":0.443,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn0p50","kn":0.5,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.5/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=0.5/**/MODAL_OUTPUT_LOG*.csv","dt_star":0.508,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]},
+    {"label":"Kn1p00","kn":1.0,"pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=1/DS2FF/*_DS2FF.DAT","log_pattern":"G:/Ahmad/project/Cylinder-ML/Results-Kn/Block & snapshot/N2-Bird prop/Snapshots/Kn=1/**/MODAL_OUTPUT_LOG*.csv","dt_star":0.789,"u_inf_m_s":null,"common_start_index":0,"full_count":0,"exclude_substrings":["POD_mode","DMD_mode","SPOD_mode","shock_window","mean_rms"]}
+  ]
+}
