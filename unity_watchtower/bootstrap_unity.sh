@@ -17,8 +17,12 @@ if [[ ! -d "${CHECKOUT_ROOT}/.git" ]]; then
   fi
   git clone --depth 1 --branch "${SOURCE_BRANCH}" "${SOURCE_REPO}" "${CHECKOUT_ROOT}"
 else
+  # GitHub's contents API stores scripts as mode 100644.  The installer makes
+  # its local copies executable, which must not block later fast-forward pulls.
+  git -C "${CHECKOUT_ROOT}" config core.fileMode false
   git -C "${CHECKOUT_ROOT}" pull --ff-only origin "${SOURCE_BRANCH}"
 fi
+git -C "${CHECKOUT_ROOT}" config core.fileMode false
 if [[ ! -d "${APP_ROOT}" ]]; then
   printf 'unity_watchtower directory is missing from source branch.\n' >&2
   exit 2
