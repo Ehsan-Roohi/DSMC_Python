@@ -30,6 +30,25 @@ if [[ ! -d "$RELEASE" ]]; then
   mv "$STAGE/payload" "$RELEASE"
   rmdir "$STAGE"
 fi
+
+# Linux include names are case-sensitive.  The restored legacy solver requests
+# COMMON.TXT while the verified payload stores common.txt.  Apply the
+# compatibility edit after checksum verification so both a new release and an
+# already cached release compile identically.
+PATCHED_SOURCES=0
+while IFS= read -r source_file; do
+  if grep -q "COMMON\.TXT" "$source_file"; then
+    sed -i "s/COMMON\.TXT/common.txt/g" "$source_file"
+    PATCHED_SOURCES=$((PATCHED_SOURCES + 1))
+  fi
+done < <(find "$RELEASE" -type f \( -iname '*.for' -o -iname '*.f' -o -iname '*.f90' \) -print)
+
+if grep -RIl --include='*.for' --include='*.f' --include='*.f90' "COMMON\.TXT" "$RELEASE" >/dev/null; then
+  echo "Gate 5 preflight failed: unresolved uppercase COMMON.TXT include" >&2
+  exit 3
+fi
+echo "GATE5_COMMON_INCLUDE_CASEFIX_PASS patched_sources=$PATCHED_SOURCES"
+
 chmod +x "$RELEASE"/*.sh "$RELEASE"/*.sbatch "$RELEASE"/tools/*.py
 ln -sfn "$RELEASE" "$BASE/payload"
 
