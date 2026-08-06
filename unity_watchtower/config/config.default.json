@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "cluster_name": "Unity HPC",
+  "unity_user": "roohie_umass_edu",
+  "project_root": "/project/pi_roohie_umass_edu",
+  "work_root": "/work/pi_roohie_umass_edu/roohie_umass_edu",
+  "runtime_dir": "/project/pi_roohie_umass_edu/UNITY_MONITOR/runtime",
+  "history_event_limit": 2000,
+  "scan": {
+    "lookback_days": 14,
+    "max_jobs": 2500,
+    "max_log_bytes": 262144,
+    "max_error_lines": 12,
+    "max_alerts_per_project": 30,
+    "max_artifact_matches": 20
+  },
+  "github": {
+    "repository": "Ehsan-Roohi/UnityMonitor",
+    "branch": "main",
+    "status_repo": "/project/pi_roohie_umass_edu/UNITY_MONITOR/status_repo",
+    "push": true,
+    "publish_every_run": false,
+    "heartbeat_hours": 6,
+    "token_file": "~/.config/unity-watchtower/github.token",
+    "askpass": "~/.config/unity-watchtower/git-askpass.sh"
+  },
+  "projects": [
+    {
+      "id": "sparta-cavity",
+      "name": "SPARTA / Mohammadzadeh cavity",
+      "description": "Kn=0.1 lid-driven cavity, collision-model matrix, and production validation.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK",
+        "/project/pi_roohie_umass_edu/github_sync/DSMC_Python/sparta_cavity_mohammadzadeh"
+      ],
+      "job_name_patterns": ["sparta-*", "sparta_*", "moh-*", "moh_*"],
+      "validation_mode": "any",
+      "artifact_checks": [
+        {
+          "label": "SPARTA result bundle",
+          "required": true,
+          "paths": [
+            "{root}/SPARTA_*RESULTS*.tar.gz",
+            "{root}/**/SPARTA_*RESULTS*.tar.gz",
+            "{root}/**/*RETURN_BUNDLE*.tar.gz"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jfm-cavity",
+      "name": "JFM R13/R26 cavity campaign",
+      "description": "DSMC, R13, R26, reducer, and final-comparison dependency chains.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/CavityColdToHotIdentify/JFM_Five_Run_Campaign_20260802"
+      ],
+      "job_name_patterns": ["jfm-*", "jfm_*"],
+      "validation_mode": "any",
+      "artifact_checks": [
+        {
+          "label": "Final acceptance status",
+          "required": true,
+          "paths": [
+            "{root}/results/*/*/final_status.json",
+            "{root}/results/*/*/FINAL_STATUS.json",
+            "{root}/results/*/*/acceptance_status.json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fokker-planck",
+      "name": "Fokker–Planck PINN",
+      "description": "Fokker–Planck PINN, DeepONet data, and output packaging.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/fokkerplanckDeeponet",
+        "/project/pi_roohie_umass_edu/github_sync/FPCode",
+        "/project/pi_roohie_umass_edu/github_sync/FPCode-pinn-test"
+      ],
+      "job_name_patterns": ["fp-pinn*", "fp_pinn*", "fokker*"],
+      "artifact_checks": []
+    },
+    {
+      "id": "kinetic-gaussian",
+      "name": "KineticGaussian / BGK shock",
+      "description": "Mach-sweep and kinetic Gaussian field jobs with full-state artifact checks.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/BGK_shock",
+        "/project/pi_roohie_umass_edu/github_sync/KineticGaussian"
+      ],
+      "job_name_patterns": ["kinetic*", "kgfr_*", "bgk*"],
+      "validation_mode": "any",
+      "artifact_checks": [
+        {
+          "label": "Full-state outputs",
+          "required": true,
+          "paths": [
+            "/project/pi_roohie_umass_edu/BGK_shock/**/*_fullstate_fullstate.npz"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qk-combustion",
+      "name": "Q–K combustion gates",
+      "description": "Reactive DSMC gate, nozzle, and chemistry-screening campaigns.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/Combustion/QK_GATE3_UNITY",
+        "/project/pi_roohie_umass_edu/Combustion/QK_GATE3B_LIVE",
+        "/project/pi_roohie_umass_edu/Combustion/QK_GATE4_NOZZLE",
+        "/project/pi_roohie_umass_edu/Combustion/QK_GATE5"
+      ],
+      "job_name_patterns": ["qk-*", "qk_*"],
+      "artifact_checks": []
+    },
+    {
+      "id": "lekzian",
+      "name": "Lekzian bulk-to-wall gate",
+      "description": "Triangular-protrusion observability, bulk/wall pairs, and gate decisions.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/Combustion/LEKZIAN_BULK_WALL_GATE",
+        "/project/pi_roohie_umass_edu/Sabouri"
+      ],
+      "job_name_patterns": ["lekz*", "protrusion*"],
+      "validation_mode": "any",
+      "artifact_checks": [
+        {
+          "label": "Gate decision",
+          "required": true,
+          "paths": [
+            "/project/pi_roohie_umass_edu/Combustion/LEKZIAN_BULK_WALL_GATE/**/results/final/gate_decision.txt"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lj-gate2",
+      "name": "Lennard–Jones Gate 2",
+      "description": "Transport forensic array and dependent aggregation.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/LJ_GATE2/LJ_GATE2_TRANSPORT_FORENSIC_v1"
+      ],
+      "job_name_patterns": ["lj-gate2*", "lj_gate2*", "gate2*"],
+      "validation_mode": "all",
+      "artifact_checks": [
+        {
+          "label": "Gate 2 final status",
+          "required": true,
+          "paths": ["{root}/**/gate2_final_status.json"]
+        }
+      ]
+    },
+    {
+      "id": "lj-strong-shock",
+      "name": "Lennard–Jones strong shock",
+      "description": "Historical, unified, convergence, and ensemble aggregation jobs.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/LJ_SHOCK_STRONG/LJ_SHOCK_STRONG_PRODUCTION_v2"
+      ],
+      "job_name_patterns": ["lj-strong*", "lj_strong*", "strong*"],
+      "validation_mode": "all",
+      "artifact_checks": [
+        {
+          "label": "Strong-shock ensemble status",
+          "required": true,
+          "paths": ["{root}/**/strong_ensemble_status.json"]
+        },
+        {
+          "label": "Convergence status",
+          "required": true,
+          "paths": ["{root}/**/convergence_status.json"]
+        }
+      ]
+    },
+    {
+      "id": "abinitio-shock",
+      "name": "Ab-initio Mach-10 shock",
+      "description": "ELF/SHA-256 provenance gate, smoke test, and production shock suite.",
+      "roots": [
+        "/project/pi_roohie_umass_edu/Ab-initio-shock/ABINITIO_SHOCK_TESTS_v2"
+      ],
+      "job_name_patterns": ["abinitio*", "ab-*m10*", "m10-*"],
+      "artifact_checks": []
+    }
+  ]
+}
