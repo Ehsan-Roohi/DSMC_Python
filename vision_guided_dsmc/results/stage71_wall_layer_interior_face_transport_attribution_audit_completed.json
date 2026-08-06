@@ -1,0 +1,41 @@
+{
+  "stage": 71,
+  "status": "completed",
+  "workflow_run_id": 31057376562,
+  "workflow_job_id": 92477704992,
+  "workflow_conclusion": "success",
+  "tests_passed": 143,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.8,
+  "artifact": {
+    "name": "stage71-wall-layer-interior-face-transport-attribution-audit",
+    "artifact_id": 8953709936,
+    "size_bytes": 36993,
+    "sha256": "05e6cdd83553613155b3d3f1e6ef0518297ac07ee78fb7ac581694d72c422b9f",
+    "summary_sha256": "fc3ea9b78778f1ca2b0d811a0482a00eb87bc58d89e1f7e6b68d584327290923",
+    "wall_layer_attribution_maps_sha256": "8f05a9a3d7135003fcd7659deabbd17740c8408e99c902bff4be7ab9d5db8b71"
+  },
+  "source_head_sha": "60616567f680c937f3042488734f5bf3c31a6ea3",
+  "decision": "stage71_near_wall_side_strip_interior_face_dominance_stage72_directional_transport_component_audit",
+  "positive_findings": [
+    "Disjoint wall-strip, corner, and interior partitions closed on all three frozen grids.",
+    "The Stage-69 fine-grid wall-band absolute share was reproduced exactly at 0.6047289196255863.",
+    "The physical wall-face heat-flux difference from Stage 70 remained submaterial at 0.7590384487112345 percent."
+  ],
+  "negative_findings": [
+    "At 64x64, 60.47289196255863 percent of the absolute q_y operator difference lay in the physical 1/16 wall band.",
+    "Of the fine-grid wall-band magnitude, 89.39171598122034 percent lay in the outer two cell layers and 57.50613051231903 percent lay in the left/right side strips.",
+    "The global signed sum nearly cancelled: its magnitude was only 4.671185138118918e-05 of the global absolute sum.",
+    "The localization remains a frozen residual diagnosis and does not predict a converged heat-flux response or establish causality.",
+    "The bounded wall-face arm remains unadopted, the failed Stage-28 MUSCL endpoint remains unrecovered, and external validation or cross-Knudsen extension is not supported."
+  ],
+  "next_stage": {
+    "stage": 72,
+    "name": "Directional Transport Component Audit",
+    "scope": "Decompose the exact frozen normal heat-flux operator difference into x- and y-direction interior-face components before any response or solver experiment.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}
