@@ -45,5 +45,14 @@ if [[ ! -x "${SPARTA_BIN}" ]]; then
   exit 3
 fi
 
-"${SPARTA_BIN}" -help > "${ROOT_DIR}/logs/sparta-build-${SLURM_JOB_ID}-help.txt"
+HELP_FILE="${ROOT_DIR}/logs/sparta-build-${SLURM_JOB_ID}-help.txt"
+set +e
+"${SPARTA_BIN}" -help > "${HELP_FILE}" 2>&1
+HELP_STATUS=$?
+set -e
+if ! grep -q "^Usage: sparta" "${HELP_FILE}"; then
+  echo "SPARTA executable did not produce a valid help banner (exit ${HELP_STATUS})." >&2
+  exit 4
+fi
+echo "SPARTA help banner verified (documented help exit status: ${HELP_STATUS})."
 echo "READY: ${SPARTA_BIN}"
