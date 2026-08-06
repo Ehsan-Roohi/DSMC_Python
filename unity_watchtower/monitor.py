@@ -27,23 +27,26 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple
 
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 UTC = dt.timezone.utc
-FAILURE_STATES = {
+CRITICAL_STATES = {
     "BOOT_FAIL",
-    "CANCELLED",
     "DEADLINE",
     "FAILED",
     "NODE_FAIL",
     "OUT_OF_MEMORY",
-    "PREEMPTED",
-    "REVOKED",
     "SPECIAL_EXIT",
     "TIMEOUT",
 }
+CANCELLATION_STATES = {"CANCELLED", "PREEMPTED", "REVOKED"}
 RUNNING_STATES = {"COMPLETING", "CONFIGURING", "RUNNING", "SUSPENDED"}
 PENDING_STATES = {"PENDING", "REQUEUED", "REQUEUE_FED", "RESIZING"}
 SUCCESS_STATES = {"COMPLETED"}
+BUILTIN_PROJECT_PATTERNS = {
+    "sparta-cavity": ["cavity-models*"],
+    "qk-combustion": ["bqk*"],
+    "abinitio-shock": ["ulj_*", "ds2v_*", "bird_*"],
+}
 ERROR_RE = re.compile(
     r"(?i)(traceback|fatal|segmentation|segfault|out of memory|oom|cuda error|"
     r"exception|permission denied|no such file|invalid depend|killed|nan detected|"
@@ -175,7 +178,7 @@ def collect_squeue(user: str) -> List[Dict[str, str]]:
         "work_dir",
         "dependencies",
     ]
-    fmt = "%i|%A|%a|%j|%T|%M|%l|%P|%R|%D|%C|%m|%b|%Z|%E"
+    fmt = "%i|%F|%K|%j|%T|%M|%l|%P|%R|%D|%C|%m|%b|%Z|%E"
     result = run_command(["squeue", "-h", "-u", user, "-o", fmt])
     rows = parse_delimited(result.stdout, fields)
     for row in rows:
@@ -282,8 +285,10 @@ def canonical_job_name(value: str) -> str:
 
 def state_category(state: str) -> str:
     state = normalize_state(state)
-    if state in FAILURE_STATES:
+    if state in CRITICAL_STATES:
         return "attention"
+    if state in CANCELLATION_STATES:
+        return "cancelled"
     if state in RUNNING_STATES:
         return "running"
     if state in PENDING_STATES:
@@ -300,16 +305,30 @@ def dependency_ids(value: str) -> List[str]:
 def match_project(job: Mapping[str, Any], projects: Sequence[Mapping[str, Any]]) -> str:
     work_dir = str(job.get("work_dir") or "")
     job_name = str(job.get("job_name") or "")
+    # Job names are set deliberately by each campaign.  The working directory
+    # is only a fallback because users often submit a script while their shell
+    # is still inside another repository.
+    for project in projects:
+        patterns = list(project.get("job_name_patterns", []))
+        patterns.extend(BUILTIN_PROJECT_PATTERNS.get(str(project.get("id", "")), []))
+        for pattern in patterns:
+            if fnmatch.fnmatch(job_name.lower(), str(pattern).lower()):
+                return str(project["id"])
     for project in projects:
         for root in project.get("roots", []):
             expanded = expand(str(root)).rstrip("/")
             if expanded and (work_dir == expanded or work_dir.startswith(expanded + "/")):
                 return str(project["id"])
-    for project in projects:
-        for pattern in project.get("job_name_patterns", []):
-            if fnmatch.fnmatch(job_name.lower(), str(pattern).lower()):
-                return str(project["id"])
     return "unclassified"
+
+
+def is_internal_job(job: Mapping[str, Any], config: Mapping[str, Any]) -> bool:
+    patterns = config.get(
+        "internal_job_name_patterns",
+        ["unity-watch*", "sys/dashboard/*", "ood-*"],
+    )
+    name = str(job.get("job_name") or "").lower()
+    return any(fnmatch.fnmatch(name, str(pattern).lower()) for pattern in patterns)
 
 
 def sanitize(text: Any, config: Mapping[str, Any]) -> str:
@@ -454,6 +473,22 @@ def most_recent_attempts_by_name(jobs: Sequence[Mapping[str, Any]]) -> List[Mapp
     return selected
 
 
+def terminal_timestamp(job: Mapping[str, Any]) -> Optional[dt.datetime]:
+    for key in ("end", "start", "submit"):
+        parsed = parse_time(str(job.get(key, "")))
+        if parsed:
+            return parsed
+    return None
+
+
+def is_recent_terminal(job: Mapping[str, Any], hours: float, now: Optional[dt.datetime] = None) -> bool:
+    timestamp = terminal_timestamp(job)
+    if not timestamp:
+        return False
+    age = (now or utcnow()) - timestamp
+    return -dt.timedelta(minutes=5) <= age <= dt.timedelta(hours=hours)
+
+
 def summarize_projects(
     jobs: List[Dict[str, Any]], projects: Sequence[Mapping[str, Any]], config: Mapping[str, Any]
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
@@ -467,9 +502,16 @@ def summarize_projects(
     alerts: List[Dict[str, Any]] = []
     job_index = {str(job.get("job_id", "")): job for job in jobs}
     for job in jobs:
-        project_id = match_project(job, projects)
-        job["project_id"] = project_id if project_id in known_ids else "unclassified"
-        category = state_category(str(job.get("state", "")))
+        if is_internal_job(job, config):
+            job["project_id"] = "internal"
+        else:
+            project_id = match_project(job, projects)
+            job["project_id"] = project_id if project_id in known_ids else "unclassified"
+        job["category"] = state_category(str(job.get("state", "")))
+        job["is_current"] = False
+
+    for job in jobs:
+        category = str(job["category"])
         dependencies = dependency_ids(str(job.get("dependencies", "")))
         failed_dependencies = [
             dep for dep in dependencies if dep in job_index and state_category(str(job_index[dep].get("state"))) == "attention"
@@ -484,18 +526,37 @@ def summarize_projects(
         job["error_excerpt"] = error_excerpt(job, config)
 
     summaries: List[Dict[str, Any]] = []
+    terminal_hours = float(config.get("scan", {}).get("terminal_attention_hours", 24))
+    now = utcnow()
     for project_id, project in project_map.items():
         project_jobs = [job for job in jobs if job.get("project_id") == project_id]
         if not project_jobs and project_id == "unclassified":
             continue
         artifacts = collect_artifacts(project, config) if project_id != "unclassified" else {"validated": False, "checks": []}
-        recent = most_recent_attempts_by_name(project_jobs)
-        unresolved = [job for job in recent if job.get("category") in {"attention", "blocked"}]
+        latest_attempts = most_recent_attempts_by_name(project_jobs)
+        recent_terminal = [
+            job
+            for job in latest_attempts
+            if job.get("category") not in {"running", "pending", "blocked"}
+            and is_recent_terminal(job, terminal_hours, now)
+        ]
         active = [job for job in project_jobs if job.get("category") in {"running", "pending", "blocked"}]
+        current_by_id = {
+            str(job.get("job_id", "")): job
+            for job in active + recent_terminal
+        }
+        current_jobs = sorted(current_by_id.values(), key=job_sort_key, reverse=True)
+        for job in current_jobs:
+            job["is_current"] = True
+        unresolved = [job for job in current_jobs if job.get("category") in {"attention", "blocked"}]
         counts: Dict[str, int] = {}
-        for job in project_jobs:
+        for job in current_jobs:
             key = str(job.get("category", "other"))
             counts[key] = counts.get(key, 0) + 1
+        history_counts: Dict[str, int] = {}
+        for job in project_jobs:
+            key = str(job.get("category", "other"))
+            history_counts[key] = history_counts.get(key, 0) + 1
         if any(job.get("category") == "attention" for job in unresolved):
             status = "attention"
         elif any(job.get("category") == "blocked" for job in unresolved):
@@ -506,8 +567,10 @@ def summarize_projects(
             status = "pending"
         elif artifacts["validated"]:
             status = "validated"
-        elif any(job.get("category") == "completed" for job in project_jobs):
+        elif any(job.get("category") == "completed" for job in current_jobs):
             status = "completed_unverified"
+        elif project_jobs:
+            status = "history_only"
         else:
             status = "no_jobs"
         summary = {
@@ -516,8 +579,11 @@ def summarize_projects(
             "description": str(project.get("description", "")),
             "status": status,
             "counts": counts,
-            "job_count": len(project_jobs),
-            "latest_job_id": project_jobs[0]["job_id"] if project_jobs else None,
+            "history_counts": history_counts,
+            "job_count": len(current_jobs),
+            "current_job_count": len(current_jobs),
+            "history_job_count": len(project_jobs),
+            "latest_job_id": current_jobs[0]["job_id"] if current_jobs else (project_jobs[0]["job_id"] if project_jobs else None),
             "validation": artifacts,
         }
         summaries.append(summary)
@@ -549,7 +615,16 @@ def summarize_projects(
                     "error_excerpt": [],
                 }
             )
-    order = {"attention": 0, "blocked": 1, "running": 2, "pending": 3, "completed_unverified": 4, "validated": 5, "no_jobs": 6}
+    order = {
+        "attention": 0,
+        "blocked": 1,
+        "running": 2,
+        "pending": 3,
+        "completed_unverified": 4,
+        "validated": 5,
+        "history_only": 6,
+        "no_jobs": 7,
+    }
     summaries.sort(key=lambda item: (order.get(str(item["status"]), 9), str(item["name"])))
     alerts.sort(key=lambda item: (0 if item["severity"] == "critical" else 1, item["project"], -numeric_job_id(item["job_id"])))
     return summaries, alerts
@@ -583,6 +658,7 @@ def public_job(job: Mapping[str, Any], config: Mapping[str, Any]) -> Dict[str, A
         "dependencies",
         "failed_dependencies",
         "project_id",
+        "is_current",
         "error_excerpt",
     ]
     result = {
@@ -618,10 +694,18 @@ def build_report(config: Mapping[str, Any]) -> Dict[str, Any]:
         raise MonitorError("Neither squeue nor sacct could be collected: " + " | ".join(warnings))
     jobs = merge_jobs(sacct_rows, squeue_rows)
     projects, alerts = summarize_projects(jobs, config.get("projects", []), config)
+    current_science_jobs = [
+        job for job in jobs if job.get("is_current") and job.get("project_id") != "internal"
+    ]
+    history_science_jobs = [job for job in jobs if job.get("project_id") != "internal"]
     category_counts: Dict[str, int] = {}
-    for job in jobs:
+    for job in current_science_jobs:
         category = str(job.get("category", "other"))
         category_counts[category] = category_counts.get(category, 0) + 1
+    history_counts: Dict[str, int] = {}
+    for job in history_science_jobs:
+        category = str(job.get("category", "other"))
+        history_counts[category] = history_counts.get(category, 0) + 1
     report = {
         "schema_version": 1,
         "generated_at": iso(),
@@ -631,6 +715,12 @@ def build_report(config: Mapping[str, Any]) -> Dict[str, Any]:
         "lookback_days": lookback,
         "summary": {
             "jobs": category_counts,
+            "history_jobs": history_counts,
+            "current_job_count": len(current_science_jobs),
+            "history_job_count": len(history_science_jobs),
+            "internal_active_count": sum(
+                1 for job in jobs if job.get("project_id") == "internal" and job.get("active")
+            ),
             "projects": {status: sum(1 for p in projects if p["status"] == status) for status in sorted({p["status"] for p in projects})},
             "alert_count": len(alerts),
         },
@@ -664,6 +754,7 @@ def report_signature(report: Mapping[str, Any]) -> str:
                 "project_id": item.get("project_id"),
             }
             for item in report.get("jobs", [])
+            if item.get("is_current") and item.get("project_id") != "internal"
         ],
     }
     encoded = json.dumps(meaningful, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
@@ -678,6 +769,7 @@ def status_label(status: str) -> str:
         "pending": "🟡 Pending",
         "completed_unverified": "🟣 Completed—unverified",
         "validated": "🟢 Validated",
+        "history_only": "⚪ History only",
         "no_jobs": "⚪ No recent jobs",
     }.get(status, status)
 
@@ -687,9 +779,10 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         "# Unity Watchtower",
         "",
         f"Last collection: **{report['generated_at']}**  ",
-        f"Cluster: **{report['cluster']}** · Accounting window: **{report['lookback_days']} days** · Alerts: **{report['summary']['alert_count']}**",
+        f"Cluster: **{report['cluster']}** · Accounting history: **{report['lookback_days']} days** · Current alerts: **{report['summary']['alert_count']}**",
         "",
         "This repository contains sanitized, read-only monitoring output. It does not contain GitHub tokens, Unity credentials, raw environment files, or job-control commands.",
+        "The table is a current operational view: every active job plus the newest terminal attempt from the last 24 hours. Older jobs remain available in `reports/status.json` as history.",
         "",
         "## Projects",
         "",
@@ -742,6 +835,7 @@ def render_html(report: Mapping[str, Any]) -> str:
         "pending": "#a15c00",
         "completed_unverified": "#6941c6",
         "validated": "#067647",
+        "history_only": "#667085",
         "no_jobs": "#667085",
     }
     project_rows = []
@@ -784,6 +878,7 @@ def render_html(report: Mapping[str, Any]) -> str:
 :root{color-scheme:light dark;font-family:Inter,system-ui,sans-serif}body{max-width:1200px;margin:0 auto;padding:28px;background:#f8fafc;color:#101828}h1{margin-bottom:4px}.sub{color:#475467;margin-top:0}.card{background:white;border:1px solid #e4e7ec;border-radius:12px;padding:20px;margin:18px 0;box-shadow:0 1px 2px #1018280d}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;border-bottom:1px solid #eaecf0;padding:10px;vertical-align:top}.pill{color:white;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700}code{white-space:pre-wrap;word-break:break-word}details{margin-top:8px}@media(max-width:700px){body{padding:10px}.card{overflow:auto}}
 </style></head><body>
 <h1>Unity Watchtower</h1><p class="sub">Read-only Slurm monitoring · generated __GENERATED__</p>
+<p class="sub">Current view: all active jobs plus the newest terminal attempts from the last 24 hours. Older accounting records remain in status.json.</p>
 <section class="card"><h2>Projects</h2><table><thead><tr><th>Project</th><th>Status</th><th>Running</th><th>Pending</th><th>Blocked</th><th>Failed</th><th>Completed</th></tr></thead><tbody>__PROJECT_ROWS__</tbody></table></section>
 <section class="card"><h2>Attention (__ALERT_COUNT__)</h2><table><thead><tr><th>Project</th><th>Job</th><th>State</th><th>Detail</th></tr></thead><tbody>__ALERT_ROWS__</tbody></table></section>
 <section class="card"><h2>Collector warnings</h2><ul>__WARNINGS__</ul></section>
@@ -799,6 +894,8 @@ def transition_events(previous: Mapping[str, Any], report: Mapping[str, Any]) ->
     before = {str(item.get("job_id")): item for item in previous.get("jobs", [])}
     events = []
     for job in report.get("jobs", []):
+        if not job.get("is_current") or job.get("project_id") == "internal":
+            continue
         job_id = str(job.get("job_id", ""))
         old = before.get(job_id)
         old_state = str(old.get("state")) if old else None
