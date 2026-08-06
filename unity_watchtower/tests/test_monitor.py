@@ -86,6 +86,13 @@ class ParserTests(unittest.TestCase):
         changed_state["jobs"][0]["state"] = "COMPLETED"
         self.assertNotEqual(monitor.report_signature(report), monitor.report_signature(changed_state))
 
+    def test_git_environment_uses_repository_owner(self):
+        with tempfile.TemporaryDirectory() as td:
+            config = base_config(Path(td))
+            config["github"]["repository"] = "Ehsan-Roohi/UnityMonitor"
+            env = monitor.git_environment(config)
+            self.assertEqual(env["UNITY_MONITOR_GITHUB_USERNAME"], "Ehsan-Roohi")
+
 
 class ClassificationTests(unittest.TestCase):
     def test_later_success_resolves_same_job_name_failure(self):
