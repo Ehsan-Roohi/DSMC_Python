@@ -1,0 +1,54 @@
+{
+  "stage": 74,
+  "status": "completed",
+  "workflow_run_id": 31099020204,
+  "workflow_job_id": 92607816279,
+  "workflow_conclusion": "success",
+  "tests_passed": 178,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.91,
+  "artifact": {
+    "name": "stage74-radial-speed-shell-opposite-sector-cancellation-audit",
+    "artifact_id": 8973240674,
+    "size_bytes": 1049686,
+    "sha256": "b6f5541571956c9d34d5a2514f3faa9117f1639e1b26948f7c6bb2e31062dc39",
+    "summary_sha256": "c207934d1dd9c1fc566d9c76d791b97e47df1936cd21f2414a6ef1e6fb1ef9d7",
+    "radial_shell_opposite_sector_maps_sha256": "ccd7c542649be94ccf025c30ab4285b8d93b63a075ac62b714fe2609fe210e4f"
+  },
+  "source_head_sha": "b6e3d508e7bcb105c223be013726e8f7cef3c50d",
+  "decision": "stage74_diffuse_speed_or_weak_opposite_sector_cancellation_stage75_signed_face_location_velocity_moment_audit",
+  "exact_fine_grid_metrics": {
+    "grid": [64, 64],
+    "dominant_shell": 2,
+    "shell_absolute_shares": [0.0009504693105352644, 0.3519013295354026, 0.6471482011540621, 0.0],
+    "top_two_shell_absolute_share": 0.9990495306894647,
+    "vertical_oblique_absolute_share": 0.7456486709250577,
+    "vertical_oblique_cancellation_ratio": 0.9916925341428107,
+    "x_component_rms": 0.059492728928683646,
+    "x_component_absolute_sum": 81.97149071645086,
+    "x_component_signed_sum": -0.002404004613340241,
+    "x_component_signed_to_absolute_ratio": -2.9327325785204748e-05,
+    "maximum_grouped_closure_error": 1.1102230246251565e-16,
+    "relative_l2_grouped_closure_error": 1.643035803866858e-16
+  },
+  "positive_findings": [
+    "Four equal-radial-node shells and eight fixed angular bins reproduce the exact Stage-73 x-direction residual map within the frozen closure guard.",
+    "Shells 1 and 2 carry 99.90495306894647 percent of the pre-cancellation absolute residual magnitude.",
+    "The exact Stage-67 distributions and conservative 64-to-32-to-16 restriction were retained without a solver rerun."
+  ],
+  "negative_findings": [
+    "The vertical-oblique opposite pairs retain 99.16925341428107 percent of their pre-pair absolute magnitude, so opposite-sector cancellation is weak rather than explanatory.",
+    "Radial-shell residual magnitude is not an adjoint sensitivity and does not predict a converged q_av response.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered and was not extended across Knudsen number.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned."
+  ],
+  "next_stage": {
+    "stage": 75,
+    "name": "Signed Face-Location and Velocity-Moment Audit",
+    "scope": "Decompose the exact frozen Stage-74 x-direction q_y residual into fixed peculiar-velocity moments at every interior face and both adjacent target cells, then quantify signed spatial and conservative face-pair cancellation.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}
