@@ -826,12 +826,17 @@ def git_environment(config: Mapping[str, Any]) -> Dict[str, str]:
     if token_file.is_file() and askpass.is_file():
         env["UNITY_MONITOR_TOKEN_FILE"] = str(token_file)
         env["GIT_ASKPASS"] = str(askpass)
+    repository = str(config.get("github", {}).get("repository", ""))
+    if "/" in repository:
+        env["UNITY_MONITOR_GITHUB_USERNAME"] = repository.split("/", 1)[0]
     return env
 
 
 def run_git(repo: Path, args: Sequence[str], config: Mapping[str, Any], check: bool = True) -> subprocess.CompletedProcess:
+    repository = str(config.get("github", {}).get("repository", ""))
+    username = repository.split("/", 1)[0] if "/" in repository else "Ehsan-Roohi"
     result = subprocess.run(
-        ["git", "-C", str(repo), *args],
+        ["git", "-c", "credential.helper=", "-c", f"credential.username={username}", "-C", str(repo), *args],
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
