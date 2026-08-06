@@ -1,0 +1,2 @@
+62633547|62633547|N/A|sparta-build|RUNNING|00:03:12|00:20:00|cpu|cpu050|1|4|512M|N/A|/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK|N/A
+62633548_[0-2]|62633548|N/A|sparta-kn01|PENDING|00:00:00|08:00:00|cpu|Dependency|1|16|2G|N/A|/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK|afterok:62633547
