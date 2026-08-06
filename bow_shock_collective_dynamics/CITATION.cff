@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the manuscript and the companion mean-flow preprint."
+title: "An emergent collective coordinate in the stochastic dynamics of a rarefied hypersonic bow shock"
+type: software
+authors:
+  - family-names: Shoja-Sani
+    given-names: Ahmad
+  - family-names: Roohi
+    given-names: Ehsan
+    email: roohie@umass.edu
+repository-code: "https://github.com/Ehsan-Roohi/DSMC_Python/tree/main/bow_shock_collective_dynamics"
+license: MIT
+date-released: 2026-08-06
+preferred-citation:
+  type: article
+  title: "An emergent collective coordinate in the stochastic dynamics of a rarefied hypersonic bow shock"
+  authors:
+    - family-names: Shoja-Sani
+      given-names: Ahmad
+    - family-names: Roohi
+      given-names: Ehsan
+  year: 2026
