@@ -1,0 +1,98 @@
+{
+  "stage": 82,
+  "status": "completed",
+  "workflow_run_id": 31203808127,
+  "workflow_job_id": 92949872247,
+  "workflow_job_name": "within-sector-angular-coherence-audit",
+  "workflow_conclusion": "success",
+  "tests_passed": 257,
+  "tests_failed": 0,
+  "test_duration_seconds": 1.17,
+  "source_head_sha": "8401cb19d4f20ef0b34ccf8129569d102db80eb3",
+  "artifact_id": 9011460708,
+  "artifact_size_bytes": 476356,
+  "artifact_sha256": "4149406d62861d88df727861960505968c4fd383317a4a880662797b938b57dd",
+  "summary_sha256": "4c455deff95fe84a5466ea6d7cd9c4b30afb946c68125d7ac867486f9f0fd269",
+  "maps_sha256": "aece8100ee64fc0d9937efd8370a92f3d1a147561185d7f1588ff4b13a217765",
+  "configuration": {
+    "angular_nodes": 96,
+    "cold_hot_ratio": 0.1,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "cross_knudsen_extension_permitted": false,
+    "dominant_global_radial_node": 21,
+    "dominant_local_radial_node": 1,
+    "dominant_moment": "transverse_kinetic",
+    "dominant_radial_shell": 2,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "normalization_retuning": false,
+    "opposite_sector_pairs": [[1, 5], [2, 6]],
+    "physical_parameter_retuning": false,
+    "point_count": 3840,
+    "radial_nodes": 40,
+    "radial_scale": 2.0,
+    "sector_internal_retention_guard": 0.75,
+    "solver_rerun_count": 0,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "validation_claim_permitted": false,
+    "velocity_quadrature_retuning": false,
+    "vertical_oblique_bins": [1, 2, 5, 6],
+    "wall_model_retuning": false,
+    "weighted_adjacent_coherence_guard": 0.9
+  },
+  "vertical_sector_reconstruction_closure": {
+    "cell_relative_l2_error": 0.0,
+    "face_relative_l2_error": 0.0,
+    "maximum_absolute_error": 0.0,
+    "within_guard": true
+  },
+  "within_sector_metrics": {
+    "minimum_sector_cell_internal_retention_ratio": 0.8167459368407938,
+    "minimum_sector_cell_weighted_adjacent_coherence": 0.9604076557763185,
+    "vertical_oblique_cell_divergence_share_within_node": 0.8867922002401588,
+    "vertical_oblique_face_absolute_share_within_node": 0.7398768404689853,
+    "opposite_sector_pairs": [
+      {
+        "angular_bin_pair": [1, 5],
+        "cell_divergence_retention_ratio": 0.999182201586465,
+        "cell_map_correlation": -0.0010503101529997618,
+        "face_map_correlation": 0.2590130157011969,
+        "face_retention_ratio": 0.9968838762975172
+      },
+      {
+        "angular_bin_pair": [2, 6],
+        "cell_divergence_retention_ratio": 0.9992579625816921,
+        "cell_map_correlation": -0.0010539910009467511,
+        "face_map_correlation": 0.24521110177188943,
+        "face_retention_ratio": 0.9976608468700009
+      }
+    ]
+  },
+  "decision": "stage82_smooth_retained_vertical_oblique_sectors_stage83_opposite_sector_spatial_cancellation_audit",
+  "scientific_conclusion": "The exact Stage-81 node-21 vertical-oblique sector maps are reconstructed from their already-fixed ordinates with zero numerical closure error. Every retained sector exceeds the preregistered 0.90 magnitude-weighted adjacent-ordinate coherence guard and the 0.75 within-sector cell-divergence retention guard: the minima are 0.960408 and 0.816746, respectively. The two fixed opposite-sector pairs retain 99.9182% and 99.9258% of their cell-divergence magnitude, so opposite-sector cancellation is not the explanation for the global cancellation. This supports only a frozen spatial cancellation/localization audit of those pair maps; it is not an adjoint sensitivity, does not justify changing the velocity rule, and does not rehabilitate the failed Stage-28 MUSCL endpoint.",
+  "positive_findings": [
+    "The four inherited Stage-81 vertical-oblique sector maps are reconstructed exactly from their already-fixed individual ordinates without rebucketing the angular rule.",
+    "Magnitude-weighted adjacent-ordinate coherence and within-sector signed-retention are quantified separately so negligible boundary ordinates cannot dominate the coherence diagnosis.",
+    "All four retained vertical-oblique sectors satisfy the preregistered coherence and within-sector-retention guards."
+  ],
+  "negative_findings": [
+    "Within-sector angular coherence is a frozen residual-structure diagnostic, not an adjoint sensitivity and not evidence that changing, pruning, moving, or reweighting velocity ordinates would improve q_av.",
+    "A high angular correlation does not constitute physical validation, and a low correlation by itself would not establish numerical error.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered and is not extended across Knudsen number.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter is retuned, and no cavity solver is rerun.",
+    "The opposite-sector pair cell-divergence retention ratios are approximately 0.9992, so there is no supported opposite-sector cancellation mechanism at this level."
+  ],
+  "next_stage": {
+    "stage": 83,
+    "name": "Opposite-Sector Spatial Cancellation and Localization Audit",
+    "scope": "Using only the exact checksum-verified Stage-82 artifact, form the two fixed opposite-sector pair maps (1,5) and (2,6), quantify global versus row/column signed cancellation, side-wall/outer-x localization, and face-to-cell conservative cancellation. Do not change angular bins, rerun the cavity solver, retune any physical or numerical parameter, rehabilitate the failed MUSCL endpoint, extend across Knudsen number, or make a validation or q_av-sensitivity claim.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}
