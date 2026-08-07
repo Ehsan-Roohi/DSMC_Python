@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPOSITORY="Ehsan-Roohi/DSMC_Python"
-REF="${JFM_GITHUB_REF:-REPLACE_WITH_PINNED_COMMIT}"
+REF="${JFM_GITHUB_REF:-0904a6dc2f7b6aabfe1bcd6aefe3d19640fe4265}"
 PROJECT_ROOT="${JFM_PROJECT_ROOT:-/project/pi_roohie_umass_edu/JFM_revision_2026}"
 TARGET="${JFM_SINGLE_SEED_ROOT:-$PROJECT_ROOT/JFM_SINGLE_SEED_L40S_FAST}"
 ARCHIVE_URL="https://codeload.github.com/${REPOSITORY}/tar.gz/${REF}"
