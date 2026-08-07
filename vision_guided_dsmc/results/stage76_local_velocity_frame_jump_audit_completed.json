@@ -1,0 +1,82 @@
+{
+  "stage": 76,
+  "status": "completed_by_exact_artifact_reproduction",
+  "source_head_sha": "7af316031e44065a4dbc6e3b064aefdc2af5c043",
+  "workflow_metadata_note": "The active Stage-76 push workflow could not be enumerated by the available GitHub connector because commit-workflow enumeration is limited to pull_request-triggered runs. The numerical endpoint below was independently reproduced from the exact checksum-verified completed Stage-67 and Stage-75 artifacts using the committed Stage-76 implementation, without a solver rerun or any parameter change.",
+  "retained_stage67_workflow_run_id": 30991124477,
+  "retained_stage75_workflow_run_id": 31115869623,
+  "configuration": {
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "radial_nodes": 40,
+    "angular_nodes": 96,
+    "point_count": 3840,
+    "radial_scale": 2.0,
+    "limiter": "minmod",
+    "material_frame_ratio_guard": 0.01,
+    "midpoint_cell_l2_guard": 0.01,
+    "solver_rerun_count": 0,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false
+  },
+  "frame_kernel_jump_closure": {
+    "maximum_absolute_error": 1.2070455079412235e-16,
+    "relative_l2_error": 5.033989192600047e-12,
+    "within_guard": true
+  },
+  "frame_group_closure": {
+    "maximum_absolute_error": 1.3552527156068805e-20,
+    "relative_l2_error": 2.907699702010256e-16,
+    "within_guard": true
+  },
+  "exact_fine_grid_metrics": {
+    "max_abs_du": 0.0002383078417614983,
+    "rms_du": 1.9689555000498064e-05,
+    "max_abs_dv": 0.0005977263827908291,
+    "rms_dv": 8.644397174280479e-05,
+    "component_absolute_shares": [0.482370041267428, 0.46564695197637895, 0.051983006756192995],
+    "component_signed_sums": [0.0013254443056104346, -0.0035217226151197404, -0.00020772630383173346],
+    "group_names": ["u_linear", "v_linear", "nonlinear_cubic"],
+    "group_absolute_shares": [0.4420021989567725, 0.5579978004921105, 5.511170667452138e-10],
+    "group_signed_sums": [0.0006573723645582031, -0.0030613769835126136, 5.613371266577969e-12],
+    "frame_pair_remainder_absolute_sum": 0.01145143913295956,
+    "stage75_cell_residual_absolute_sum": 81.97149071645086,
+    "frame_pair_to_cell_absolute_ratio": 0.00013970026692050106,
+    "midpoint_common_frame_cell_rms": 0.05949311996062106,
+    "stage75_cell_rms": 0.059492728928683646,
+    "midpoint_common_frame_cell_relative_l2_error": 4.336975691059237e-05,
+    "frame_abs_correlation_with_abs_du": 0.8145508350532693,
+    "frame_abs_correlation_with_abs_dv": 0.7440869062470892,
+    "frame_abs_correlation_with_jump_magnitude": 0.7716011839353641
+  },
+  "decision": "stage76_frame_jump_negligible_stage77_common_frame_face_flux_divergence_audit",
+  "scientific_conclusion": "The exact symmetric neighboring-cell peculiar-velocity-frame jump identity closes to numerical precision, but the local-frame contribution is only 0.0139700% of the Stage-75 cell-residual absolute magnitude. Replacing the two target-cell frames by a midpoint common frame changes the frozen cell residual by only 0.004337% in relative L2. Therefore the Stage-75 residual is not materially explained by local peculiar-frame mismatch; the justified next question is the spatial divergence and face-to-face coherence of the common-frame second-minus-first-order flux correction. This is a frozen diagnostic result, not a benchmark validation or a rehabilitation of the failed Stage-28 MUSCL solver.",
+  "positive_findings": [
+    "The exact local-frame jump expansion reproduces the Stage-75 conservative face-pair remainder within the fixed closure guard.",
+    "The nonlinear cubic frame-jump group is negligible at 5.51e-10 of grouped absolute magnitude.",
+    "All values were reproduced from exact completed upstream artifacts with no cavity solver rerun."
+  ],
+  "negative_findings": [
+    "Local velocity-frame mismatch is far too small to explain the frozen second-minus-first-order cell residual.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered and must not be reinterpreted as validated by this bookkeeping audit.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned."
+  ],
+  "next_stage": {
+    "stage": 77,
+    "name": "Common-Frame Face-Flux Divergence Audit",
+    "scope": "Using the exact Stage-67 distributions and unchanged Stage-76 midpoint common-frame construction, quantify the conservative face-to-cell cancellation, adjacent-face coherence, and spatial localization of the common-frame second-minus-first-order transport correction before any solver experiment.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}
