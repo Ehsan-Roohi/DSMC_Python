@@ -1,0 +1,14 @@
+{
+  "hashes": {
+    "m1r_protocol_sha256": "aeead628f3eef38ef91035b95c9874e5fb836815de899e11da353cb16e135c66",
+    "protocol_sha256": "18f6abe1504abc4134e45c08624fd6c0ad2a4bdf0f9d30147409352bdce97564",
+    "seed_bank_sha256": "166e2fa33598dff85888276a79d1010c7b3355653201afec8ea54deb4e677138",
+    "source::vgdsmc/event_wall_streaming.py": "eefe0cabc4132a57afb87e89a679cd991a1c6e286de1d32fb4b435f552a8057d",
+    "source::vgdsmc/mohammadzadeh_mv3_reference.py": "15be2d24664670c5ed86fda39338f93b51a5027386e40f2bb94ce528a7dfdb04",
+    "source::vgdsmc/mohammadzadeh_production_m1r.py": "c552c340d168bad3ad09327dbeb56d002601a7822277aa82191dd696ed338091",
+    "source::vgdsmc/mohammadzadeh_spatial_refinement.py": "f4d56bd5d8dbfd23fbfa7edfd5efe7309bfc5f21ae4f59b16bdbb48856040e69",
+    "source::vgdsmc/mohammadzadeh_vision_mv3.py": "eab3571023431ffbd47a8c753b2f8c07e8d7df4ebed15004852a202f7629e8ef",
+    "source::vgdsmc/ntc_fast.py": "863724e432d21c9c82714574fea73574b5f2fb956333a049ac84da97f9794453"
+  },
+  "status": "locked_before_any_MV3_reference_trajectory_or_model_outcome"
+}

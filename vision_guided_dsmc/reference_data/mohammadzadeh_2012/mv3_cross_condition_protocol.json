@@ -1,0 +1,104 @@
+{
+  "stage": "MV3_Mohammadzadeh_condition_heldout_benchmark",
+  "status": "locked_before_any_MV3_reference_trajectory_or_model_outcome",
+  "scientific_scope": "condition-held-out reconstruction of validated T and u fields; heat flux excluded",
+  "conditions": [
+    {
+      "id": "kn0p05_u100",
+      "knudsen": 0.05,
+      "lid_speed_m_per_s": 100.0,
+      "source": "existing_M3_QY100",
+      "development_seeds": [91901, 91902, 91903, 91904],
+      "evaluation_seeds": [91901, 91902, 91903, 91904, 91905, 91906, 91907, 91908]
+    },
+    {
+      "id": "kn0p05_u200",
+      "knudsen": 0.05,
+      "lid_speed_m_per_s": 200.0,
+      "source": "new_MV3_reference",
+      "development_seeds": [93001, 93002, 93003, 93004],
+      "evaluation_seeds": [93001, 93002, 93003, 93004]
+    },
+    {
+      "id": "kn0p05_u400",
+      "knudsen": 0.05,
+      "lid_speed_m_per_s": 400.0,
+      "source": "new_MV3_reference",
+      "development_seeds": [93101, 93102, 93103, 93104],
+      "evaluation_seeds": [93101, 93102, 93103, 93104]
+    },
+    {
+      "id": "kn0p1_u100",
+      "knudsen": 0.1,
+      "lid_speed_m_per_s": 100.0,
+      "source": "new_MV3_reference",
+      "development_seeds": [93201, 93202, 93203, 93204],
+      "evaluation_seeds": [93201, 93202, 93203, 93204]
+    }
+  ],
+  "reference_contract": {
+    "new_trajectory_count": 12,
+    "grid": 100,
+    "particles_per_cell": 32,
+    "steps": 106250,
+    "sample_start": 12500,
+    "sample_count": 3000,
+    "nonoverlapping_sampling_blocks": 10,
+    "maximum_events_per_particle_per_step": 32,
+    "checkpoint_interval_steps": 1000,
+    "dt_safety": 0.2,
+    "wall_temperature_K": 300.0,
+    "wall_model": "fully_diffuse_chronological_event_streaming",
+    "collision_model": "VHS_NTC_numpy_fast"
+  },
+  "model_contract": {
+    "budget_blocks": [1, 2, 5, 10],
+    "samples_per_block": 300,
+    "input_fields": ["T", "u", "v", "rho", "count", "log10_Kn", "U_lid_over_100"],
+    "output_fields": ["T", "u"],
+    "architecture": "conditioned_residual_UNet",
+    "residual_gate_candidates": [0.0, 0.25, 0.5, 0.75, 1.0],
+    "residual_gate_selection": "minimum validation composite NRMSE",
+    "baselines": {
+      "raw": "direct temporal average",
+      "gaussian_like_passes": [1, 2, 4],
+      "tsvd_pod_type_ranks": [1, 2, 4, 8, 16, 32]
+    }
+  },
+  "split_contract": {
+    "fold_count": 4,
+    "test_condition": "conditions[fold_index] and all of its evaluation seeds",
+    "training_conditions": "all other conditions",
+    "validation_seed": "one development seed from every training condition",
+    "training_target": "same-condition mean of other training seeds; current seed excluded",
+    "validation_target": "same-condition mean of training seeds; validation full field excluded",
+    "test_target": "same-condition mean of other evaluation seeds; current test seed excluded",
+    "zero_test_condition_leakage": true
+  },
+  "gates": {
+    "all_16_model_tasks_complete": true,
+    "all_12_new_reference_tasks_mechanical_and_stationary": true,
+    "heat_flux_excluded": true,
+    "condition_disjoint_every_fold": true,
+    "vision_beats_raw_at_budget_1_all_conditions": true,
+    "vision_beats_both_selected_baselines_at_budget_1_min_conditions": 3,
+    "maximum_high_budget_field_degradation_over_raw": 0.05
+  },
+  "reporting": {
+    "required": [
+      "sampling-budget line curves by held-out condition",
+      "unsmoothed T and u contours",
+      "absolute error maps",
+      "physical wall/interior line profiles",
+      "per-field and per-seed metrics",
+      "article profile overlays wherever a digitized reference exists"
+    ],
+    "forbidden": [
+      "bar charts",
+      "heat-flux claims",
+      "test-condition tuning",
+      "selective seed omission",
+      "post-outcome gate changes"
+    ]
+  }
+}

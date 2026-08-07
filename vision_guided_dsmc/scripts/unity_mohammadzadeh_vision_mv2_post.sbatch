@@ -30,6 +30,9 @@ python -m vgdsmc.mohammadzadeh_vision_mv2 \
   --output-dir "${OUTPUT_ROOT}" \
   --verify-only \
   > "${OUTPUT_ROOT}/verification.json"
+python -m vgdsmc.mohammadzadeh_vision_mv2 \
+  --output-dir "${OUTPUT_ROOT}" \
+  --package
 
 echo "Return these files:"
 echo "${OUTPUT_ROOT}/MOHAMMADZADEH_MV2_JCP_RETURN_BUNDLE.tar.gz"
