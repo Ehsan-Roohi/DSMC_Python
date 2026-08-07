@@ -1,0 +1,54 @@
+{
+  "baselines": {
+    "gaussian_like": {
+      "candidate_passes": [1, 2, 4],
+      "kernel": [0.25, 0.5, 0.25],
+      "selection": "minimum validation composite NRMSE"
+    },
+    "raw": "direct temporal-block average without spatial processing",
+    "tsvd_pod_type": {
+      "candidate_ranks": [1, 2, 4, 8, 16, 32],
+      "selection": "minimum validation composite NRMSE"
+    }
+  },
+  "data_contract": {
+    "budget_blocks": [1, 2, 5, 10],
+    "input_fields": ["T", "u", "v", "rho", "count"],
+    "nonoverlapping_temporal_grouping": true,
+    "output_fields": ["T", "u"],
+    "samples_per_block": 300,
+    "source": "completed M3 QY100 precision trajectories",
+    "target": "strict fold-contained cross-fit: each training seed uses the other five training seeds; validation and test use the mean of the six training seeds; validation/test converged fields never enter training or tuning"
+  },
+  "fold_contract": {
+    "fold_count": 8,
+    "seeds": [91901, 91902, 91903, 91904, 91905, 91906, 91907, 91908],
+    "test_seed": "seeds[fold_index]",
+    "train_seeds": "all seeds except test and validation",
+    "validation_seed": "seeds[(fold_index - 1) mod 8]",
+    "zero_validation_test_target_leakage": true
+  },
+  "gates": {
+    "all_32_tasks_complete": true,
+    "heat_flux_excluded": true,
+    "median_vision_over_raw_composite_max": 0.5,
+    "seed_disjoint_every_fold": true,
+    "vision_beats_selected_baselines_at_budget_1": true
+  },
+  "reporting": {
+    "figures": [
+      "line curves across sampling budgets with all held-out seeds visible",
+      "unsmoothed held-out contours and error maps",
+      "validated wall/interior line profiles"
+    ],
+    "forbidden": [
+      "bar charts",
+      "selective seed omission",
+      "post-outcome fold changes",
+      "heat-flux claims"
+    ],
+    "primary_metric": "held-out composite NRMSE for T and u"
+  },
+  "stage": "MV2_Mohammadzadeh_seed_crossvalidated_budget_benchmark",
+  "status": "locked_before_MV2_outcomes"
+}
