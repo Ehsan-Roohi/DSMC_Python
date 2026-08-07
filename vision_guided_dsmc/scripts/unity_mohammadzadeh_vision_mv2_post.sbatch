@@ -14,6 +14,7 @@ set -euo pipefail
 
 REPO_ROOT="${MV2_REPO_ROOT:?exported by submit script}"
 OUTPUT_ROOT="${MV2_OUTPUT_ROOT:?exported by submit script}"
+VENV_DIR="${MV2_VENV_DIR:?exported by submit script}"
 
 export MPLBACKEND=Agg
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-2}"
@@ -21,7 +22,7 @@ export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-2}"
 export PYTHONUNBUFFERED=1
 
 cd "${REPO_ROOT}"
-source "${REPO_ROOT}/.venv-mv2/bin/activate"
+source "${VENV_DIR}/bin/activate"
 python -m vgdsmc.mohammadzadeh_vision_mv2 \
   --output-dir "${OUTPUT_ROOT}" \
   --aggregate
