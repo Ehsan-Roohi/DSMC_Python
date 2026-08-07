@@ -52,6 +52,24 @@ if grep -RIlE --include='*.for' --include='*.f' --include='*.f90' "(COMMON|PROPE
 fi
 echo "GATE5_LEGACY_INCLUDE_CASEFIX_PASS patched_sources=$PATCHED_SOURCES"
 
+# GNU coreutils timeout accepts one duration token. Unity rejects the compound
+# token 3h30m, so normalize it to the equivalent valid duration 210m. Patch the
+# cached release as well as newly extracted releases.
+PATCHED_TIMEOUT_FILES=0
+while IFS= read -r runner_file; do
+  if grep -q "3h30m" "$runner_file"; then
+    sed -i "s/3h30m/210m/g" "$runner_file"
+    PATCHED_TIMEOUT_FILES=$((PATCHED_TIMEOUT_FILES + 1))
+  fi
+done < <(find "$RELEASE" -type f \( -name '*.sh' -o -name '*.sbatch' \) -print)
+
+if grep -RIl --include='*.sh' --include='*.sbatch' "3h30m" "$RELEASE" >/dev/null; then
+  echo "Gate 5 preflight failed: unresolved invalid timeout duration" >&2
+  exit 4
+fi
+timeout 210m true
+echo "GATE5_TIMEOUT_FORMAT_PASS patched_files=$PATCHED_TIMEOUT_FILES duration=210m"
+
 chmod +x "$RELEASE"/*.sh "$RELEASE"/*.sbatch "$RELEASE"/tools/*.py
 ln -sfn "$RELEASE" "$BASE/payload"
 
