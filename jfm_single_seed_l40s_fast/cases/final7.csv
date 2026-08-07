@@ -1,0 +1,8 @@
+case_id,model,kn,rt,seed,figure,source
+F5_00,HS,20,0.2,104729,Figure5,existing_vram48
+F5_01,BGK,20,0.2,104729,Figure5,existing_vram48
+F5_02,SHAKHOV,20,0.2,104729,Figure5,existing_vram48
+L40_00,SHAKHOV,5,0.5,104729,Figure6,new_l40s
+L40_01,SHAKHOV,10,0.5,104729,Figure6,new_l40s
+L40_02,SHAKHOV,20,0.5,104729,Figure6,new_l40s
+L40_03,HS,30,0.5,104729,Figure2d,new_l40s
