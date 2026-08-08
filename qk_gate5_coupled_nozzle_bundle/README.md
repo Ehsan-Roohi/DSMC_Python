@@ -19,6 +19,12 @@ used full-precision species chemical energies. The current release derives
 reaction heat from the same species datum, retains the strict `2e-8` energy
 limit, and records the channel responsible for the largest residual.
 
+Full job `62702454` subsequently isolated the remaining fixed residual to the
+H2O recombination/dissociation datum (`7.3606000e-27 J`). Forward and reverse
+H2O energy bookkeeping now use the same full-precision chemical-energy
+definition while retaining the original Q-K branch threshold and the strict
+`2e-8` audit limit.
+
 Each case advances 6000 DSMC steps (`dt=2e-11 s`) for `1.2e-7 s`. Local atom
 and total-energy conservation are audited around every accepted Q-K event.
 This remains an integration pilot: a PASS licenses longer convergence and

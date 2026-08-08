@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate5_coupled_nozzle_bundle
-EXPECTED_SHA=262013ce1e29a3cad89cb6ef5369918049079ba18904f60c446a2e17f3ad6057
+EXPECTED_SHA=fd0942eb4efb747614e1801dc9856c32f4ba96887c953b645991390b84b9c308
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE5"' EXIT
