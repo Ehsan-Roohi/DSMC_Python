@@ -108,4 +108,8 @@ echo "Targeted stability repair: ${REPAIR_JOB_ID}"
 echo "Submitted repaired MV3 model benchmark: ${MODEL_JOB_ID} (16 tasks, at most 4 concurrent)"
 echo "Submitted repaired MV3 postprocessor: ${POST_JOB_ID}"
 echo "Saved: ${ENV_FILE}"
-echo "Monitor: squeue -j ${REPAIR_JOB_ID},${MODEL_JOB_ID},${POST_JOB_ID}"
+if [[ "${REPAIR_JOB_ID}" == "reused_completed_repair" ]]; then
+  echo "Monitor: squeue -j ${MODEL_JOB_ID},${POST_JOB_ID}"
+else
+  echo "Monitor: squeue -j ${REPAIR_JOB_ID},${MODEL_JOB_ID},${POST_JOB_ID}"
+fi
