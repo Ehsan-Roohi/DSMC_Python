@@ -1,0 +1,35 @@
+{
+  "stage": "MV3_reference_stability_repair",
+  "status": "locked_after_reference_diagnostics_before_any_MV3_model_outcome",
+  "diagnostic_basis": {
+    "completed_reference_array_job": 62676920,
+    "failed_model_array_job_before_training": 62676921,
+    "failed_condition_id": "kn0p1_u100",
+    "failed_seed": 93202,
+    "failed_observable": "temperature_min_K",
+    "observed_drift_z_score": -2.1682393145596226,
+    "observed_relative_drift": 0.004419883566385934
+  },
+  "repair_contract": {
+    "condition_id": "kn0p1_u100",
+    "seed": 93202,
+    "grid": 100,
+    "particles_per_cell": 32,
+    "steps": 153125,
+    "sample_start": 59375,
+    "sample_count": 3000,
+    "nonoverlapping_sampling_blocks": 10,
+    "checkpoint_interval_steps": 1000,
+    "sampling_horizon_steps": 93750,
+    "stationarity_z_limit": 2.0,
+    "rationale": "later burn-in with the original sampling horizon and unchanged physical/numerical model"
+  },
+  "scope_guards": {
+    "new_reference_trajectories": 1,
+    "other_reference_reruns": 0,
+    "model_outcomes_observed_before_lock": 0,
+    "heat_flux_excluded_from_MV3_claims": true,
+    "physics_changed": false,
+    "model_or_gate_changed": false
+  }
+}

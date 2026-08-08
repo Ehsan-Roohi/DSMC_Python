@@ -45,6 +45,9 @@ from .mohammadzadeh_vision_mv2 import (
 STAGE = "MV3_Mohammadzadeh_condition_heldout_benchmark"
 METHODS = ("raw", "gaussian_like", "tsvd_pod_type", "vision")
 MODEL_INPUT_FIELDS = INPUT_FIELDS + ("log10_Kn", "U_lid_over_100")
+REPAIR_CONDITION_ID = "kn0p1_u100"
+REPAIR_SEED = 93202
+REPAIR_STATUS = "complete_MV3_reference_stability_repair_seed"
 
 
 def protocol_path() -> Path:
@@ -115,7 +118,24 @@ def _source_directory(
 ) -> Path:
     if condition["source"] == "existing_M3_QY100":
         return existing_m3_root / f"seed_{seed}"
+    repair = (
+        reference_root
+        / "reference_stability_repair"
+        / str(condition["id"])
+        / f"seed_{seed}"
+    )
+    if (
+        str(condition["id"]) == REPAIR_CONDITION_ID
+        and int(seed) == REPAIR_SEED
+        and (repair / "summary.json").is_file()
+    ):
+        return repair
     return reference_root / "references" / str(condition["id"]) / f"seed_{seed}"
+
+
+def _is_heat_flux_stationarity_key(name: str) -> bool:
+    lowered = str(name).lower()
+    return lowered.startswith(("qx_", "qy_")) or "heat_flux" in lowered
 
 
 def _source_summary_passes(
@@ -124,11 +144,9 @@ def _source_summary_passes(
     """Apply the acceptance contract of the source stage that made the data.
 
     M3 intentionally deferred its per-seed stationarity decision to the locked
-    eight-seed aggregation.  Its producer therefore excludes
-    ``stationarity_pass`` from the per-seed mechanical decision.  MV3 reference
-    seeds, in contrast, require every mechanical/stationarity check.  Keeping
-    these contracts separate prevents a valid, immutable M3 source from being
-    reinterpreted by the newer MV3 gate.
+    eight-seed aggregation. MV3 is strictly scoped to T and u, so unavailable
+    heat-flux stationarity observables cannot veto a T/u reference. The one
+    targeted stability repair, however, must pass its complete locked gate.
     """
     if summary.get("status") != expected_status:
         return False
@@ -144,15 +162,45 @@ def _source_summary_passes(
             == "complete_M3_seed_awaiting_eight_seed_aggregation"
         )
     if expected_status == "complete_MV3_reference_seed":
+        mechanics = [value for key, value in checks.items() if key != "stationarity_pass"]
+        stationarity = summary.get("stationarity", {})
+        stationarity_checks = stationarity.get("checks", {})
+        if not isinstance(stationarity_checks, Mapping):
+            return False
+        relevant = [
+            value
+            for key, value in stationarity_checks.items()
+            if not _is_heat_flux_stationarity_key(str(key))
+        ]
+        return (
+            summary.get("scientific_scope") == "T_and_u_reference_only_heat_flux_excluded"
+            and summary.get("decision") in {
+                "accept_MV3_reference_seed",
+                "hold_MV3_reference_seed",
+            }
+            and bool(mechanics)
+            and all(bool(value) for value in mechanics)
+            and bool(relevant)
+            and all(bool(value) for value in relevant)
+        )
+    if expected_status == REPAIR_STATUS:
         return all(bool(value) for value in checks.values()) and summary.get(
             "decision"
-        ) == "accept_MV3_reference_seed"
+        ) == "accept_MV3_reference_stability_repair_seed"
     return False
 
 
-def _verify_source(
+def _expected_source_status(directory: Path, source: str) -> str:
+    if source == "existing_M3_QY100":
+        return "complete_M3_qy_precision_seed"
+    if "reference_stability_repair" in directory.parts:
+        return REPAIR_STATUS
+    return "complete_MV3_reference_seed"
+
+
+def _verify_source_artifacts(
     directory: Path, expected_status: str, *, all_manifest_files: bool = False
-) -> None:
+) -> dict[str, Any]:
     manifest_path = directory / "artifact_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     names = (
@@ -171,6 +219,17 @@ def _verify_source(
         ):
             raise ValueError(f"MV3 source artifact verification failed: {path}")
     summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
+    if summary.get("status") != expected_status:
+        raise ValueError(f"MV3 source status mismatch: {directory}")
+    return summary
+
+
+def _verify_source(
+    directory: Path, expected_status: str, *, all_manifest_files: bool = False
+) -> None:
+    summary = _verify_source_artifacts(
+        directory, expected_status, all_manifest_files=all_manifest_files
+    )
     if not _source_summary_passes(summary, expected_status):
         raise ValueError(f"MV3 source did not pass its locked source-stage gate: {directory}")
 
@@ -188,11 +247,7 @@ def load_condition_data(
         for seed in condition["evaluation_seeds"]:
             seed = int(seed)
             directory = _source_directory(condition, seed, existing_m3_root, reference_root)
-            expected = (
-                "complete_M3_qy_precision_seed"
-                if condition["source"] == "existing_M3_QY100"
-                else "complete_MV3_reference_seed"
-            )
+            expected = _expected_source_status(directory, str(condition["source"]))
             _verify_source(directory, expected)
             with np.load(directory / "block_fields.npz", allow_pickle=False) as data:
                 missing = set(INPUT_FIELDS) - set(data.files)
@@ -637,6 +692,7 @@ def _aggregate_values(records: list[dict[str, Any]]) -> tuple[dict[str, Any], di
 
 def aggregate(root: Path) -> dict[str, Any]:
     protocol = locked_protocol()
+    specs = _condition_map(protocol)
     records = _records(root)
     by_condition, by_budget = _aggregate_values(records)
     budget_one = [item for item in records if item["budget_blocks"] == 1]
@@ -644,8 +700,18 @@ def aggregate(root: Path) -> dict[str, Any]:
     gates = protocol["gates"]
     checks = {
         "all_16_model_tasks_complete": len(records) == 16,
-        "all_12_new_reference_tasks_mechanical_and_stationary": all(
-            json.loads((root / "references" / condition / f"seed_{seed}" / "summary.json").read_text(encoding="utf-8")).get("decision") == "accept_MV3_reference_seed"
+        "all_12_new_reference_tasks_mechanical_and_T_u_stationary": all(
+            _source_summary_passes(
+                json.loads(
+                    _source_directory(specs[condition], seed, Path(), root)
+                    .joinpath("summary.json")
+                    .read_text(encoding="utf-8")
+                ),
+                _expected_source_status(
+                    _source_directory(specs[condition], seed, Path(), root),
+                    str(specs[condition]["source"]),
+                ),
+            )
             for condition, seed in new_reference_tasks()
         ),
         "heat_flux_excluded": not any(name.lower().startswith("q") for name in MODEL_INPUT_FIELDS + OUTPUT_FIELDS),
@@ -684,17 +750,18 @@ def verify(root: Path) -> dict[str, Any]:
         path = root / name
         if not path.is_file() or path.stat().st_size != record["size_bytes"] or _sha256(path) != record["sha256"]:
             raise ValueError(f"MV3 top artifact verification failed: {path}")
+    protocol = locked_protocol()
+    specs = _condition_map(protocol)
     for condition_id, seed in new_reference_tasks():
+        directory = _source_directory(specs[condition_id], seed, Path(), root)
         _verify_source(
-            root / "references" / condition_id / f"seed_{seed}",
-            "complete_MV3_reference_seed",
+            directory,
+            _expected_source_status(directory, str(specs[condition_id]["source"])),
             all_manifest_files=True,
         )
     records = []
     maximum_difference = 0.0
     verified_task_files = 0
-    protocol = locked_protocol()
-    specs = _condition_map(protocol)
     for fold in range(4):
         for budget in BUDGETS:
             directory = _task_directory(root, fold, budget)
@@ -744,10 +811,42 @@ def package(root: Path) -> dict[str, Any]:
     with tarfile.open(bundle, "w:gz") as archive:
         for name in top_names:
             archive.add(root / name, arcname=name, filter=_portable_tarinfo)
+        for name in (
+            PROTOCOL_FILE,
+            LOCK_FILE,
+            "mv3_loader_recovery_attestation_20260808.json",
+            "mv3_reference_stability_repair_protocol.json",
+            "mv3_reference_stability_repair_lock.json",
+            "mv3_reference_scope_and_stability_repair_attestation_20260808.json",
+        ):
+            archive.add(
+                reference_directory() / name,
+                arcname=f"provenance/{name}",
+                filter=_portable_tarinfo,
+            )
+        protocol = locked_protocol()
+        specs = _condition_map(protocol)
         for condition_id, seed in new_reference_tasks():
-            directory = root / "references" / condition_id / f"seed_{seed}"
+            directory = _source_directory(specs[condition_id], seed, Path(), root)
+            source_kind = (
+                "reference_stability_repair"
+                if "reference_stability_repair" in directory.parts
+                else "references"
+            )
             for name in ("summary.json", "artifact_manifest.json"):
-                archive.add(directory / name, arcname=f"references/{condition_id}/seed_{seed}/{name}", filter=_portable_tarinfo)
+                archive.add(
+                    directory / name,
+                    arcname=f"{source_kind}/{condition_id}/seed_{seed}/{name}",
+                    filter=_portable_tarinfo,
+                )
+            if source_kind == "reference_stability_repair":
+                original = root / "references" / condition_id / f"seed_{seed}"
+                for name in ("summary.json", "artifact_manifest.json"):
+                    archive.add(
+                        original / name,
+                        arcname=f"superseded_reference_attempts/{condition_id}/seed_{seed}/{name}",
+                        filter=_portable_tarinfo,
+                    )
         for fold in range(4):
             for budget in BUDGETS:
                 directory = _task_directory(root, fold, budget)

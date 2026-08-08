@@ -1,0 +1,40 @@
+{
+  "status": "locked_reference_scope_correction_and_one_seed_stability_repair_before_any_model_outcome",
+  "date_utc": "2026-08-08",
+  "stage": "MV3_Mohammadzadeh_condition_heldout_benchmark",
+  "observed_reference_diagnostics": {
+    "accepted_without_scope_correction": 7,
+    "accepted_after_applying_preregistered_T_u_scope": 4,
+    "targeted_stability_repair_required": 1,
+    "targeted_condition_id": "kn0p1_u100",
+    "targeted_seed": 93202
+  },
+  "scope_correction": {
+    "affected_condition_id": "kn0p05_u400",
+    "affected_seeds": [93101, 93102, 93103, 93104],
+    "false_rejection_only": [
+      "qy_profile_max_normalized",
+      "qy_profile_min_normalized"
+    ],
+    "T_u_and_mechanical_checks_passed": true,
+    "justification": "The locked MV3 protocol excludes heat flux from inputs, targets, metrics, gates, and claims; unavailable qy diagnostics cannot veto a T/u reference.",
+    "reference_trajectories_rerun": 0
+  },
+  "stability_repair": {
+    "condition_id": "kn0p1_u100",
+    "seed": 93202,
+    "failed_T_u_observable": "temperature_min_K",
+    "observed_drift_z_score": -2.1682393145596226,
+    "locked_limit": 2.0,
+    "observed_relative_drift": 0.004419883566385934,
+    "action": "one later-window trajectory with unchanged physics, grid, particles, sample count, block count, and sampling horizon",
+    "other_reference_trajectories_rerun": 0
+  },
+  "model_outcome_guard": {
+    "completed_MV3_model_tasks_before_this_lock": 0,
+    "observed_MV3_model_metrics_before_this_lock": 0,
+    "model_architecture_changed": false,
+    "training_or_split_changed": false,
+    "scientific_acceptance_gate_changed": false
+  }
+}
