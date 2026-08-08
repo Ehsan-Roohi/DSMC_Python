@@ -1,0 +1,83 @@
+{
+  "stage": 86,
+  "status": "completed",
+  "workflow_run_id": 31253211394,
+  "workflow_job_id": 93092657977,
+  "workflow_job_name": "boundary-reconstruction-stencil-activation-audit",
+  "workflow_conclusion": "success",
+  "tests_passed": 300,
+  "tests_failed": 0,
+  "test_duration_seconds": 1.05,
+  "source_head_sha": "d305dbd5250fa9f170ef5e06827d30adfe9cdc59",
+  "artifact_id": 9020634310,
+  "artifact_size_bytes": 133526,
+  "artifact_sha256": "a96bfb0d4696ebf425834081c4795a3f10c59ef20b995bf0098da99ca452095b",
+  "summary_sha256": "a1dc308b502ebb66cba48ee77241e00516e930572f02f73c2153dcbfff4d59cf",
+  "maps_sha256": "dba61681d96ca286dd57979c6e169eaf48a289c30cda90af2afdef39ec82f2d7",
+  "configuration": {
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "radial_nodes": 40,
+    "angular_nodes": 96,
+    "point_count": 3840,
+    "radial_scale": 2.0,
+    "limiter": "minmod",
+    "dominant_moment": "transverse_kinetic",
+    "dominant_radial_shell": 2,
+    "dominant_local_radial_node": 1,
+    "dominant_global_radial_node": 21,
+    "vertical_oblique_bins": [1, 2, 5, 6],
+    "opposite_sector_pairs": [[1, 5], [2, 6]],
+    "solver_rerun_count": 0,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false,
+    "validation_claim_permitted": false
+  },
+  "boundary_stencil_metrics": {
+    "maximum_pair_reconstruction_relative_l2_error": 1.4797744803710983e-16,
+    "maximum_boundary_upwind_wall_individual_absolute_value": 0.0,
+    "minimum_boundary_upwind_first_component_norm_share": 0.9837692438780403,
+    "minimum_remaining_direction_wall_to_first_l2_ratio": 0.9707796878621577,
+    "positive_vx_ordinate_count": 47,
+    "negative_vx_ordinate_count": 47,
+    "near_zero_vx_ordinate_count": 2,
+    "minimum_total_wall_to_first_l2_ratio": 0.00045935287445298827,
+    "maximum_total_wall_to_first_l2_ratio": 0.015900091133407256
+  },
+  "reconstruction_implementation_invariants": {
+    "boundary_cell_slopes_exactly_zero": true,
+    "interior_slope_activity_present": true,
+    "left_wall_adjacent_positive_vx_correction_exactly_zero": true,
+    "right_wall_adjacent_negative_vx_correction_exactly_zero": true
+  },
+  "decision": "stage86_boundary_zero_slope_stencil_primary_frozen_suppression_stage87_one_sided_boundary_slope_counterfactual_audit",
+  "scientific_conclusion": "The exact Stage-81 ordinate maps recombine to the Stage-85 pair maps to 1.48e-16 relative L2, and the retained minmod reconstruction has exactly zero boundary-cell slopes. Consequently, the boundary-upwind second-order correction is exactly zero at the wall-adjacent interior face while the same component supplies at least 98.3769% of the first-interior grouped norm. The surviving non-boundary-upwind wall-to-first ratio remains at least 0.970780, so it is retained rather than discarded. This establishes a structural frozen-stencil explanation for the abrupt near-wall suppression, but it does not establish that the boundary treatment is wrong, does not recover the failed Stage-28 MUSCL solver, and does not imply that q_av would improve after a solver change.",
+  "positive_findings": [
+    "Pair reconstruction closes to 1.48e-16 relative L2 and all four frozen reconstruction implementation invariants pass.",
+    "Boundary-upwind wall-face correction is exactly zero, while its first-interior component accounts for at least 98.3769% of the grouped first-interior norm."
+  ],
+  "negative_findings": [
+    "The structural zero-slope finding is diagnostic and does not prove a numerical boundary error or benchmark improvement.",
+    "Non-boundary-upwind directions remain active and are explicitly retained.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered and cross-Knudsen extension remains prohibited.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned, and no cavity solver was rerun."
+  ],
+  "next_stage": {
+    "stage": 87,
+    "name": "One-Sided Boundary-Slope Counterfactual Audit",
+    "scope": "Use the exact Stage-67 frozen distributions and exact Stage-86 endpoint to replace only the boundary-cell zero slope by the unique one-sided first difference at the two wall-adjacent interior x faces. Compare frozen dominant-node pair face and cell-divergence maps without time advancement, solver adoption, physical retuning, q_av claims, Stage-28 rehabilitation, or cross-Knudsen extension.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}
