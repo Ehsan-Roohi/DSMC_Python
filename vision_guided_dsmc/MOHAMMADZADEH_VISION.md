@@ -80,3 +80,45 @@ sha256sum -c "$MV2_OUTPUT_ROOT/MOHAMMADZADEH_MV2_JCP_RETURN_BUNDLE.tar.gz.sha256
 Only an MV2 pass authorizes a later cross-condition campaign. Consequently,
 additional long DSMC trajectories are not spent before the existing dataset
 has established a seed-robust advantage over the locked baselines.
+
+## MV3: condition-held-out JCP benchmark
+
+MV3 tests the claim that the reconstruction method transfers to a physical
+condition that was absent from training.  It reuses the eight completed
+`Kn=0.05, U_lid=100 m/s` M3 trajectories and creates only twelve new
+references: four seeds each for `(Kn,U_lid)=(0.05,200), (0.05,400),
+(0.1,100)`.  The costly `Kn=0.005` and `R200` extensions are deliberately not
+authorized at this stage.
+
+Each of the four conditions is held out once, at budgets of 1, 2, 5, and 10
+temporal blocks.  The conditioned residual U-Net receives `T,u,v,rho,count`,
+`log10(Kn)`, and `U_lid/100`; it reconstructs only `T,u`.  Model training,
+validation, baseline selection, and residual-gate selection contain no field
+from the held-out condition.  Test targets are leave-one-seed-out means within
+the held-out condition.  The locked residual gate may reduce the correction
+to zero when validation says a high-budget correction is harmful.
+
+The postprocessor recursively verifies every reference and model artifact,
+recomputes all reported metrics from the NPZ arrays, checks the split from the
+locked protocol, and only then creates the return bundle.  Figures are line
+curves, unsmoothed contours/error maps, and physical profiles with digitized
+PRE points where they exist; no bar charts or heat-flux claims are produced.
+
+From `vision_guided_dsmc` on Unity:
+
+```bash
+export MV3_M3_ROOT=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc/results/mohammadzadeh_2012/m3_qy_precision
+bash scripts/submit_mohammadzadeh_vision_mv3_unity.sh
+```
+
+Monitor and collect:
+
+```bash
+source LAST_MOHAMMADZADEH_VISION_MV3_JOB.env
+squeue -j "$REFERENCE_JOB_ID,$MODEL_JOB_ID,$POST_JOB_ID"
+sha256sum -c "$MV3_OUTPUT_ROOT/MOHAMMADZADEH_MV3_JCP_RETURN_BUNDLE.tar.gz.sha256"
+```
+
+The twelve DSMC references are a resumable Slurm array (maximum three
+concurrent jobs).  They must all pass mechanics and stationarity before the
+sixteen condition-held-out model tasks can start.

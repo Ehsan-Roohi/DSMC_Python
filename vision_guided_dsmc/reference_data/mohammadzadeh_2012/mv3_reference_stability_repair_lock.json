@@ -1,0 +1,13 @@
+{
+  "hashes": {
+    "mv3_cross_condition_lock_sha256": "f27f1fef5c86b2f2797a5812e418b1eb821eb84e3c342cc8dd3a2c92549dbae0",
+    "protocol_sha256": "09d5245f7b0ba2750edf619e7483682ed74bef6128f4aeea9f31635b3f776c1a",
+    "source::vgdsmc/event_wall_streaming.py": "eefe0cabc4132a57afb87e89a679cd991a1c6e286de1d32fb4b435f552a8057d",
+    "source::vgdsmc/mohammadzadeh_mv3_reference.py": "15be2d24664670c5ed86fda39338f93b51a5027386e40f2bb94ce528a7dfdb04",
+    "source::vgdsmc/mohammadzadeh_mv3_reference_stability_repair.py": "c2fe2f32a18cfc5f87cee81bdb3ed28127d8e6413f1fe65787d70f1c9292a929",
+    "source::vgdsmc/mohammadzadeh_production_m1r.py": "c552c340d168bad3ad09327dbeb56d002601a7822277aa82191dd696ed338091",
+    "source::vgdsmc/mohammadzadeh_spatial_refinement.py": "f4d56bd5d8dbfd23fbfa7edfd5efe7309bfc5f21ae4f59b16bdbb48856040e69",
+    "source::vgdsmc/ntc_fast.py": "863724e432d21c9c82714574fea73574b5f2fb956333a049ac84da97f9794453"
+  },
+  "status": "locked_after_reference_diagnostics_before_any_MV3_model_outcome"
+}

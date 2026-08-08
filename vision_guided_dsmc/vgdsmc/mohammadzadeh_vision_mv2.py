@@ -235,7 +235,7 @@ def train_model(
         generator=torch.Generator().manual_seed(seed),
         num_workers=0,
     )
-    model = build_model().to(device)
+    model = build_model(in_channels=int(train_x.shape[1])).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1.0e-3, weight_decay=1.0e-5)
     best_state, best_value, best_epoch, stale = None, float("inf"), 0, 0
     history = []
@@ -575,16 +575,6 @@ def aggregate(root: Path) -> dict[str, Any]:
         "files": {name: {"sha256": _sha256(root / name), "size_bytes": (root / name).stat().st_size} for name in artifact_names},
     }
     _atomic_json(root / "artifact_manifest.json", manifest)
-    bundle = root / "MOHAMMADZADEH_MV2_JCP_RETURN_BUNDLE.tar.gz"
-    with tarfile.open(bundle, "w:gz") as archive:
-        for name in artifact_names + ("artifact_manifest.json",):
-            archive.add(root / name, arcname=name)
-        for fold in range(len(SEEDS)):
-            for budget in BUDGETS:
-                directory = _task_directory(root, fold, budget)
-                for name in ("summary.json", "predictions.npz", "artifact_manifest.json"):
-                    archive.add(directory / name, arcname=f"tasks/fold_{fold}/budget_{budget}/{name}")
-    (root / f"{bundle.name}.sha256").write_text(f"{_sha256(bundle)}  {bundle.name}\n", encoding="utf-8")
     return summary
 
 
@@ -595,7 +585,136 @@ def verify(root: Path) -> dict[str, Any]:
         if not path.is_file() or path.stat().st_size != record["size_bytes"] or _sha256(path) != record["sha256"]:
             raise ValueError(f"MV2 artifact verification failed for {name}")
     summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
-    return {"status": "complete_MV2_artifacts_verified", "decision": summary["decision"], "summary_sha256": _sha256(root / "summary.json")}
+    records = []
+    maximum_metric_difference = 0.0
+    verified_task_files = 0
+    for fold in range(len(SEEDS)):
+        for budget in BUDGETS:
+            directory = _task_directory(root, fold, budget)
+            task_manifest = json.loads(
+                (directory / "artifact_manifest.json").read_text(encoding="utf-8")
+            )
+            for name, record in task_manifest.get("files", {}).items():
+                path = directory / name
+                if (
+                    not path.is_file()
+                    or path.stat().st_size != record["size_bytes"]
+                    or _sha256(path) != record["sha256"]
+                ):
+                    raise ValueError(f"MV2 task artifact verification failed: {path}")
+                verified_task_files += 1
+            task_summary = json.loads(
+                (directory / "summary.json").read_text(encoding="utf-8")
+            )
+            if (
+                task_summary.get("fold_index") != fold
+                or task_summary.get("budget_blocks") != budget
+                or task_summary.get("status") != "complete_MV2_task"
+            ):
+                raise ValueError(f"MV2 task identity/status mismatch: {directory}")
+            with np.load(directory / "predictions.npz", allow_pickle=False) as data:
+                raw = np.asarray(data["raw"])
+                target = np.asarray(data["target"])
+                for method in ("raw", "gaussian_like", "tsvd_pod_type", "vision"):
+                    rebuilt = evaluate(raw, np.asarray(data[method]), target)
+                    recorded = task_summary["methods"][method]
+                    for field in OUTPUT_FIELDS:
+                        maximum_metric_difference = max(
+                            maximum_metric_difference,
+                            abs(
+                                rebuilt["per_field"][field]["vision_nrmse"]
+                                - recorded["per_field"][field]["vision_nrmse"]
+                            ),
+                        )
+                    maximum_metric_difference = max(
+                        maximum_metric_difference,
+                        abs(
+                            rebuilt["vision_composite_nrmse"]
+                            - recorded["vision_composite_nrmse"]
+                        ),
+                    )
+            records.append(task_summary)
+    if maximum_metric_difference > 2.0e-6:
+        raise ValueError(
+            f"MV2 metric reconstruction mismatch: {maximum_metric_difference}"
+        )
+    for budget in BUDGETS:
+        selected = [record for record in records if record["budget_blocks"] == budget]
+        for method in ("raw", "gaussian_like", "tsvd_pod_type", "vision"):
+            values = np.asarray(
+                [record["methods"][method]["vision_composite_nrmse"] for record in selected]
+            )
+            raw_values = np.asarray(
+                [record["methods"]["raw"]["vision_composite_nrmse"] for record in selected]
+            )
+            rebuilt = {
+                "mean_composite_nrmse": float(np.mean(values)),
+                "median_composite_nrmse": float(np.median(values)),
+                "min_composite_nrmse": float(np.min(values)),
+                "max_composite_nrmse": float(np.max(values)),
+                "median_over_raw": float(np.median(values / raw_values)),
+            }
+            for key, value in rebuilt.items():
+                if abs(value - summary["by_budget"][str(budget)][method][key]) > 1.0e-12:
+                    raise ValueError(f"MV2 aggregate reconstruction mismatch: {budget}/{method}/{key}")
+    return {
+        "status": "complete_MV2_artifacts_and_metrics_verified",
+        "decision": summary["decision"],
+        "summary_sha256": _sha256(root / "summary.json"),
+        "task_count": len(records),
+        "verified_task_files": verified_task_files,
+        "maximum_metric_reconstruction_difference": maximum_metric_difference,
+    }
+
+
+def _portable_tarinfo(info: tarfile.TarInfo) -> tarfile.TarInfo:
+    info.uid = 0
+    info.gid = 0
+    info.uname = "root"
+    info.gname = "root"
+    return info
+
+
+def package(root: Path) -> dict[str, Any]:
+    verification_path = root / "verification.json"
+    verification = json.loads(verification_path.read_text(encoding="utf-8"))
+    if verification.get("status") != "complete_MV2_artifacts_and_metrics_verified":
+        raise ValueError("MV2 must pass the recursive verifier before packaging")
+    bundle = root / "MOHAMMADZADEH_MV2_JCP_RETURN_BUNDLE.tar.gz"
+    top_names = (
+        "summary.json",
+        "sampling_budget_curves.png",
+        "heldout_method_contours.png",
+        "heldout_method_profiles.png",
+        "artifact_manifest.json",
+        "verification.json",
+    )
+    with tarfile.open(bundle, "w:gz") as archive:
+        for name in top_names:
+            archive.add(root / name, arcname=name, filter=_portable_tarinfo)
+        for fold in range(len(SEEDS)):
+            for budget in BUDGETS:
+                directory = _task_directory(root, fold, budget)
+                for name in (
+                    "model.pt",
+                    "summary.json",
+                    "predictions.npz",
+                    "artifact_manifest.json",
+                ):
+                    archive.add(
+                        directory / name,
+                        arcname=f"tasks/fold_{fold}/budget_{budget}/{name}",
+                        filter=_portable_tarinfo,
+                    )
+    checksum = _sha256(bundle)
+    (root / f"{bundle.name}.sha256").write_text(
+        f"{checksum}  {bundle.name}\n", encoding="utf-8"
+    )
+    return {
+        "status": "complete_MV2_portable_bundle",
+        "bundle": str(bundle),
+        "bundle_sha256": checksum,
+    }
 
 
 def main() -> None:
@@ -610,9 +729,12 @@ def main() -> None:
     parser.add_argument("--training-seed", type=int, default=20260807)
     parser.add_argument("--aggregate", action="store_true")
     parser.add_argument("--verify-only", action="store_true")
+    parser.add_argument("--package", action="store_true")
     args = parser.parse_args()
     if args.verify_only:
         result = verify(args.output_dir)
+    elif args.package:
+        result = package(args.output_dir)
     elif args.aggregate:
         result = aggregate(args.output_dir)
     else:
