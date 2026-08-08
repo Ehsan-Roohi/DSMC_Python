@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate5_coupled_nozzle_bundle
-EXPECTED_SHA=97efb243d67c21cb73bd91c8b2a44cf102dd579103f471fdca06fba79ca80ab3
+EXPECTED_SHA=cf79ff42a0ebcc831d367b6731684415b7e5402cdb19505d5594a3c78a7e23d0
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE5"' EXIT
@@ -39,6 +39,12 @@ grep -q "GATE5_ACTIVE_OUTPUT_CELLS" \
 grep -q "third_body_eligible" "$RELEASE/src/qk_chemistry.f90"
 grep -q "GATE5_K0_TWO_BODY_INDEX_SAFETY_PASS" \
   "$RELEASE/tools/test_qk_k0.f90"
+grep -q "GATE5_RECOMB_THIRD_BODY_DISSOCIATION_PASS" \
+  "$RELEASE/tools/test_qk_recomb_third_diss.f90"
+grep -q "INVALID MOVE2 BOUNDARY" \
+  "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
+grep -q "parents=\[i,j,k\]" \
+  "$RELEASE/src/qk_nozzle_adapter.f90"
 if grep -Eq "INCLUDE '(COMMON|PROPERTY)\.TXT'" \
   "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"; then
   echo "ERROR: unresolved case-sensitive legacy include" >&2
@@ -66,7 +72,7 @@ PAYLOAD_SHA256=$EXPECTED_SHA
 PASS_MARKER=$PASS_MARKER
 EOF
 
-echo "Submitted the single-case Gate 5 preflight; the eight-case run remains locked."
+echo "Submitted the dense 5-bar Gate 5 preflight; the eight-case run remains locked."
 echo "JOB_ID=$JOB_ID"
 echo "Status: squeue -j $JOB_ID"
 echo "Log: tail -f $OUT"
