@@ -2,13 +2,14 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate5_coupled_nozzle_bundle
-EXPECTED_SHA=4701a22cd12296790229135ec00908422f1c43743c57672ba241b22847c442a9
+EXPECTED_SHA=7357588fe1342c0c2e94cb3e5cf5e21112cf574f736ec8684e81a0392b9d84cb
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE5"' EXIT
 
 for index in 00 01 02 03 04 05; do
-  curl -fsSL "$REPO_RAW/chunks/chunk_$index?v=$EXPECTED_SHA" -o "$TMPDIR_GATE5/chunk_$index"
+  curl -fsSL "$REPO_RAW/chunks/chunk_$index?v=$EXPECTED_SHA" \
+    -o "$TMPDIR_GATE5/chunk_$index"
 done
 ARCHIVE="$TMPDIR_GATE5/payload.tar.gz"
 : > "$ARCHIVE"
@@ -24,56 +25,25 @@ fi
 mkdir -p "$BASE/releases" "$BASE/runs"
 RELEASE="$BASE/releases/$EXPECTED_SHA"
 if [[ ! -d "$RELEASE" ]]; then
-  STAGE="$BASE/releases/.stage_$EXPECTED_SHA"
+  STAGE="$BASE/releases/.stage_${EXPECTED_SHA}_$$"
   mkdir -p "$STAGE"
   tar -xzf "$ARCHIVE" -C "$STAGE"
   mv "$STAGE/payload" "$RELEASE"
   rmdir "$STAGE"
 fi
-
-# Linux include names are case-sensitive. The restored legacy solver requests
-# COMMON.TXT and PROPERTY.TXT while the verified payload stores lowercase file
-# names. Apply the compatibility edit after checksum verification so both a new
-# release and an already cached release compile identically.
-PATCHED_SOURCES=0
-while IFS= read -r source_file; do
-  if grep -Eq "(COMMON|PROPERTY)\.TXT" "$source_file"; then
-    sed -i \
-      -e "s/COMMON\.TXT/common.txt/g" \
-      -e "s/PROPERTY\.TXT/property.txt/g" \
-      "$source_file"
-    PATCHED_SOURCES=$((PATCHED_SOURCES + 1))
-  fi
-done < <(find "$RELEASE" -type f \( -iname '*.for' -o -iname '*.f' -o -iname '*.f90' \) -print)
-
-if grep -RIlE --include='*.for' --include='*.f' --include='*.f90' "(COMMON|PROPERTY)\.TXT" "$RELEASE" >/dev/null; then
-  echo "Gate 5 preflight failed: unresolved uppercase legacy TXT include" >&2
-  exit 3
-fi
-echo "GATE5_LEGACY_INCLUDE_CASEFIX_PASS patched_sources=$PATCHED_SOURCES"
-
-# GNU coreutils timeout accepts one duration token. Unity rejects the compound
-# token 3h30m, so normalize it to the equivalent valid duration 210m. Patch the
-# cached release as well as newly extracted releases.
-PATCHED_TIMEOUT_FILES=0
-while IFS= read -r runner_file; do
-  if grep -q "3h30m" "$runner_file"; then
-    sed -i "s/3h30m/210m/g" "$runner_file"
-    PATCHED_TIMEOUT_FILES=$((PATCHED_TIMEOUT_FILES + 1))
-  fi
-done < <(find "$RELEASE" -type f \( -name '*.sh' -o -name '*.sbatch' \) -print)
-
-if grep -RIl --include='*.sh' --include='*.sbatch' "3h30m" "$RELEASE" >/dev/null; then
-  echo "Gate 5 preflight failed: unresolved invalid timeout duration" >&2
-  exit 4
-fi
-timeout 210m true
-echo "GATE5_TIMEOUT_FORMAT_PASS patched_files=$PATCHED_TIMEOUT_FILES duration=210m"
-
 chmod +x "$RELEASE"/*.sh "$RELEASE"/*.sbatch "$RELEASE"/tools/*.py
 ln -sfn "$RELEASE" "$BASE/payload"
 
-JOB_ID="$(sbatch --parsable "$BASE/payload/run_gate5_unity.sbatch")"
+PASS_MARKER="$BASE/PREFLIGHT_PASS_${EXPECTED_SHA}.env"
+if [[ ! -f "$PASS_MARKER" ]]; then
+  echo "REFUSED: run and pass the Gate 5 single-case preflight for this release first." >&2
+  echo "Expected marker: $PASS_MARKER" >&2
+  exit 5
+fi
+
+JOB_ID="$(sbatch --parsable \
+  --export=ALL,GATE5_PAYLOAD_SHA256="$EXPECTED_SHA" \
+  "$BASE/payload/run_gate5_unity.sbatch")"
 JOB_ID="${JOB_ID%%;*}"
 OUT="$BASE/runs/slurm-$JOB_ID.out"
 ERR="$BASE/runs/slurm-$JOB_ID.err"
@@ -84,6 +54,7 @@ OUT=$OUT
 ERR=$ERR
 RESULT_DIR=$RESULT_DIR
 PAYLOAD_SHA256=$EXPECTED_SHA
+PREFLIGHT_MARKER=$PASS_MARKER
 EOF
 
 echo "Submitted Gate 5 coupled 2-D eight-species Q-K integration pilot."
