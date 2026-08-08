@@ -63,7 +63,7 @@ jobs:
       - name: Download exact completed Stage 81 artifact
         uses: actions/download-artifact@v4
         with:
-          name: stage81-dominant-node-individual-ordinate-audit
+          name: stage81-dominant-node-individual-ordinate-attribution-audit
           path: /tmp/stage81_dominant_node_individual_ordinate_audit
           run-id: 31189580849
           github-token: ${{ github.token }}
