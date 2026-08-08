@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate5_production_pair_bundle
-EXPECTED_SHA=20fb1fa9192bac43b88442240e4085c6c4ffe6c18b95e60678826fecf972c002
+EXPECTED_SHA=130985d6d76d73c8c3dac49860a6085b2fcd9b5bbe0c784ac76af613d304e66c
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5_PROD="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE5_PROD"' EXIT
@@ -38,6 +38,16 @@ grep -q '1200.*!NPTT' "$RELEASE/tools/prepare_gate5_cases.py"
 grep -q '300.0.*cold isothermal nozzle wall' "$RELEASE/tools/prepare_gate5_cases.py"
 grep -q 'QK_PRODUCTION_FLOW_FIELD.dat' "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
 grep -q 'QK_PRODUCTION_REACTION_FIELD.dat' "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
+grep -q 'GATE5_PRESCRIBED_RESERVOIR_BOUNDARIES' "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
+grep -q 'FATAL GATE5: PARTICLE RUNAWAY' "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
+if sed -n '/SUBROUTINE ENTER2/,/SUBROUTINE REFLECT2/p' \
+  "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for" | \
+  grep -qE 'NSMP\.LT\.100|CALL PROPERTIES\(mc\)'; then
+  echo 'Unsafe sampled-cell boundary feedback found in ENTER2' >&2
+  exit 4
+fi
+grep -q '"30"' "$RELEASE/tools/prepare_gate5_preflight.py"
+grep -q 'max_particles < 500000' "$RELEASE/tools/validate_gate5_preflight.py"
 grep -q 'QK_GATE5_PRODUCTION_FLOW_SHOCK_COMBUSTION_PASS' "$RELEASE/tools/validate_gate5.py"
 chmod +x "$RELEASE"/*.sh "$RELEASE"/*.sbatch "$RELEASE"/tools/*.py
 ln -sfn "$RELEASE" "$BASE/payload"
