@@ -7,7 +7,7 @@
     "source::vgdsmc/mohammadzadeh_mv3_reference.py": "15be2d24664670c5ed86fda39338f93b51a5027386e40f2bb94ce528a7dfdb04",
     "source::vgdsmc/mohammadzadeh_production_m1r.py": "c552c340d168bad3ad09327dbeb56d002601a7822277aa82191dd696ed338091",
     "source::vgdsmc/mohammadzadeh_spatial_refinement.py": "f4d56bd5d8dbfd23fbfa7edfd5efe7309bfc5f21ae4f59b16bdbb48856040e69",
-    "source::vgdsmc/mohammadzadeh_vision_mv3.py": "eab3571023431ffbd47a8c753b2f8c07e8d7df4ebed15004852a202f7629e8ef",
+    "source::vgdsmc/mohammadzadeh_vision_mv3.py": "cce443150e4816f1df4a27baba4b8bdf96609042bc5099116dc2d8a47a1fe02a",
     "source::vgdsmc/ntc_fast.py": "863724e432d21c9c82714574fea73574b5f2fb956333a049ac84da97f9794453"
   },
   "status": "locked_before_any_MV3_reference_trajectory_or_model_outcome"

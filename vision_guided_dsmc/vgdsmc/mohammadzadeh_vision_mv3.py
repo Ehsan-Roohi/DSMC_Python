@@ -118,6 +118,38 @@ def _source_directory(
     return reference_root / "references" / str(condition["id"]) / f"seed_{seed}"
 
 
+def _source_summary_passes(
+    summary: Mapping[str, Any], expected_status: str
+) -> bool:
+    """Apply the acceptance contract of the source stage that made the data.
+
+    M3 intentionally deferred its per-seed stationarity decision to the locked
+    eight-seed aggregation.  Its producer therefore excludes
+    ``stationarity_pass`` from the per-seed mechanical decision.  MV3 reference
+    seeds, in contrast, require every mechanical/stationarity check.  Keeping
+    these contracts separate prevents a valid, immutable M3 source from being
+    reinterpreted by the newer MV3 gate.
+    """
+    if summary.get("status") != expected_status:
+        return False
+    checks = summary.get("mechanical_checks")
+    if not isinstance(checks, Mapping) or not checks:
+        return False
+    if expected_status == "complete_M3_qy_precision_seed":
+        relevant = [value for key, value in checks.items() if key != "stationarity_pass"]
+        return (
+            bool(relevant)
+            and all(bool(value) for value in relevant)
+            and summary.get("decision")
+            == "complete_M3_seed_awaiting_eight_seed_aggregation"
+        )
+    if expected_status == "complete_MV3_reference_seed":
+        return all(bool(value) for value in checks.values()) and summary.get(
+            "decision"
+        ) == "accept_MV3_reference_seed"
+    return False
+
+
 def _verify_source(
     directory: Path, expected_status: str, *, all_manifest_files: bool = False
 ) -> None:
@@ -139,10 +171,8 @@ def _verify_source(
         ):
             raise ValueError(f"MV3 source artifact verification failed: {path}")
     summary = json.loads((directory / "summary.json").read_text(encoding="utf-8"))
-    if summary.get("status") != expected_status or not all(
-        summary.get("mechanical_checks", {}).values()
-    ):
-        raise ValueError(f"MV3 source did not pass mechanics/stationarity: {directory}")
+    if not _source_summary_passes(summary, expected_status):
+        raise ValueError(f"MV3 source did not pass its locked source-stage gate: {directory}")
 
 
 def load_condition_data(

@@ -6,6 +6,7 @@ from vgdsmc.mohammadzadeh_mv3_reference import load_protocol
 from vgdsmc.mohammadzadeh_vision_mv3 import (
     BUDGETS,
     MODEL_INPUT_FIELDS,
+    _source_summary_passes,
     build_budget_arrays,
     evaluate_fields,
     fold_split,
@@ -14,6 +15,35 @@ from vgdsmc.mohammadzadeh_vision_mv3 import (
     task_from_index,
     task_index,
 )
+
+
+def test_mv3_reuses_an_accepted_m3_seed_without_reinterpreting_stationarity() -> None:
+    summary = {
+        "status": "complete_M3_qy_precision_seed",
+        "decision": "complete_M3_seed_awaiting_eight_seed_aggregation",
+        "mechanical_checks": {
+            "collision_probability_pass": True,
+            "finite_fields_pass": True,
+            "stationarity_pass": False,
+        },
+    }
+    assert _source_summary_passes(summary, "complete_M3_qy_precision_seed")
+    summary["mechanical_checks"]["finite_fields_pass"] = False
+    assert not _source_summary_passes(summary, "complete_M3_qy_precision_seed")
+
+
+def test_mv3_new_references_still_require_stationarity_and_accept_decision() -> None:
+    summary = {
+        "status": "complete_MV3_reference_seed",
+        "decision": "accept_MV3_reference_seed",
+        "mechanical_checks": {
+            "finite_fields_pass": True,
+            "stationarity_pass": True,
+        },
+    }
+    assert _source_summary_passes(summary, "complete_MV3_reference_seed")
+    summary["mechanical_checks"]["stationarity_pass"] = False
+    assert not _source_summary_passes(summary, "complete_MV3_reference_seed")
 
 
 def test_mv3_task_array_and_fold_conditions_are_disjoint() -> None:

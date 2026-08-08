@@ -1,0 +1,27 @@
+{
+  "status": "locked_operational_hotfix_after_references_before_any_model_outcome",
+  "date_utc": "2026-08-08",
+  "stage": "MV3_Mohammadzadeh_condition_heldout_benchmark",
+  "failed_unity_jobs": {
+    "reference_array": 62676920,
+    "model_array": 62676921,
+    "postprocessor": 62676922
+  },
+  "observed_state_before_hotfix": {
+    "reference_tasks_completed": 12,
+    "reference_tasks_failed": 0,
+    "model_tasks_completed": 0,
+    "model_tasks_failed_before_training": 16,
+    "model_artifacts_created": 0,
+    "postprocessor_state": "cancelled_by_failed_dependency"
+  },
+  "root_cause": "The MV3 loader reapplied stationarity_pass to reused M3 per-seed summaries even though the locked M3 producer explicitly excludes that field from its per-seed acceptance decision and defers it to eight-seed aggregation.",
+  "hotfix_scope": "Use each immutable source stage's recorded status, decision, and mechanical-check contract. No physics, reference arrays, seeds, data split, model architecture, training settings, baselines, metrics, gates, or reporting requirements changed.",
+  "immutable_outputs_reused": "All eight M3 seeds and all twelve completed MV3 reference trajectories; none are rerun or modified.",
+  "source_sha256": {
+    "before": "eab3571023431ffbd47a8c753b2f8c07e8d7df4ebed15004852a202f7629e8ef",
+    "after": "cce443150e4816f1df4a27baba4b8bdf96609042bc5099116dc2d8a47a1fe02a",
+    "path": "vgdsmc/mohammadzadeh_vision_mv3.py"
+  },
+  "authorization": "Resubmit only the 16 model tasks and their dependent postprocessor after source-lock and source-artifact verification."
+}
