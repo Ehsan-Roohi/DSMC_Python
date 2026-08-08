@@ -161,8 +161,10 @@ def _source_summary_passes(
             and summary.get("decision")
             == "complete_M3_seed_awaiting_eight_seed_aggregation"
         )
-    if expected_status == "complete_MV3_reference_seed":
-        mechanics = [value for key, value in checks.items() if key != "stationarity_pass"]
+    if expected_status in {"complete_MV3_reference_seed", REPAIR_STATUS}:
+        mechanics = [
+            value for key, value in checks.items() if key != "stationarity_pass"
+        ]
         stationarity = summary.get("stationarity", {})
         stationarity_checks = stationarity.get("checks", {})
         if not isinstance(stationarity_checks, Mapping):
@@ -172,21 +174,26 @@ def _source_summary_passes(
             for key, value in stationarity_checks.items()
             if not _is_heat_flux_stationarity_key(str(key))
         ]
-        return (
-            summary.get("scientific_scope") == "T_and_u_reference_only_heat_flux_excluded"
-            and summary.get("decision") in {
+        decisions = (
+            {
                 "accept_MV3_reference_seed",
                 "hold_MV3_reference_seed",
             }
+            if expected_status == "complete_MV3_reference_seed"
+            else {
+                "accept_MV3_reference_stability_repair_seed",
+                "hold_MV3_reference_stability_repair_seed",
+            }
+        )
+        return (
+            summary.get("scientific_scope")
+            == "T_and_u_reference_only_heat_flux_excluded"
+            and summary.get("decision") in decisions
             and bool(mechanics)
             and all(bool(value) for value in mechanics)
             and bool(relevant)
             and all(bool(value) for value in relevant)
         )
-    if expected_status == REPAIR_STATUS:
-        return all(bool(value) for value in checks.values()) and summary.get(
-            "decision"
-        ) == "accept_MV3_reference_stability_repair_seed"
     return False
 
 
@@ -818,6 +825,7 @@ def package(root: Path) -> dict[str, Any]:
             "mv3_reference_stability_repair_protocol.json",
             "mv3_reference_stability_repair_lock.json",
             "mv3_reference_scope_and_stability_repair_attestation_20260808.json",
+            "mv3_reference_repair_scope_correction_20260808.json",
         ):
             archive.add(
                 reference_directory() / name,
