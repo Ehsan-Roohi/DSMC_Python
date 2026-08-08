@@ -34,5 +34,12 @@
   "root_cause": "The repair producer's aggregate stationarity boolean still included qy checks even though the recorded scientific scope excluded heat flux.",
   "correction": "The MV3 consumer verifies mechanics and every in-scope T/u stationarity key directly for both original and repair sources; qx/qy keys cannot veto T/u data.",
   "decision": "reuse_completed_repair_without_DSMC_rerun",
-  "downstream_action": "Submit only the 16 MV3 model tasks and their dependent postprocessor."
+  "downstream_action": "Submit only the 16 MV3 model tasks and their dependent postprocessor.",
+  "provenance_lock_refresh": {
+    "reason": "The locked source bundle includes the MV3 consumer, so its post-outcome scope correction requires an explicit source-hash refresh. The stability-repair lock also pins the cross-condition lock and is refreshed transitively.",
+    "mv3_consumer_sha256": "40091c286c791c99a78bdb245439961c1e8c1311ca247b526b8c30f357f64a8b",
+    "cross_condition_lock_sha256": "f27f1fef5c86b2f2797a5812e418b1eb821eb84e3c342cc8dd3a2c92549dbae0",
+    "scientific_contract_changed": false,
+    "simulation_artifacts_changed": false
+  }
 }
