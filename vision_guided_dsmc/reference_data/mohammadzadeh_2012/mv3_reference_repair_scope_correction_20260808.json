@@ -1,0 +1,38 @@
+{
+  "status": "attested_MV3_reference_repair_scope_correction",
+  "date": "2026-08-08",
+  "slurm_job_id": 62699510,
+  "affected_condition_id": "kn0p1_u100",
+  "affected_seed": 93202,
+  "scientific_scope": "T_and_u_reference_only_heat_flux_excluded",
+  "immutable_artifact_policy": "The completed repair summary, fields, block fields, and manifest are reused without alteration.",
+  "observed_T_u_stationarity": {
+    "macroscopic_lid_slip_center": {
+      "passed": true,
+      "drift_z_score": -0.5283011234499496
+    },
+    "microscopic_lid_slip_center": {
+      "passed": true,
+      "drift_z_score": -0.061167925318063136
+    },
+    "temperature_max_K": {
+      "passed": true,
+      "drift_z_score": 0.06652703444120937
+    },
+    "temperature_min_K": {
+      "passed": true,
+      "drift_z_score": -1.5707716814093278
+    }
+  },
+  "excluded_heat_flux_observation": {
+    "key": "qy_profile_min_normalized",
+    "passed": false,
+    "drift_z_score": -2.3330692957331514,
+    "relative_drift": 0.13587469474711253,
+    "exclusion_reason": "Heat flux is absent from MV3 inputs, targets, metrics, gates, and claims."
+  },
+  "root_cause": "The repair producer's aggregate stationarity boolean still included qy checks even though the recorded scientific scope excluded heat flux.",
+  "correction": "The MV3 consumer verifies mechanics and every in-scope T/u stationarity key directly for both original and repair sources; qx/qy keys cannot veto T/u data.",
+  "decision": "reuse_completed_repair_without_DSMC_rerun",
+  "downstream_action": "Submit only the 16 MV3 model tasks and their dependent postprocessor."
+}
