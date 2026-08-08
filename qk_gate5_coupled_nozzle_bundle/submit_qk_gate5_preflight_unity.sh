@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/main/qk_gate5_coupled_nozzle_bundle
-EXPECTED_SHA=7357588fe1342c0c2e94cb3e5cf5e21112cf574f736ec8684e81a0392b9d84cb
+EXPECTED_SHA=97efb243d67c21cb73bd91c8b2a44cf102dd579103f471fdca06fba79ca80ab3
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE5"' EXIT
@@ -36,6 +36,9 @@ grep -q "DO 400 N=1,NACTIVE" \
   "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
 grep -q "GATE5_ACTIVE_OUTPUT_CELLS" \
   "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
+grep -q "third_body_eligible" "$RELEASE/src/qk_chemistry.f90"
+grep -q "GATE5_K0_TWO_BODY_INDEX_SAFETY_PASS" \
+  "$RELEASE/tools/test_qk_k0.f90"
 if grep -Eq "INCLUDE '(COMMON|PROPERTY)\.TXT'" \
   "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"; then
   echo "ERROR: unresolved case-sensitive legacy include" >&2
