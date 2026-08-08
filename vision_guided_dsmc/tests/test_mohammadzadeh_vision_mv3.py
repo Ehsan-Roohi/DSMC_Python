@@ -10,6 +10,7 @@ from vgdsmc.mohammadzadeh_vision_mv3 import (
     MODEL_INPUT_FIELDS,
     REPAIR_CONDITION_ID,
     REPAIR_SEED,
+    REPAIR_STATUS,
     _source_directory,
     _source_summary_passes,
     build_budget_arrays,
@@ -80,6 +81,31 @@ def test_mv3_heat_flux_exclusion_prevents_qy_only_false_rejection() -> None:
         },
     }
     assert _source_summary_passes(summary, "complete_MV3_reference_seed")
+
+
+def test_mv3_repair_reuses_completed_T_u_data_when_only_qy_failed() -> None:
+    summary = {
+        "status": REPAIR_STATUS,
+        "decision": "hold_MV3_reference_stability_repair_seed",
+        "scientific_scope": "T_and_u_reference_only_heat_flux_excluded",
+        "mechanical_checks": {
+            "all_event_mechanics_gates_pass": True,
+            "stationarity_pass": False,
+        },
+        "stationarity": {
+            "checks": {
+                "macroscopic_lid_slip_center": True,
+                "microscopic_lid_slip_center": True,
+                "temperature_max_K": True,
+                "temperature_min_K": True,
+                "qy_profile_max_normalized": True,
+                "qy_profile_min_normalized": False,
+            }
+        },
+    }
+    assert _source_summary_passes(summary, REPAIR_STATUS)
+    summary["stationarity"]["checks"]["temperature_min_K"] = False
+    assert not _source_summary_passes(summary, REPAIR_STATUS)
 
 
 def test_mv3_T_u_failure_is_not_hidden_by_heat_flux_exclusion() -> None:
