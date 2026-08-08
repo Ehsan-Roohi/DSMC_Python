@@ -13,6 +13,12 @@ a forced recombination-plus-third-body-dissociation conservation regression.
 Coordinate-guard removals are reported and limited to 10 per case; runtime,
 index, wall-intersection, atom and energy errors remain fatal.
 
+Dense preflight `62702144` then completed normally but exposed an audit-datum
+mismatch: redistribution used two-decimal reaction heats while conservation
+used full-precision species chemical energies. The current release derives
+reaction heat from the same species datum, retains the strict `2e-8` energy
+limit, and records the channel responsible for the largest residual.
+
 Each case advances 6000 DSMC steps (`dt=2e-11 s`) for `1.2e-7 s`. Local atom
 and total-energy conservation are audited around every accepted Q-K event.
 This remains an integration pilot: a PASS licenses longer convergence and
