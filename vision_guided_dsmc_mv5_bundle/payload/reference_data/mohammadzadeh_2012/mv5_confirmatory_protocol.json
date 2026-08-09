@@ -1,0 +1,107 @@
+{
+  "stage": "MV5_Mohammadzadeh_confirmatory_selector_benchmark",
+  "status": "locked_before_MV5_confirmatory_reference_or_model_outcomes",
+  "locked_utc_date": "2026-08-09",
+  "scientific_question": "Can a predeclared convex-hull gate combine low-budget bounded vision with a validation-risk-controlled classical fallback on genuinely new Knudsen-number/lid-speed combinations?",
+  "source_contract": {
+    "mv3_required_verification_status": "complete_MV3_artifacts_splits_and_metrics_verified",
+    "mv3_protocol_sha256": "18f6abe1504abc4134e45c08624fd6c0ad2a4bdf0f9d30147409352bdce97564",
+    "mv3_summary_sha256": "da790e283d4495e574cf847b095b10a58f80c9999ac77483d05ecf18434cf5ac",
+    "mv4_required_verification_status": "complete_MV4_artifacts_metrics_and_safety_verified",
+    "mv4_summary_sha256": "a2b42a2ede8d7392abd255deca4752c64cea9eb48292172886ea612aa1cbfa3d",
+    "development_conditions": [
+      "kn0p05_u100",
+      "kn0p05_u200",
+      "kn0p05_u400",
+      "kn0p1_u100"
+    ],
+    "output_fields": [
+      "T",
+      "u"
+    ],
+    "budget_blocks": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "heat_flux_excluded": true
+  },
+  "development_seed_split": {
+    "train": {
+      "kn0p05_u100": [91901, 91902, 91903],
+      "kn0p05_u200": [93001, 93002, 93003],
+      "kn0p05_u400": [93101, 93102, 93103],
+      "kn0p1_u100": [93201, 93202, 93203]
+    },
+    "validation": {
+      "kn0p05_u100": [91904],
+      "kn0p05_u200": [93004],
+      "kn0p05_u400": [93104],
+      "kn0p1_u100": [93204]
+    },
+    "target_rule": "training leave-one-seed-out mean; validation target is the mean of the three training seeds"
+  },
+  "confirmatory_conditions": [
+    {
+      "id": "kn0p075_u150",
+      "knudsen": 0.075,
+      "lid_speed_m_per_s": 150.0,
+      "evaluation_seeds": [94001, 94002, 94003, 94004]
+    },
+    {
+      "id": "kn0p075_u300",
+      "knudsen": 0.075,
+      "lid_speed_m_per_s": 300.0,
+      "evaluation_seeds": [94101, 94102, 94103, 94104]
+    },
+    {
+      "id": "kn0p1_u200",
+      "knudsen": 0.1,
+      "lid_speed_m_per_s": 200.0,
+      "evaluation_seeds": [94201, 94202, 94203, 94204]
+    },
+    {
+      "id": "kn0p1_u400",
+      "knudsen": 0.1,
+      "lid_speed_m_per_s": 400.0,
+      "evaluation_seeds": [94301, 94302, 94303, 94304]
+    }
+  ],
+  "reference_contract": {
+    "inherit_exact_mv3_grid_particles_steps_sampling_and_mechanical_checks": true,
+    "new_trajectory_count": 16,
+    "seeds_per_condition": 4,
+    "same_condition_crossfit_target_excludes_each_test_seed": true
+  },
+  "model_contract": {
+    "architecture": "MV4 bounded residual U-Net with explicit log10(Kn) and U_lid/100 image channels",
+    "residual_cap_sigma": 4.0,
+    "residual_alpha_candidates": [0.0, 0.25, 0.5, 0.75, 1.0],
+    "classical_candidates": {
+      "gaussian_passes": [1, 2, 4],
+      "tsvd_ranks": [1, 2, 4, 8, 16, 32]
+    },
+    "physical_envelope": {
+      "temperature_min_K": 1.0,
+      "temperature_max_K": 2000.0,
+      "absolute_u_max_over_lid_speed": 2.0
+    }
+  },
+  "selector_contract": {
+    "support_rule": "two_dimensional_convex_hull_in_log10_Kn_and_U_lid_over_100_no_test_target",
+    "inside_hull_budget_1_action": "bounded_vision",
+    "all_other_actions": "validation_risk_controlled_classical",
+    "classical_admissibility": "maximum validation-condition candidate/raw composite NRMSE ratio <= 1.05",
+    "classical_choice": "lowest validation-condition mean composite NRMSE among admissible raw, Gaussian-like, and TSVD/POD-type candidates",
+    "test_target_used_for_selection": false
+  },
+  "acceptance_gates": {
+    "all_16_confirmatory_references_mechanical_and_T_u_stationary": true,
+    "all_4_budget_tasks_complete": true,
+    "selector_is_target_free": true,
+    "selected_maximum_over_raw": 1.05,
+    "inside_hull_budget_1_improves_raw": true,
+    "inside_hull_budget_1_beats_both_selected_classical_baselines": true
+  }
+}
