@@ -1,0 +1,101 @@
+{
+  "stage": "MV6_Mohammadzadeh_four_architecture_budget_one_screen",
+  "status": "locked_before_MV6_model_outcomes_and_before_MV5_reference_completion",
+  "locked_utc_date": "2026-08-09",
+  "scientific_question": "At the hardest one-block DSMC budget, is the cross-condition weakness specific to the corrected U-Net, or can a parameter-matched modern restoration/operator architecture improve all four new conditions without target leakage?",
+  "source_contract": {
+    "mv3_required_verification_status": "complete_MV3_artifacts_splits_and_metrics_verified",
+    "mv3_protocol_sha256": "18f6abe1504abc4134e45c08624fd6c0ad2a4bdf0f9d30147409352bdce97564",
+    "mv3_summary_sha256": "da790e283d4495e574cf847b095b10a58f80c9999ac77483d05ecf18434cf5ac",
+    "mv5_protocol_sha256": "18959a7849eb9fb9fc02e02aad1a14ef9cb6556d604dd39e7b98f9ae8e8491e7",
+    "mv5_reference_job_id": 62738051,
+    "reuse_mv5_confirmatory_references_without_new_DSMC": true,
+    "development_conditions": [
+      "kn0p05_u100",
+      "kn0p05_u200",
+      "kn0p05_u400",
+      "kn0p1_u100"
+    ],
+    "confirmatory_conditions": [
+      "kn0p075_u150",
+      "kn0p075_u300",
+      "kn0p1_u200",
+      "kn0p1_u400"
+    ],
+    "confirmatory_evaluation_seeds": {
+      "kn0p075_u150": [94001, 94002, 94003, 94004],
+      "kn0p075_u300": [94101, 94102, 94103, 94104],
+      "kn0p1_u200": [94201, 94202, 94203, 94204],
+      "kn0p1_u400": [94301, 94302, 94303, 94304]
+    },
+    "output_fields": ["T", "u"],
+    "heat_flux_excluded": true
+  },
+  "comparison_contract": {
+    "architectures": [
+      "corrected_unet",
+      "nafnet_small",
+      "mambairv2_tiny_adapted",
+      "fno_residual_small"
+    ],
+    "architecture_notes": {
+      "corrected_unet": "The existing conditioned residual U-Net retained as a baseline, now with fixed physical condition scaling and a bounded residual head.",
+      "nafnet_small": "Eight full-resolution NAF blocks with SimpleGate and simplified channel attention, adapted to seven physical inputs and two residual outputs.",
+      "mambairv2_tiny_adapted": "A dependency-free parameter-matched adaptation of MambaIRv2 ideas: semantic prompt assignment, non-causal four-direction prefix-state mixing, local depthwise mixing, and gated residual blocks. It is explicitly not the full official multi-million-parameter MambaIRv2 network.",
+      "fno_residual_small": "Three two-dimensional Fourier layers with eight retained modes, local pointwise paths, and a bounded residual output."
+    },
+    "training_initialization_seeds": [2608091, 2608092, 2608093],
+    "budget_blocks": 1,
+    "effective_DSMC_samples": 300,
+    "same_development_train_validation_split_as_MV5": true,
+    "same_cross_seed_targets_as_MV5": true,
+    "same_optimizer_loss_early_stopping_and_batching": true,
+    "condition_scaling": {
+      "channels": ["log10_Kn", "U_lid_over_100"],
+      "centers": [-1.1505149978319906, 2.5],
+      "scales": [0.3010299956639812, 3.0],
+      "rule": "fixed physical constants shared by every architecture and training seed; other channels use the single locked development-training split statistics"
+    },
+    "residual_cap_sigma": 4.0,
+    "residual_head": "4*tanh(latent/4)",
+    "residual_alpha_candidates": [0.0, 0.25, 0.5, 0.75, 1.0],
+    "residual_alpha_selected_on": "development validation conditions only",
+    "parameter_counts_for_seven_input_channels": {
+      "corrected_unet": 66434,
+      "nafnet_small": 68418,
+      "mambairv2_tiny_adapted": 68038,
+      "fno_residual_small": 62624
+    },
+    "maximum_to_minimum_parameter_ratio": 1.10,
+    "training": {
+      "epochs_maximum": 200,
+      "batch_size": 6,
+      "optimizer": "AdamW",
+      "learning_rate": 0.001,
+      "weight_decay": 0.00001,
+      "early_stopping_patience": 25,
+      "loss": "pixel MSE + 0.10 gradient MSE + 0.50 lid MSE"
+    },
+    "classical_baselines": {
+      "raw": "one-block direct temporal average",
+      "gaussian_passes": [1, 2, 4],
+      "tsvd_ranks": [1, 2, 4, 8, 16, 32],
+      "hyperparameter_selection": "development validation targets only"
+    },
+    "confirmatory_targets_used_for_training_tuning_or_selection": false
+  },
+  "promotion_rule": {
+    "aggregation_over_training_seeds": "arithmetic mean of condition-wise composite NRMSE over the three locked initialization seeds; sample standard deviation is reported",
+    "must_beat_raw_on_all_four_confirmatory_conditions": true,
+    "must_beat_best_of_Gaussian_and_TSVD_on_minimum_conditions": 3,
+    "automatic_full_budget_matrix_submission": false,
+    "full_budget_matrix_after_user_decision": [1, 2, 5, 10]
+  },
+  "required_outputs": [
+    "per-condition mean and standard deviation over training seeds",
+    "Raw, Gaussian, and TSVD baselines",
+    "parameter counts and parity ratio",
+    "publication-scale T and u fields for every confirmatory condition",
+    "machine-readable CSV, JSON summary, recursive verification, and portable bundle"
+  ]
+}
