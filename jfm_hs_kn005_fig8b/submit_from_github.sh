@@ -64,7 +64,7 @@ sed \
     -e 's/--kn "$KN" --rt "$RT" --particles 80000000/--kn "$KN" --rt "$RT" --particles 22000000/' \
     -e 's/--steps 1500000 --sample-start 100000/--steps 1000000 --sample-start 400000/' \
     -e 's/--time-blocks 14 --checkpoint-steps 1000000/--time-blocks 3/' \
-    -e 's/--require-free-gb 40\.0/--require-free-gb 12.0/' \
+    -e 's/--require-free-gb 40\.0/--require-free-gb 8.5/' \
     scripts/run_checkpoint_fast.slurm > scripts/run_kn005_segment1.slurm
 
 sed \
@@ -72,7 +72,7 @@ sed \
     -e 's/particles=80000000 sample_start=100000/particles=22000000 sample_start=400000/' \
     -e 's/--kn "$KN" --rt "$RT" --particles 80000000/--kn "$KN" --rt "$RT" --particles 22000000/' \
     -e 's/--steps "$TARGET_STEPS" --sample-start 100000/--steps "$TARGET_STEPS" --sample-start 400000/' \
-    -e 's/--require-free-gb 40\.0/--require-free-gb 12.0/' \
+    -e 's/--require-free-gb 40\.0/--require-free-gb 8.5/' \
     scripts/run_continuation.slurm > scripts/run_kn005_segment2.slurm
 
 sed \
@@ -110,7 +110,7 @@ common_export="ALL,JFM_ROOT=$TARGET,JFM_OUTPUT_ROOT=$OUTPUT_ROOT,JFM_CASE_TABLE=
 
 segment1_job="$(sbatch --parsable \
     --job-name=jfm-k005-s1 \
-    --partition=gpu --gpus=1 --constraint=a100-80g \
+    --partition=gpu --gpus=1 --constraint=2080ti \
     --cpus-per-task=4 --mem=32G --time=168:00:00 --array=0-2%3 \
     --output="$TARGET/slurm/jfm-k005-s1-%A_%a.out" \
     --error="$TARGET/slurm/jfm-k005-s1-%A_%a.err" \
@@ -122,7 +122,7 @@ segment2_export="$common_export,JFM_CONTINUE_SOURCE_STEPS=1000000,JFM_CONTINUE_T
 segment2_job="$(sbatch --parsable \
     --dependency="afterok:$segment1_job" --kill-on-invalid-dep=yes \
     --job-name=jfm-k005-s2 \
-    --partition=gpu --gpus=1 --constraint=a100-80g \
+    --partition=gpu --gpus=1 --constraint=2080ti \
     --cpus-per-task=4 --mem=32G --time=168:00:00 --array=0-2%3 \
     --output="$TARGET/slurm/jfm-k005-s2-%A_%a.out" \
     --error="$TARGET/slurm/jfm-k005-s2-%A_%a.err" \
