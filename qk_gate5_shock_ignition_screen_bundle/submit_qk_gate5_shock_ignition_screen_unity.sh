@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/qk-gate5-shock-ignition-screen/qk_gate5_shock_ignition_screen_bundle
+REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/ef833c3974afa31542b45709c428afc8b3c948b0/qk_gate5_shock_ignition_screen_bundle
 EXPECTED_SHA=1655e35d37bdabf8cfeddd4cfe4c17085fe5fa80590775e18b921a4e6494af17
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5_SCREEN="$(mktemp -d)"
