@@ -1,0 +1,143 @@
+name: Vision-guided DSMC Stage 96
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage96_muscl_correction_growth_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage96_muscl_correction_growth_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage96.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage96_muscl_correction_growth_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage96_muscl_correction_growth_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage96.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  muscl-correction-growth-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 96 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage95_second_update_floor_propagation_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+      - name: Run Stage 96 fixed MUSCL correction-growth audit
+        run: |
+          python -m vgdsmc.stage96_muscl_correction_growth_audit \
+            --stage67-artifact-dir /tmp/stage67_frozen_full_distribution_residual_decomposition \
+            --output-dir /tmp/stage96_muscl_correction_growth_audit
+      - name: Verify fixed design and negative-result guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage96_muscl_correction_growth_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 96
+          assert summary['retained_stage95_decision'] == (
+              'stage95_floor_propagation_negligible_stage96_muscl_correction_growth_audit'
+          )
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['tolerance'] == 2.0e-5
+          assert cfg['positivity_floor'] == 1.0e-30
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['diagnostic_steps'] == 25
+          assert cfg['material_correction_ratio'] == 0.10
+          assert cfg['material_growth_ratio'] == 2.0
+          assert cfg['solver_endpoint_search'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['one_sided_boundary_slope_promoted'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['validation_claim_permitted'] is False
+          assert cfg['solver_endpoint_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          assert 1 <= summary['executed_steps'] <= 25
+          assert summary['maximum_correction_to_transport_ratio'] >= 0.0
+          assert summary['maximum_correction_growth_ratio'] >= 0.0
+          for distribution in ('phi', 'psi'):
+              trace = summary['correction_growth'][distribution]
+              for key, value in trace.items():
+                  if value is not None:
+                      assert np.isfinite(value)
+                      if 'pearson_' not in key:
+                          assert value >= 0.0
+
+          allowed = {
+              'stage96_nonfinite_fixed_window_blocker_without_retuning',
+              'stage96_material_and_growing_muscl_correction_stage97_spatial_localization_audit',
+              'stage96_material_persistent_muscl_correction_stage97_spatial_localization_audit',
+              'stage96_muscl_correction_submaterial_in_fixed_window_blocker_without_retuning',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 90 remains nonconverged in both reconstruction arms' in summary['negative_result_guard']
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'one-sided boundary slope is not promoted' in summary['negative_result_guard']
+
+          with np.load(root / 'muscl_correction_growth_histories.npz') as data:
+              n = summary['executed_steps']
+              for name in (
+                  'macro_change',
+                  'phi_floor_fraction',
+                  'psi_floor_fraction',
+                  'minimum_candidate_phi',
+                  'minimum_candidate_psi',
+                  'phi_correction_to_transport_l2_ratio',
+                  'psi_correction_to_transport_l2_ratio',
+                  'phi_correction_to_transport_weighted_abs_ratio',
+                  'psi_correction_to_transport_weighted_abs_ratio',
+              ):
+                  assert name in data
+                  assert data[name].shape == (n,)
+                  assert np.isfinite(data[name]).all() or name == 'macro_change'
+              for name in (
+                  'first_phi_cell_correction_m0',
+                  'first_psi_cell_correction_m0',
+                  'final_phi_cell_correction_m0',
+                  'final_psi_cell_correction_m0',
+              ):
+                  assert name in data
+                  assert data[name].shape == (64, 64)
+                  assert np.isfinite(data[name]).all()
+                  assert np.all(data[name] >= 0.0)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage96-muscl-correction-growth-audit
+          path: /tmp/stage96_muscl_correction_growth_audit
+          retention-days: 30
