@@ -124,7 +124,7 @@ jobs:
               assert isinstance(arm['converged'], bool)
               assert isinstance(arm['finite'], bool)
               assert np.isfinite(arm['predicted_qav']) or not arm['finite']
-              assert arm['literature_qav'] == 0.179
+              assert arm['literature_qav'] == 0.178
               assert arm['qav_relative_error'] >= 0.0 or not arm['finite']
               assert arm['velocity_metrics']['relative_rms'] >= 0.0 or not arm['finite']
 
