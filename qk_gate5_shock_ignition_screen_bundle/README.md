@@ -12,6 +12,8 @@ Screening matrix:
 - `2H2+O2+3Ar`
 - chemistry ON
 - 60,000 steps per case: 30,000 burn-in and 30,000 sampling
+- `FNUM = 1.2e12`, targeting about 0.4 million simulator particles in the
+  coldest case (the first 4e11 preflight reached 1.2 million and timed out)
 - 12 Slurm-array tasks, at most four concurrent
 
 The submitter first runs a compile/physics preflight at the coldest,
