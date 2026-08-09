@@ -1,0 +1,44 @@
+{
+  "stage": "MV4_Mohammadzadeh_bounded_condition_aware_reconstruction",
+  "status": "locked_before_MV4_outcomes",
+  "locked_utc_date": "2026-08-09",
+  "source_contract": {
+    "mv3_required_verification_status": "complete_MV3_artifacts_splits_and_metrics_verified",
+    "mv3_summary_sha256": "da790e283d4495e574cf847b095b10a58f80c9999ac77483d05ecf18434cf5ac",
+    "reuse_mv3_folds_targets_and_reference_fields_without_change": true,
+    "budget_blocks": [1, 2, 5, 10],
+    "output_fields": ["T", "u"],
+    "heat_flux_excluded": true
+  },
+  "bounded_vision_contract": {
+    "normalized_residual_head": "4*tanh(latent/4)",
+    "residual_cap_sigma": 4.0,
+    "residual_alpha_selected_on_validation_only": true,
+    "training_seed": 20260809,
+    "default_epochs": 160,
+    "default_batch_size": 6
+  },
+  "support_contract": {
+    "conditioning_coordinates": ["log10_Kn", "U_lid_over_100"],
+    "rule": "coordinate_wise_training_range_no_test_target",
+    "tolerance": 1e-07,
+    "inside_support_action": "bounded_vision",
+    "outside_support_action": "raw_identity_fallback",
+    "test_target_used_by_gate": false
+  },
+  "physical_envelope": {
+    "temperature_min_K": 1.0,
+    "temperature_max_K": 2000.0,
+    "absolute_u_max_over_lid_speed": 2.0,
+    "nonfinite_action": "replace_with_raw"
+  },
+  "aggregate_acceptance_checks": {
+    "all_16_tasks_complete": true,
+    "all_task_safety_checks_pass": true,
+    "all_extrapolation_tasks_use_raw_identity_fallback": true,
+    "safe_method_maximum_over_raw": 1.05,
+    "trusted_budget_one_improves_raw": true,
+    "trusted_budget_one_beats_both_baselines_at_least_once": true
+  },
+  "claim_boundary": "MV4 tests safe low-budget T/u reconstruction under the locked four-condition MV3 benchmark; it does not claim heat-flux recovery or universal out-of-distribution improvement."
+}
