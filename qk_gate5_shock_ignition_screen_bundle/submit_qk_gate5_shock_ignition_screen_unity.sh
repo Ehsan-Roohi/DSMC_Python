@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/5634b780bb59b5adc3bdba69fea9b0669f7d99ad/qk_gate5_shock_ignition_screen_bundle
-EXPECTED_SHA=74358360021f13fed786293271ab8c7a3b09e387e5495cfb9b78f1046e056778
+REPO_RAW=https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/qk-gate5-shock-ignition-screen/qk_gate5_shock_ignition_screen_bundle
+EXPECTED_SHA=1655e35d37bdabf8cfeddd4cfe4c17085fe5fa80590775e18b921a4e6494af17
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 TMPDIR_GATE5_SCREEN="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_GATE5_SCREEN"' EXIT
@@ -38,13 +38,15 @@ grep -q 'TEMPERATURES_K = (1000.0, 1250.0, 1500.0, 1750.0)' "$RELEASE/tools/prep
 grep -q 'BACK_PRESSURE_RATIOS = (0.12, 0.18, 0.24)' "$RELEASE/tools/prepare_gate5_cases.py"
 grep -q '600.*!NPTT' "$RELEASE/tools/prepare_gate5_cases.py"
 grep -q '300.*!NPS' "$RELEASE/tools/prepare_gate5_cases.py"
+grep -q '1.2E12.*!FNUM' "$RELEASE/tools/prepare_gate5_cases.py"
 grep -q 'COMMON /GATE5BC/ FTMPB' "$RELEASE/src/common.txt"
 grep -q 'READ(222,\*,IOSTAT=IOSQK) FTMPB' "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
 grep -q 'TEMP=FTMPB' "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for"
 grep -q 'fsp=\[1.0/3.0.*1.0/6.0.*1.0/2.0\]' "$RELEASE/src/qk_nozzle_adapter.f90"
 grep -q '#SBATCH --array=0-11%4' "$RELEASE/run_gate5_screen_array_unity.sbatch"
 grep -q 'candidate_for_off_on_pair' "$RELEASE/tools/validate_gate5.py"
-grep -q 'max_particles < 1800000' "$RELEASE/tools/validate_gate5_preflight.py"
+grep -q 'max_particles < 800000' "$RELEASE/tools/validate_gate5_preflight.py"
+grep -q 'timeout .*25m' "$RELEASE/run_gate5_preflight.sh"
 if sed -n '/SUBROUTINE ENTER2/,/SUBROUTINE REFLECT2/p' \
   "$RELEASE/src/Viscous_Nozzle_GHS_commonfix.for" | \
   grep -qE 'POUT/\(BOLTZ\*FTMP\)|NSMP\.LT\.100|CALL PROPERTIES\(mc\)'; then
