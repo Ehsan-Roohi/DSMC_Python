@@ -1,0 +1,106 @@
+{
+  "artifact_id": 9051881261,
+  "artifact_sha256": "b90d32d172d0ac34c23c878acc4215bec4c0511a7f4d4d2f38b20984903af643",
+  "configuration": {
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "cross_knudsen_extension_permitted": false,
+    "dominant_share": 0.6666666666666666,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "grid": [
+      64,
+      64
+    ],
+    "input_maps": "exact Stage-96 first/final weighted-absolute correction m0 maps",
+    "limiter_retuning": false,
+    "material_share_shift": 0.1,
+    "normalization_retuning": false,
+    "one_sided_boundary_slope_promoted": false,
+    "physical_parameter_retuning": false,
+    "positivity_floor_retuning": false,
+    "solver_endpoint_claim_permitted": false,
+    "solver_rerun": false,
+    "source_relaxation_retuning": false,
+    "stage96_run_id": 31338220298,
+    "top_fraction": 0.1,
+    "transport_parameter_retuning": false,
+    "validation_claim_permitted": false,
+    "velocity_quadrature_retuning": false,
+    "wall_band_cells": 4,
+    "wall_model_retuning": false
+  },
+  "decision": "stage97_interior_dominant_redistribution_stage98_directional_operator_growth_audit",
+  "description": "Artifact-only spatial localization of the exact Stage-96 first/final weighted-absolute MUSCL-correction m0 maps, using the previously established fixed four-cell wall band.",
+  "maps_sha256": "5d4992a49fb58fc4b7b518053d60f34b2a7b497f522d03724b3aabe6f338c1f4",
+  "negative_result_guard": "Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. The Stage-97 spatial shares are diagnostics rather than proof that a wall or interior treatment is defective. No failed parameter is retuned, no cross-Knudsen extension is allowed, and no stable-solver, accuracy, benchmark, or validation claim is authorized.",
+  "phi": {
+    "final": {
+      "region_shares": {
+        "corners": 0.027161816366861297,
+        "horizontal_walls": 0.13031740620024343,
+        "interior": 0.7508459550613845,
+        "vertical_sidewalls": 0.09167482237151099,
+        "wall_band": 0.24915404493861576
+      },
+      "top_decile_share": 0.298857668243564,
+      "total_magnitude": 9.028582296628151
+    },
+    "final_to_first_total_magnitude_ratio": 2.9969051799985453,
+    "first": {
+      "region_shares": {
+        "corners": 0.08072736349214052,
+        "horizontal_walls": 0.2437621967406231,
+        "interior": 0.4938162575660522,
+        "vertical_sidewalls": 0.18169418220118416,
+        "wall_band": 0.5061837424339478
+      },
+      "top_decile_share": 0.41677028235830615,
+      "total_magnitude": 3.0126352868570017
+    },
+    "first_final_cosine_similarity": 0.7097509082692971,
+    "first_final_pearson": 0.5091705687009309,
+    "interior_share_change": 0.25702969749533233,
+    "normalized_map_total_variation": 0.2781972464574813,
+    "wall_band_share_change": -0.25702969749533205
+  },
+  "psi": {
+    "final": {
+      "region_shares": {
+        "corners": 0.022465649533361706,
+        "horizontal_walls": 0.15749600017694834,
+        "interior": 0.7230888907809129,
+        "vertical_sidewalls": 0.09694945950877724,
+        "wall_band": 0.27691110921908724
+      },
+      "top_decile_share": 0.23116564908746673,
+      "total_magnitude": 1.8172621117079242
+    },
+    "final_to_first_total_magnitude_ratio": 2.82020971586577,
+    "first": {
+      "region_shares": {
+        "corners": 0.06070729487230698,
+        "horizontal_walls": 0.2855798352514525,
+        "interior": 0.4741390861989461,
+        "vertical_sidewalls": 0.17957378367729435,
+        "wall_band": 0.5258609138010538
+      },
+      "top_decile_share": 0.4208259534383132,
+      "total_magnitude": 0.6443712683792548
+    },
+    "first_final_cosine_similarity": 0.7211707783727912,
+    "first_final_pearson": 0.4890954801641863,
+    "interior_share_change": 0.24894980458196675,
+    "normalized_map_total_variation": 0.286233162035391,
+    "wall_band_share_change": -0.24894980458196658
+  },
+  "retained_stage96_decision": "stage96_material_persistent_muscl_correction_stage97_spatial_localization_audit",
+  "scientific_conclusion": "Stage 97 localizes where the material retained MUSCL correction magnitude resides and how that normalized spatial distribution shifts over the fixed Stage-96 diagnostic window. Because the parent maps contain weighted absolute correction magnitude only, this stage cannot determine signed x/y cancellation, causality, stability, or accuracy; any directional operator follow-up must preserve the frozen physics and numerical design.",
+  "scientific_guard": "Stage 97 is a positive spatial-localization/redistribution result and not a solver-validation result. Across the exact retained Stage-96 25-step diagnostic window, the weighted-absolute MUSCL-correction m0 magnitude moves from roughly half wall-band/half interior to a clearly interior-dominant distribution while total magnitude grows. For phi the interior share rises from 0.4938162575660522 to 0.7508459550613845 (+0.25702969749533233) and total magnitude grows by 2.9969051799985453; for psi the interior share rises from 0.4741390861989461 to 0.7230888907809129 (+0.24894980458196675) and total magnitude grows by 2.82020971586577. The corresponding wall-band shares fall by the same amounts. Because the parent maps are weighted absolute magnitudes, Stage 97 does not identify signed x/y cancellation, causality, stability, or accuracy. Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned, no cross-Knudsen extension is permitted, and no stable-solver, benchmark, or validation claim is made.",
+  "stage": 97,
+  "summary_sha256": "2c3cbbc796c11a57fcecf0d546b8ff02000de230c4a23dcb98f975b6ee0184c0",
+  "tests_failed": 0,
+  "tests_passed": 42,
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93342919888,
+  "workflow_run_id": 31351436518
+}
