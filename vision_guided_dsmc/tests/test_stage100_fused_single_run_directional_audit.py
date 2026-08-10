@@ -80,15 +80,19 @@ def test_stage99_authorization_rejects_clean_or_wrong_endpoint(tmp_path):
 def test_same_state_directional_map_matches_monolithic_parent_map():
     quadrature = mapped_polar_quadrature(4, 8, radial_scale=2.0)
     rng = np.random.default_rng(20260810)
-    f = 0.5 + rng.random((5, 6, quadrature.vx.size))
+    # _directional_metrics is the frozen Stage-98/100 helper and intentionally uses
+    # the retained Stage-90 spatial spacing. Exercise the identity on that exact grid
+    # rather than comparing a 64x64 operator against a synthetic 5x6 parent spacing.
+    nx, ny = stage100.GRID
+    f = 0.5 + rng.random((ny, nx, quadrature.vx.size))
     denominator = 1.0 + rng.random(f.shape)
     metrics, maps = _directional_metrics(f, denominator, quadrature)
     parent = muscl_correction_divergence(
         f,
         quadrature.vx,
         quadrature.vy,
-        1.0 / 6.0,
-        1.0 / 5.0,
+        1.0 / nx,
+        1.0 / ny,
         False,
     )
     parent_map = np.sum(
