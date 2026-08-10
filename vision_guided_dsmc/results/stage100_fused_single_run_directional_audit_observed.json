@@ -1,0 +1,42 @@
+{
+  "artifact_id": 9078152795,
+  "artifact_sha256": "5ac099facd9356682b897c6b94c887ee90ff136fcf4112fad4e4bbdba7bdf2f3",
+  "attempt": 2,
+  "decision": "stage100_mixed_directional_growth_stage101_interior_velocity_sector_audit",
+  "directional_observations": {
+    "phi": {
+      "final_x_abs_share": 0.4735061586194754,
+      "final_y_abs_share": 0.5264938413805246,
+      "minimum_weighted_abs_cancellation_ratio": 0.9376988031847192,
+      "x_weighted_abs_growth": 2.8696389488693224,
+      "y_weighted_abs_growth": 3.0613142817658847
+    },
+    "psi": {
+      "final_x_abs_share": 0.49137124970782026,
+      "final_y_abs_share": 0.5086287502921798,
+      "minimum_weighted_abs_cancellation_ratio": 0.946184852732125,
+      "x_weighted_abs_growth": 2.620338606861511,
+      "y_weighted_abs_growth": 3.0394571266590416
+    }
+  },
+  "executed_steps": 25,
+  "finite": true,
+  "maximum_decomposition_closure_relative_l2": 1.1373096806423493e-16,
+  "maximum_same_run_parent_map_relative_l2": 8.119907132808749e-17,
+  "negative_result_guard": "This does not establish nonlinear MUSCL stability, accuracy, benchmark improvement, or physical validation. Stage 99 remains a negative cross-run reproducibility result, Stage 98 remains a negative cross-run replay result, Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. No failed parameter is retuned.",
+  "record_type": "completed_fused_single_run_directional_audit",
+  "scientific_conclusion": "Same-run decomposition and parent-map closure pass far inside the retained 1e-12 gates, so the frozen x/y attribution is admissible diagnostically. Both x and y correction magnitudes grow materially over 25 steps, but neither direction dominates and cross-axis cancellation is not material under the preregistered 0.50 criterion.",
+  "source_head": "e36f6e8010f61ac57d85060077a31a9698de2bd4",
+  "stage": 100,
+  "summary_sha256": "91d23d59a0d09a1cf34f11cdc2bf9594883aac6b65cf39f3b79b7d308425c85a",
+  "tests": {
+    "duration_s": 0.32,
+    "failed": 0,
+    "passed": 87,
+    "total": 87
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93570374447,
+  "workflow_run_id": 31423728782,
+  "workflow_status": "completed"
+}
