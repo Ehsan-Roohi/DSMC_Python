@@ -190,7 +190,11 @@ class CaseMetadata:
 
 
 def _trapezoid(values: np.ndarray, coordinates: np.ndarray) -> float:
-    function = getattr(np, "trapezoid", np.trapz)
+    # Do not place ``np.trapz`` in getattr's default expression: defaults are
+    # evaluated eagerly, and NumPy 2.5 removed that legacy alias.
+    function = getattr(np, "trapezoid", None)
+    if function is None:  # pragma: no cover - compatibility with older NumPy
+        function = getattr(np, "trapz")
     return float(function(values, coordinates))
 
 
