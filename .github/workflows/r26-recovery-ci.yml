@@ -28,7 +28,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: python -m pip install --upgrade numpy scipy pytest
+        run: python -m pip install --upgrade numpy scipy matplotlib pytest
 
       - name: Run R26 unit tests
         working-directory: r26_recovery
