@@ -1,0 +1,42 @@
+{
+  "artifact_id": 9079226660,
+  "artifact_sha256": "3dde191c119623999aa50d2f543d8961990d234bfc550a76d42845ec3c5fa72c",
+  "decision": "stage101_diffuse_velocity_sector_growth_stage102_radial_speed_shell_audit",
+  "executed_steps": 25,
+  "finite": true,
+  "interior_velocity_sector_histories_sha256": "4e701cc74596702abda43590aa4c63fda63734dfd3e7600a81fd3d343c16917e",
+  "maximum_sector_parent_closure_relative": 2.9552575845040514e-16,
+  "negative_result_guard": "This is a positive localization/closure result only. It does not identify a causal instability mechanism, establish nonlinear MUSCL stability, improve the failed endpoint, or validate the cavity benchmark. Stage 99 remains a negative cross-run reproducibility result, Stage 98 remains a negative cross-run replay result, Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned.",
+  "record_type": "completed_interior_velocity_sector_audit",
+  "scientific_conclusion": "The frozen interior MUSCL-correction growth is angularly diffuse rather than concentrated in one common 45-degree velocity sector. Every sector grows materially over the 25-step window: phi weighted-absolute growth ranges from 4.2859x to 5.5966x and psi from 3.9118x to 4.8406x. The largest final phi shares are -x-y at 25.3198% and +x-y at 24.9366%; the corresponding largest psi shares are only 19.8942% and 19.4803%, so no sector reaches the preregistered 25% dominance threshold in both distributions. This supports the preregistered radial-speed-shell audit, but does not prove causality or solver error.",
+  "sector_observations": {
+    "phi": {
+      "growth_range": [4.285920966593795, 5.596596262070288],
+      "largest_final_sectors": [
+        {"label": "-x-y", "final_abs_share": 0.25319768984248014, "weighted_abs_growth": 4.285920966593795},
+        {"label": "+x-y", "final_abs_share": 0.24936622179197368, "weighted_abs_growth": 4.28973941005412}
+      ],
+      "maximum_final_signed_to_abs_ratio": 0.0783409227561921
+    },
+    "psi": {
+      "growth_range": [3.9118060246544397, 4.840592646678998],
+      "largest_final_sectors": [
+        {"label": "-x-y", "final_abs_share": 0.19894174996702899, "weighted_abs_growth": 3.9715385355883437},
+        {"label": "+x-y", "final_abs_share": 0.19480349953506815, "weighted_abs_growth": 3.95954645532297}
+      ],
+      "maximum_final_signed_to_abs_ratio": 0.10181814989744797
+    }
+  },
+  "source_head": "d5ef9b79a705586de820d71244a5b661740b1874",
+  "stage": 101,
+  "summary_sha256": "339e33253536621d5570718d0774e70d6518e1c8635b8726c968738826acb0cf",
+  "tests": {
+    "failed": 0,
+    "passed": 92,
+    "total": 92
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93592574615,
+  "workflow_run_id": 31430526392,
+  "workflow_status": "completed"
+}
