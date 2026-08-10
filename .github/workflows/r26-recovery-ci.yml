@@ -65,7 +65,7 @@ jobs:
 
           root = Path(sys.argv[1])
           for stage in ("kn0050", "kn0055", "kn0056"):
-              summary = json.loads((root / stage / "continuation_summary.json").read_text())
+              summary = json.loads((root / stage / "run_summary.json").read_text())
               assert summary["termination"] == "target_accepted", (stage, summary)
           print("R26_RECOVERY_SMOKE_PASS")
           PY
