@@ -1,0 +1,154 @@
+name: Vision-guided DSMC Stage 99
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage99_replay_provenance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage99_replay_provenance_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage99.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage99_replay_provenance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage99_replay_provenance_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage99.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  replay-provenance-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 99 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage99_replay_provenance_audit.py \
+            tests/test_stage98_directional_operator_growth_audit.py \
+            tests/test_stage97_muscl_correction_spatial_localization_audit.py \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+
+      - name: Download exact completed Stage 96 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage96-muscl-correction-growth-audit
+          path: /tmp/stage96_muscl_correction_growth_audit
+          run-id: 31338220298
+          github-token: ${{ github.token }}
+
+      - name: Download exact completed Stage 97 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage97-muscl-correction-spatial-localization-audit
+          path: /tmp/stage97_muscl_correction_spatial_localization_audit
+          run-id: 31351436518
+          github-token: ${{ github.token }}
+
+      - name: Download exact Stage 98 push artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage98-directional-operator-growth-audit
+          path: /tmp/stage98_push
+          run-id: 31360755010
+          github-token: ${{ github.token }}
+
+      - name: Download exact Stage 98 pull-request artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage98-directional-operator-growth-audit
+          path: /tmp/stage98_pr
+          run-id: 31360757869
+          github-token: ${{ github.token }}
+
+      - name: Verify exact artifact payload provenance
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+              "/tmp/stage96_muscl_correction_growth_audit/summary.json":
+                  "9c5803700d19de21a24337241b67662dcacbc41ef26286dff9b18ece35fbae7f",
+              "/tmp/stage96_muscl_correction_growth_audit/muscl_correction_growth_histories.npz":
+                  "870922f2cf6d68fbfaa67741161a451adbf8aaf0a5e23220942173bb65df1897",
+              "/tmp/stage97_muscl_correction_spatial_localization_audit/summary.json":
+                  "2c3cbbc796c11a57fcecf0d546b8ff02000de230c4a23dcb98f975b6ee0184c0",
+              "/tmp/stage97_muscl_correction_spatial_localization_audit/spatial_localization_maps.npz":
+                  "5d4992a49fb58fc4b7b518053d60f34b2a7b497f522d03724b3aabe6f338c1f4",
+              "/tmp/stage98_push/summary.json":
+                  "abf70769ee9b2a206373c98e94d77a814c7368a12f57e166545770e9ece7179e",
+              "/tmp/stage98_push/directional_operator_growth_histories.npz":
+                  "042a224491e951ff93daffba9d29b7ee9bfdd9bb8f9b5b02037f55c0f441e051",
+              "/tmp/stage98_pr/summary.json":
+                  "abf70769ee9b2a206373c98e94d77a814c7368a12f57e166545770e9ece7179e",
+              "/tmp/stage98_pr/directional_operator_growth_histories.npz":
+                  "042a224491e951ff93daffba9d29b7ee9bfdd9bb8f9b5b02037f55c0f441e051",
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+
+      - name: Run Stage 99 artifact-only replay provenance audit
+        run: |
+          python -m vgdsmc.stage99_replay_provenance_audit \
+            --stage96-artifact-dir /tmp/stage96_muscl_correction_growth_audit \
+            --stage97-artifact-dir /tmp/stage97_muscl_correction_spatial_localization_audit \
+            --stage98-push-artifact-dir /tmp/stage98_push \
+            --stage98-pr-artifact-dir /tmp/stage98_pr \
+            --output-dir /tmp/stage99_replay_provenance_audit
+
+      - name: Verify Stage 99 fixed design and negative-result route
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("/tmp/stage99_replay_provenance_audit")
+          summary = json.load(open(root / "summary.json"))
+          assert summary["stage"] == 99
+          cfg = summary["configuration"]
+          assert cfg["grid"] == [64, 64]
+          assert cfg["replay_tolerance"] == 1.0e-12
+          assert cfg["wall_band_cells"] == 4
+          assert cfg["stage96_run_id"] == 31338220298
+          assert cfg["stage97_run_id"] == 31351436518
+          assert cfg["stage98_push_run_id"] == 31360755010
+          assert cfg["stage98_pr_run_id"] == 31360757869
+          assert cfg["artifact_only"] is True
+          assert cfg["solver_rerun"] is False
+          assert cfg["failed_muscl_endpoint_rehabilitated"] is False
+          assert cfg["cross_knudsen_extension_permitted"] is False
+          assert cfg["validation_claim_permitted"] is False
+          assert cfg["solver_endpoint_claim_permitted"] is False
+          for key, value in cfg.items():
+              if key.endswith("_retuning"):
+                  assert value is False
+
+          assert summary["stage98_event_reproducibility"]["push_and_pr_artifacts_bitwise_identical"] is True
+          assert summary["archive_handoff_max_relative_l2"] == 0.0
+          assert summary["first_replay_max_relative_l2"] <= 1.0e-12
+          assert summary["final_replay_max_relative_l2"] > 1.0e-12
+          assert summary["final_replay_to_strict_tolerance_ratio"] > 100.0
+          assert summary["decision"] == (
+              "stage99_cross_run_iterative_replay_drift_stage100_fused_single_run_directional_audit"
+          )
+          assert "Stage 98 remains blocked" in summary["negative_result_guard"]
+          assert "Stage 28 remains a failed MUSCL endpoint" in summary["negative_result_guard"]
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage99-replay-provenance-audit
+          path: /tmp/stage99_replay_provenance_audit
+          retention-days: 30
