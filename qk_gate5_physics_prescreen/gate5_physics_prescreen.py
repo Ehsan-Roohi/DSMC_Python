@@ -242,9 +242,16 @@ def ignition_delay(
     peak_rate_time: Optional[float] = None
     peak_oh = 0.0
     peak_oh_time: Optional[float] = None
+    sample_count = 800
+    minimum_time = min(1.0e-12, max_time_s * 1.0e-8)
+    log_lo = math.log(max(minimum_time, 1.0e-30))
+    log_hi = math.log(max_time_s)
     steps = 0
-    while network.time < max_time_s and steps < 200000:
-        now = min(float(network.step()), max_time_s)
+    for sample in range(1, sample_count + 1):
+        fraction = sample / sample_count
+        target = math.exp(log_lo + fraction * (log_hi - log_lo))
+        network.advance(target)
+        now = float(network.time)
         temperature = float(phase.T)
         oh = float(phase.X[oh_index])
         dt = now - previous_time
@@ -257,7 +264,7 @@ def ignition_delay(
             peak_oh = oh
             peak_oh_time = now
         previous_time, previous_t = now, temperature
-        steps += 1
+        steps = sample
         if temperature - initial_t >= 1000.0 and peak_rate_time is not None:
             break
     delta_t = float(phase.T) - initial_t
