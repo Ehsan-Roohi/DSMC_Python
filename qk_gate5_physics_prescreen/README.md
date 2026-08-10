@@ -24,7 +24,7 @@ source it; its strict-shell options should not modify or terminate the
 interactive shell.
 
 ```bash
-bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/612a0732e12595d71c3131fbe4ab798d38164242/qk_gate5_physics_prescreen/submit_qk_gate5_physics_prescreen_unity.sh")
+bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/70e0af2e1c20c02626a3f74453008e09329e3e83/qk_gate5_physics_prescreen/submit_qk_gate5_physics_prescreen_unity.sh")
 ```
 
 The default source is the completed screen:
@@ -36,7 +36,7 @@ The default source is the completed screen:
 Override it only when analyzing another completed screen:
 
 ```bash
-RESULT_DIR=/absolute/screen/path bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/612a0732e12595d71c3131fbe4ab798d38164242/qk_gate5_physics_prescreen/submit_qk_gate5_physics_prescreen_unity.sh")
+RESULT_DIR=/absolute/screen/path bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/70e0af2e1c20c02626a3f74453008e09329e3e83/qk_gate5_physics_prescreen/submit_qk_gate5_physics_prescreen_unity.sh")
 ```
 
 The submitter downloads analyzer and Slurm files from an immutable commit,
