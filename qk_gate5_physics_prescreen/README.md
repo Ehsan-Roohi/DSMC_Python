@@ -65,3 +65,39 @@ equilibrium Hugoniot/Rayleigh scan and must be independently checked with a
 validated CJ implementation before publication.  Every recommended DSMC case
 still needs grid/particle sensitivity, repeat statistics, chemistry-off
 controls, and mass/energy/species conservation audits.
+
+## Mach--residence design stage
+
+The first completed screen showed a real time-scale mismatch: the best current
+case had `Da_post` of order `1e-3`.  The follow-up design stage therefore does
+not launch a hotter version of the same geometry.  It first corrects the
+high-temperature ignition diagnostic so that strong H2 consumption and
+OH/H2O formation remain detectable even when dissociation prevents a 50 K
+temperature rise.  It then scans 1800 frozen normal-shock design points over:
+
+- stagnation temperature and pressure;
+- pre-shock Mach number;
+- constant-area post-shock residence length;
+- argon dilution (`2H2+O2`, `2H2+O2+Ar`, and `2H2+O2+3Ar`).
+
+Candidates must satisfy `Da_pre < 0.1`, `Da_post >= 0.3`, and a local
+viscosity-based `Kn >= 0.005` screen.  The selected set also receives the
+equilibrium-Hugoniot CJ velocity check.  Run it on a Unity login node as a
+child shell, not with `source`:
+
+```bash
+bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/c311a486a267d4bb992f80dabbaf2c1f010ec31b/qk_gate5_physics_prescreen/submit_qk_gate5_mach_residence_design_unity.sh")
+```
+
+The job recomputes the original 12-case prescreen with the corrected ignition
+criterion and writes the new design map to
+`$BASE/runs/mach_residence_design_<JOB_ID>/`.  Its principal new files are:
+
+- `QK_GATE5_MACH_RESIDENCE_ALL_CASES.csv`;
+- `QK_GATE5_MACH_RESIDENCE_CANDIDATES.csv`;
+- `QK_GATE5_MACH_RESIDENCE_DESIGN.json`;
+- `QK_GATE5_MACH_RESIDENCE_DESIGN.txt`.
+
+The frozen shock and constant-area residence model is a selection tool.  A
+new nozzle/duct geometry and nonreacting DSMC preflight are mandatory before
+any selected reacting production case is interpreted.
