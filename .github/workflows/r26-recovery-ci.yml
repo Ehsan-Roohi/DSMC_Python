@@ -1,0 +1,75 @@
+name: R26 Recovery Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "r26_recovery/**"
+      - "r13_recovery/**"
+      - ".github/workflows/r26-recovery-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Test guarded R26 recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade numpy scipy matplotlib pytest
+
+      - name: Run R26 unit tests
+        working-directory: r26_recovery
+        run: PYTHONPATH=code pytest -q code/tests
+
+      - name: Run R13 grid-transfer tests
+        run: PYTHONPATH=r13_recovery/code pytest -q r13_recovery/tests
+
+      - name: Run restart and secant continuation smoke test
+        working-directory: r26_recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          smoke_root="${RUNNER_TEMP}/r26_smoke"
+
+          PYTHONPATH=code python analysis/run_jfm_observability_continuation.py \
+            --nodes 5 --case-family gu-asme2009 --kn-gu 0.050 \
+            --target-lid 0.001 --output-dir "${smoke_root}/kn0050"
+
+          PYTHONPATH=code python analysis/run_jfm_observability_continuation.py \
+            --nodes 5 --case-family gu-asme2009 --kn-gu 0.055 \
+            --target-lid 0.001 \
+            --initial-state "${smoke_root}/kn0050/last_accepted_state.npz" \
+            --reconcile-initial --output-dir "${smoke_root}/kn0055"
+
+          PYTHONPATH=code python analysis/run_jfm_observability_continuation.py \
+            --nodes 5 --case-family gu-asme2009 --kn-gu 0.056 \
+            --target-lid 0.001 \
+            --previous-state "${smoke_root}/kn0050/last_accepted_state.npz" \
+            --initial-state "${smoke_root}/kn0055/last_accepted_state.npz" \
+            --reconcile-initial --output-dir "${smoke_root}/kn0056"
+
+          python - "${smoke_root}" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          root = Path(sys.argv[1])
+          for stage in ("kn0050", "kn0055", "kn0056"):
+              summary = json.loads((root / stage / "run_summary.json").read_text())
+              assert summary["termination"] == "target_accepted", (stage, summary)
+          print("R26_RECOVERY_SMOKE_PASS")
+          PY
