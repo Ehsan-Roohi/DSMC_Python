@@ -1,0 +1,12 @@
+[simulation]
+model = "ntc-prescan"
+backend = "auto"
+kn = 0.1
+nx = 50
+ny = 50
+particles_per_cell = 24
+steps = 12000
+warmup_steps = 4000
+sample_stride = 5
+seed = 20260803
+output_dir = "results/student_kn01"
