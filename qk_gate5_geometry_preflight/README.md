@@ -35,7 +35,7 @@ Run the immutable submitter as a child Bash process on a Unity login node.
 Do not `source` it.
 
 ```bash
-bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/2ab68aa57904c9b2adf6b204b05b89e0448f8885/qk_gate5_geometry_preflight/submit_qk_gate5_geometry_preflight_unity.sh")
+bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/b9f677c37a86e95ee72b451787933e2b046276ed/qk_gate5_geometry_preflight/submit_qk_gate5_geometry_preflight_unity.sh")
 ```
 
 The job IDs and output directory are written to:
@@ -43,6 +43,12 @@ The job IDs and output directory are written to:
 ```text
 /project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED/LAST_GATE5_GEOMETRY_PREFLIGHT.env
 ```
+
+The first Unity smoke attempt reached cycle 24/30 with about 353,000
+particles and no fatal, boundary, or reflection errors before its 50-minute
+internal timeout.  The pinned command above keeps the particle weight and all
+physics unchanged, extends the smoke timeout to 90 minutes, and raises only
+the smoke Slurm wall time to two hours.
 
 ## Outputs
 
