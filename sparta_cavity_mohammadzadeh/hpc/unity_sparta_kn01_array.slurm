@@ -99,7 +99,16 @@ fi
 printf 'mpi_preflight_status=%s\n' "${MPI_PREFLIGHT_STATUS}" >> unity_run_metadata.txt
 printf 'mpi_preflight=pass\n' >> unity_run_metadata.txt
 
-"${MPI_LAUNCHER}" "${SPARTA_BIN}" -in in.cavity -log log.cavity
+# Open MPI 5 / PRRTE can interpret SPARTA's -log switch as a launcher option.
+# Feeding the input deck on stdin avoids application-option ambiguity. SPARTA
+# then writes its documented default log.sparta, which is renamed to the
+# benchmark's canonical log.cavity name for the collector.
+"${MPI_LAUNCHER}" -n "${SLURM_NTASKS}" "${SPARTA_BIN}" < in.cavity
+if [[ ! -s log.sparta ]]; then
+  echo "SPARTA ended without its default log.sparta file." >&2
+  exit 8
+fi
+mv -- log.sparta log.cavity
 
 FINAL_DUMP="${RUN_DIR}/grid.final.00026000"
 if [[ ! -s "${FINAL_DUMP}" ]]; then
