@@ -19,7 +19,17 @@ def test_repair_protocol_preserves_original_sampling_horizon_and_gate():
     assert contract["sample_count"] == 3000
     assert contract["nonoverlapping_sampling_blocks"] == 10
     assert contract["stationarity_z_limit"] == 2.0
-    assert all(protocol["scope_guards"].values())
+    assert protocol["scope_guards"] == {
+        "original_16_reference_directories_are_immutable": True,
+        "only_the_three_preidentified_failed_seeds_are_repaired": True,
+        "all_other_13_references_are_reused_byte_for_byte": True,
+        "heat_flux_excluded_from_MV5_and_MV6_claims": True,
+        "physics_changed": False,
+        "grid_particles_sample_count_block_count_or_sampling_horizon_changed": False,
+        "stationarity_gate_changed": False,
+        "model_architecture_training_split_baselines_or_metrics_changed": False,
+        "failed_model_attempts_created_no_model_outcomes": True,
+    }
 
 
 def test_diagnostic_lock_records_no_model_outcomes():
