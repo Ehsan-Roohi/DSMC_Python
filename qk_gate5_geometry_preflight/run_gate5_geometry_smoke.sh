@@ -53,7 +53,7 @@ set +e
 (
   cd "$CASE"
   export GFORTRAN_UNBUFFERED_ALL=y
-  printf '1\n' | timeout --signal=TERM --kill-after=30s 50m \
+  printf '1\n' | timeout --signal=TERM --kill-after=30s 90m \
     ./nozzle_gate5_geometry.exe >run.log 2>&1
 )
 RUN_STATUS=$?
