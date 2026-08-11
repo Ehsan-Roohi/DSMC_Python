@@ -1,0 +1,72 @@
+{
+  "stage": "MV5_reference_stability_repair",
+  "status": "locked_after_MV5_reference_diagnostics_before_any_MV5_or_MV6_model_outcome",
+  "locked_utc_date": "2026-08-11",
+  "diagnostic_basis": {
+    "completed_reference_array_job": 62738051,
+    "failed_MV5_model_array_job_before_training": 62738052,
+    "failed_MV6_model_array_job_before_training": 62745111,
+    "completed_MV5_model_outcomes_before_lock": 0,
+    "completed_MV6_model_outcomes_before_lock": 0,
+    "failed_references": [
+      {
+        "condition_id": "kn0p075_u150",
+        "seed": 94003,
+        "failed_T_u_observables": {
+          "temperature_max_K": {
+            "drift_z_score": -2.337272918808362,
+            "relative_drift": 0.005787626533885504
+          }
+        }
+      },
+      {
+        "condition_id": "kn0p1_u200",
+        "seed": 94201,
+        "failed_T_u_observables": {
+          "temperature_min_K": {
+            "drift_z_score": 2.6696411549760333,
+            "relative_drift": 0.010154505214986934
+          }
+        }
+      },
+      {
+        "condition_id": "kn0p1_u400",
+        "seed": 94301,
+        "failed_T_u_observables": {
+          "macroscopic_lid_slip_center": {
+            "drift_z_score": -5.588195845507525,
+            "relative_drift": 0.01393332347619612
+          },
+          "microscopic_lid_slip_center": {
+            "drift_z_score": 3.058538245788055,
+            "relative_drift": 0.03203194643979632
+          }
+        }
+      }
+    ]
+  },
+  "repair_contract": {
+    "task_count": 3,
+    "grid": 100,
+    "particles_per_cell": 32,
+    "steps": 153125,
+    "sample_start": 59375,
+    "sample_count": 3000,
+    "nonoverlapping_sampling_blocks": 10,
+    "checkpoint_interval_steps": 1000,
+    "sampling_horizon_steps": 93750,
+    "stationarity_z_limit": 2.0,
+    "rationale": "later burn-in with the original sampling horizon and unchanged physical and numerical model"
+  },
+  "scope_guards": {
+    "original_16_reference_directories_are_immutable": true,
+    "only_the_three_preidentified_failed_seeds_are_repaired": true,
+    "all_other_13_references_are_reused_byte_for_byte": true,
+    "heat_flux_excluded_from_MV5_and_MV6_claims": true,
+    "physics_changed": false,
+    "grid_particles_sample_count_block_count_or_sampling_horizon_changed": false,
+    "stationarity_gate_changed": false,
+    "model_architecture_training_split_baselines_or_metrics_changed": false,
+    "failed_model_attempts_created_no_model_outcomes": true
+  }
+}
