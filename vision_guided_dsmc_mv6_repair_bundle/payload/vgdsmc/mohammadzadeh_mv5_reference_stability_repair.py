@@ -69,9 +69,19 @@ def load_protocol() -> dict[str, Any]:
         or float(contract["stationarity_z_limit"]) != 2.0
     ):
         raise ValueError("MV5 stability-repair schedule differs from its lock")
-    guards = value["scope_guards"]
-    if not all(bool(item) for item in guards.values()):
-        raise ValueError("MV5 stability-repair scope guard is false")
+    expected_guards = {
+        "original_16_reference_directories_are_immutable": True,
+        "only_the_three_preidentified_failed_seeds_are_repaired": True,
+        "all_other_13_references_are_reused_byte_for_byte": True,
+        "heat_flux_excluded_from_MV5_and_MV6_claims": True,
+        "physics_changed": False,
+        "grid_particles_sample_count_block_count_or_sampling_horizon_changed": False,
+        "stationarity_gate_changed": False,
+        "model_architecture_training_split_baselines_or_metrics_changed": False,
+        "failed_model_attempts_created_no_model_outcomes": True,
+    }
+    if value.get("scope_guards") != expected_guards:
+        raise ValueError("MV5 stability-repair scope guards differ from the lock")
     return value
 
 
