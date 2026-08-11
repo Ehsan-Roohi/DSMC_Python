@@ -34,6 +34,9 @@ jobs:
         working-directory: r26_recovery
         run: PYTHONPATH=code pytest -q code/tests
 
+      - name: Run R13 grid-transfer tests
+        run: PYTHONPATH=r13_recovery/code pytest -q r13_recovery/tests
+
       - name: Run restart and secant continuation smoke test
         working-directory: r26_recovery
         shell: bash
