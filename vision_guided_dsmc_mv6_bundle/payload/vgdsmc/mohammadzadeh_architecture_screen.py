@@ -761,6 +761,15 @@ def run_task(
 
 def _records(root: Path) -> list[dict[str, Any]]:
     values = []
+    shared_baseline_arrays: dict[str, np.ndarray] | None = None
+    shared_names = (
+        "identity_condition",
+        "identity_numeric",
+        "raw",
+        "target",
+        "gaussian_like",
+        "tsvd_pod_type",
+    )
     for architecture in ARCHITECTURES:
         for seed in TRAINING_SEEDS:
             directory = _task_directory(root, architecture, seed)
@@ -777,6 +786,24 @@ def _records(root: Path) -> list[dict[str, Any]]:
                     or _sha256(path) != record["sha256"]
                 ):
                     raise ValueError(f"MV6 task artifact failed verification: {path}")
+            with np.load(directory / "predictions.npz", allow_pickle=False) as data:
+                current = {name: np.asarray(data[name]) for name in shared_names}
+                if shared_baseline_arrays is None:
+                    shared_baseline_arrays = {
+                        name: value.copy() for name, value in current.items()
+                    }
+                else:
+                    for name, value in current.items():
+                        reference = shared_baseline_arrays[name]
+                        if np.issubdtype(value.dtype, np.inexact):
+                            equal = np.array_equal(value, reference, equal_nan=True)
+                        else:
+                            equal = np.array_equal(value, reference)
+                        if not equal:
+                            raise ValueError(
+                                "MV6 shared baseline array differs between tasks: "
+                                f"{directory / 'predictions.npz'}::{name}"
+                            )
             value = json.loads(summary_path.read_text(encoding="utf-8"))
             if (
                 value.get("status") != "complete_MV6_architecture_seed_task"
@@ -794,6 +821,32 @@ def _mean_std(values: list[float]) -> dict[str, float]:
     return {"mean": float(array.mean()), "std": float(array.std(ddof=1))}
 
 
+def _metrics_equivalent(left: Any, right: Any) -> bool:
+    """Compare JSON metric trees while tolerating only CPU reduction roundoff."""
+    if isinstance(left, Mapping) and isinstance(right, Mapping):
+        return (
+            left.keys() == right.keys()
+            and all(_metrics_equivalent(left[key], right[key]) for key in left)
+        )
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(
+            _metrics_equivalent(a, b) for a, b in zip(left, right)
+        )
+    if isinstance(left, bool) or isinstance(right, bool):
+        return type(left) is type(right) and left == right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        return bool(
+            np.isclose(
+                float(left),
+                float(right),
+                rtol=1.0e-6,
+                atol=1.0e-12,
+                equal_nan=True,
+            )
+        )
+    return left == right
+
+
 def _screen_statistics(records: list[dict[str, Any]]) -> tuple[dict[str, Any], list[str]]:
     condition_ids = list(
         records[0]["methods_by_condition"]["raw"].keys()
@@ -804,11 +857,19 @@ def _screen_statistics(records: list[dict[str, Any]]) -> tuple[dict[str, Any], l
         gaussian_metric = records[0]["methods_by_condition"]["gaussian_like"][condition]
         tsvd_metric = records[0]["methods_by_condition"]["tsvd_pod_type"][condition]
         for record in records[1:]:
-            if record["methods_by_condition"]["raw"][condition] != raw_metric:
+            if not _metrics_equivalent(
+                record["methods_by_condition"]["raw"][condition], raw_metric
+            ):
                 raise ValueError("Raw metrics differ between architecture tasks")
-            if record["methods_by_condition"]["gaussian_like"][condition] != gaussian_metric:
+            if not _metrics_equivalent(
+                record["methods_by_condition"]["gaussian_like"][condition],
+                gaussian_metric,
+            ):
                 raise ValueError("Gaussian metrics differ between architecture tasks")
-            if record["methods_by_condition"]["tsvd_pod_type"][condition] != tsvd_metric:
+            if not _metrics_equivalent(
+                record["methods_by_condition"]["tsvd_pod_type"][condition],
+                tsvd_metric,
+            ):
                 raise ValueError("TSVD metrics differ between architecture tasks")
         classical = {
             "gaussian_like": gaussian_metric,
