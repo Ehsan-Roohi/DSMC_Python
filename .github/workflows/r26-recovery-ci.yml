@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "r26_recovery/**"
+      - "r13_recovery/**"
       - ".github/workflows/r26-recovery-ci.yml"
   workflow_dispatch:
 
