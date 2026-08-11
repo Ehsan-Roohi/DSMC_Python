@@ -1,0 +1,77 @@
+{
+  "artifact_id": 9116979302,
+  "artifact_sha256": "20d6f21059699507e3aa0a66cb10a15b5e8ad8fd4faca83bed8cc4f700608b82",
+  "decision": "stage107_limiter_intervention_colocated_stage108_limiter_severity_correction_amplitude_coupling_audit",
+  "finite": true,
+  "limiter_activation_colocation_maps_sha256": "99f7e1e5b1716b2a4544a9c5828a580e01c04dea9864226ecc16daaf332964ad",
+  "metrics": {
+    "joint_intervention_colocation": {
+      "inside_to_outside_enrichment": 1.3346874604241914,
+      "mean_inside_stage106_common_high_gradient_support": 0.04177535280303974,
+      "mean_outside_stage106_common_high_gradient_support": 0.031299726746337055,
+      "overlap_cell_count": 384,
+      "stage106_common_high_gradient_cell_count": 518,
+      "stage106_pair_gradient_weight_share_in_high_intervention_support": 0.8173353366166918,
+      "upper_quartile_cell_count": 784,
+      "upper_quartile_jaccard": 0.41830065359477125,
+      "upper_quartile_overlap_coefficient": 0.7413127413127413,
+      "upper_quartile_threshold": 0.036906237106157085
+    },
+    "mean_intervention_fraction": {
+      "phi": 0.03983959777202475,
+      "psi": 0.033030075693203126
+    },
+    "mean_zeroed_velocity_weight_fraction": {
+      "phi": 0.012967773506640344,
+      "psi": 0.008731711991170793
+    },
+    "phi_intervention_colocation": {
+      "inside_to_outside_enrichment": 1.3428075280087717,
+      "mean_inside_stage106_common_high_gradient_support": 0.05063001467423961,
+      "mean_outside_stage106_common_high_gradient_support": 0.03770459549725497,
+      "overlap_cell_count": 368,
+      "stage106_common_high_gradient_cell_count": 518,
+      "stage106_pair_gradient_weight_share_in_high_intervention_support": 0.7832021665332376,
+      "upper_quartile_cell_count": 784,
+      "upper_quartile_jaccard": 0.39400428265524623,
+      "upper_quartile_overlap_coefficient": 0.7104247104247104,
+      "upper_quartile_threshold": 0.04553117357502007
+    },
+    "phi_psi_intervention_pearson": 0.9853713230261165,
+    "psi_intervention_colocation": {
+      "inside_to_outside_enrichment": 1.3346874604241914,
+      "mean_inside_stage106_common_high_gradient_support": 0.04177535280303974,
+      "mean_outside_stage106_common_high_gradient_support": 0.031299726746337055,
+      "overlap_cell_count": 384,
+      "stage106_common_high_gradient_cell_count": 518,
+      "stage106_pair_gradient_weight_share_in_high_intervention_support": 0.8173353366166918,
+      "upper_quartile_cell_count": 784,
+      "upper_quartile_jaccard": 0.41830065359477125,
+      "upper_quartile_overlap_coefficient": 0.7413127413127413,
+      "upper_quartile_threshold": 0.036906237106157085
+    }
+  },
+  "negative_result_guard": "Stage 106 remains a gradient-magnitude organization diagnostic; Stage 105 remains directional alignment without strong single-axis dominance; Stage 104 remains a mesoscopic scale diagnostic; Stage 103 remains spatially diffuse; Stage 102 remains a velocity-shell localization result; Stage 101 remains angularly diffuse; Stage 100 is same-run attribution only; Stage 99 remains a negative cross-run reproducibility result; Stage 98 remains a negative cross-run replay result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; and the Stage-89 one-sided boundary slope is not promoted. No failed parameter is retuned, no cross-Knudsen MUSCL extension is permitted, and no stability, accuracy, benchmark, heat-flux-improvement, or validation claim is authorized.",
+  "record_type": "completed_limiter_activation_colocation_audit",
+  "scientific_conclusion": "Stage 107 finds a reproducible precursor association between the frozen pre-replay minmod intervention pattern and the later Stage-106 common shell-1 high-gradient support. The joint intervention is enriched by 1.3346874604241914 inside the common high-gradient support, its upper-quartile overlap coefficient is 0.7413127413127413, and its high-intervention support contains 0.8173353366166918 of the Stage-106 pair-gradient weight. Phi and psi intervention maps are also strongly correlated (Pearson 0.9853713230261165). This is association only: it does not establish causality, nonlinear MUSCL stability, endpoint convergence, Table 3/Table 6 improvement, heat-flux accuracy, or validation. The next authorized step is Stage 108, a continuous limiter-severity versus correction-amplitude coupling audit with all failed physical/numerical parameters frozen.",
+  "source_head": "77ec9d9ad28f1e90dff11f2dca1d48032a8d5b4c",
+  "stage": 107,
+  "stage106_authorization": {
+    "common_upper_quartile_pair_weight_share": 0.9199625677024654,
+    "decision": "stage106_common_gradient_magnitude_coupling_stage107_frozen_limiter_activation_colocation_audit",
+    "gradient_magnitude_cosine": 0.9199879201104432,
+    "gradient_magnitude_pearson": 0.8922170483812638,
+    "upper_quartile_overlap_coefficient": 0.6607142857142857
+  },
+  "summary_sha256": "7f9b03aa09048d2b6b2b0de678e83dcfa6b3dce623a04c0b9cd24730efac409d",
+  "tests": {
+    "failed": 0,
+    "passed": 150,
+    "runtime_seconds": 0.72,
+    "total": 150
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93856877768,
+  "workflow_run_id": 31514716731,
+  "workflow_status": "completed"
+}
