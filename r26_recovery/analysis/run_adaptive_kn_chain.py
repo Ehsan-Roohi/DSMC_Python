@@ -118,8 +118,13 @@ def accepted_stage(result_dir: Path, expected_kn: float) -> tuple[bool, dict[str
     summary = load_json(summary_path)
     case = summary.get("case", {})
     case_kn = case.get("kn_input") if isinstance(case, dict) else None
+    def is_explicit_acceptance(value: Any) -> bool:
+        return value is True or (
+            isinstance(value, int) and not isinstance(value, bool) and value == 1
+        )
+
     accepted_attempt = any(
-        isinstance(item, dict) and item.get("accepted") is True
+        isinstance(item, dict) and is_explicit_acceptance(item.get("accepted"))
         for item in summary.get("attempts", [])
     )
     checks = {
