@@ -218,6 +218,89 @@ def import_cantera() -> Any:
     return ct
 
 
+def positive_rate_peak(
+    history: Sequence[dict[str, float]], key: str, sign: float = 1.0
+) -> tuple[Optional[float], Optional[float]]:
+    peak_rate = -math.inf
+    peak_time: Optional[float] = None
+    for previous, current in zip(history, history[1:]):
+        dt = current["time_s"] - previous["time_s"]
+        if dt <= 0.0:
+            continue
+        rate = sign * (current[key] - previous[key]) / dt
+        if math.isfinite(rate) and rate > peak_rate:
+            peak_rate = rate
+            peak_time = current["time_s"]
+    if peak_time is None or not math.isfinite(peak_rate):
+        return None, None
+    return peak_rate, peak_time
+
+
+def classify_ignition_history(history: Sequence[dict[str, float]]) -> dict[str, Any]:
+    """Classify ignition without assuming that high-T chemistry raises T.
+
+    A thermal event uses the conventional maximum dT/dt after a 50 K rise.
+    A high-temperature chemical event instead requires at least 1% H2
+    consumption together with radical or product formation.  All individual
+    delay definitions are retained so the criterion sensitivity is auditable.
+    """
+    if len(history) < 2:
+        return {"ignited": False, "tau_s": None, "status": "insufficient_history"}
+    initial, final = history[0], history[-1]
+    max_temperature = max(row["T_K"] for row in history)
+    max_oh = max(row["X_OH"] for row in history)
+    max_h2o = max(row["X_H2O"] for row in history)
+    oh_peak_row = max(history, key=lambda row: row["X_OH"])
+    initial_h2 = max(initial["X_H2"], 1.0e-300)
+    h2_conversion = max(0.0, (initial["X_H2"] - final["X_H2"]) / initial_h2)
+    h2o_gain = max(0.0, max_h2o - initial["X_H2O"])
+    max_temperature_rise = max_temperature - initial["T_K"]
+    final_temperature_change = final["T_K"] - initial["T_K"]
+
+    dtdt, tau_dtdt = positive_rate_peak(history, "T_K")
+    dohdt, tau_dohdt = positive_rate_peak(history, "X_OH")
+    dh2odt, tau_dh2odt = positive_rate_peak(history, "X_H2O")
+    h2_consumption_rate, tau_h2 = positive_rate_peak(history, "X_H2", sign=-1.0)
+
+    thermal_event = bool(max_temperature_rise >= 50.0 and (dtdt or 0.0) > 0.0)
+    chemical_event = bool(
+        h2_conversion >= 0.01
+        and (max_oh >= 1.0e-5 or h2o_gain >= 1.0e-4)
+        and ((h2_consumption_rate or 0.0) > 0.0)
+    )
+    if thermal_event:
+        tau, criterion = tau_dtdt, "maximum_dT_dt_after_50_K_rise"
+    elif chemical_event:
+        tau, criterion = tau_h2, "maximum_H2_consumption_rate_high_T"
+    else:
+        tau, criterion = None, "no_resolved_thermal_or_chemical_event"
+    ignited = bool(tau is not None and (thermal_event or chemical_event))
+    return {
+        "ignited": ignited,
+        "tau_s": tau,
+        "criterion": criterion,
+        "thermal_event": thermal_event,
+        "chemical_event": chemical_event,
+        "tau_dTdt_s": tau_dtdt,
+        "tau_dOHdt_s": tau_dohdt,
+        "tau_dH2Odt_s": tau_dh2odt,
+        "tau_H2_consumption_s": tau_h2,
+        "tau_OH_peak_s": oh_peak_row["time_s"],
+        "max_dT_dt_K_s": dtdt,
+        "max_dX_OH_dt_1_s": dohdt,
+        "max_dX_H2O_dt_1_s": dh2odt,
+        "max_H2_consumption_rate_1_s": h2_consumption_rate,
+        "max_X_OH": max_oh,
+        "H2_conversion": h2_conversion,
+        "H2O_gain": h2o_gain,
+        "max_delta_T_K": max_temperature_rise,
+        "final_delta_T_K": final_temperature_change,
+        "integrated_to_s": final["time_s"],
+        "steps": len(history) - 1,
+        "status": "ignited" if ignited else "no_ignition_within_horizon",
+    }
+
+
 def ignition_delay(
     ct: Any,
     temperature_k: float,
@@ -235,52 +318,34 @@ def ignition_delay(
     network = ct.ReactorNet([reactor])
     phase = reactor.thermo
     oh_index = phase.species_index("OH")
-    initial_t = float(phase.T)
-    previous_time = 0.0
-    previous_t = initial_t
-    peak_rate = -math.inf
-    peak_rate_time: Optional[float] = None
-    peak_oh = 0.0
-    peak_oh_time: Optional[float] = None
+    h2_index = phase.species_index("H2")
+    h2o_index = phase.species_index("H2O")
+    history = [{
+        "time_s": 0.0,
+        "T_K": float(phase.T),
+        "X_OH": float(phase.X[oh_index]),
+        "X_H2": float(phase.X[h2_index]),
+        "X_H2O": float(phase.X[h2o_index]),
+    }]
     sample_count = 800
     minimum_time = min(1.0e-12, max_time_s * 1.0e-8)
     log_lo = math.log(max(minimum_time, 1.0e-30))
     log_hi = math.log(max_time_s)
-    steps = 0
     for sample in range(1, sample_count + 1):
         fraction = sample / sample_count
         target = math.exp(log_lo + fraction * (log_hi - log_lo))
         network.advance(target)
         now = float(network.time)
-        temperature = float(phase.T)
-        oh = float(phase.X[oh_index])
-        dt = now - previous_time
-        if dt > 0.0:
-            rate = (temperature - previous_t) / dt
-            if rate > peak_rate:
-                peak_rate = rate
-                peak_rate_time = now
-        if oh > peak_oh:
-            peak_oh = oh
-            peak_oh_time = now
-        previous_time, previous_t = now, temperature
-        steps = sample
-        if temperature - initial_t >= 1000.0 and peak_rate_time is not None:
+        history.append({
+            "time_s": now,
+            "T_K": float(phase.T),
+            "X_OH": float(phase.X[oh_index]),
+            "X_H2": float(phase.X[h2_index]),
+            "X_H2O": float(phase.X[h2o_index]),
+        })
+        if history[-1]["T_K"] - history[0]["T_K"] >= 1000.0:
             break
-    delta_t = float(phase.T) - initial_t
-    ignited = bool(delta_t >= 50.0 and peak_rate_time is not None and peak_rate > 0.0)
-    return {
-        "ignited": ignited,
-        "tau_s": peak_rate_time if ignited else None,
-        "tau_OH_peak_s": peak_oh_time if ignited else None,
-        "criterion": "maximum_dT_dt_after_at_least_50_K_rise",
-        "max_dT_dt_K_s": peak_rate if math.isfinite(peak_rate) else None,
-        "max_X_OH": peak_oh,
-        "delta_T_K": delta_t,
-        "integrated_to_s": float(network.time),
-        "steps": steps,
-        "status": "ignited" if ignited else "no_ignition_within_horizon",
-    }
+    return classify_ignition_history(history)
 
 
 def bisect_root(function: Any, lo: float, hi: float, iterations: int = 48) -> Optional[float]:
@@ -497,10 +562,68 @@ def find_target_temperature(
     for temperature in range(800, 3501, 50):
         ignition = ignition_delay(ct, float(temperature), pressure_pa, horizon_s)
         tau = finite(ignition.get("tau_s"))
-        samples.append({"T_K": temperature, "tau_s": tau})
+        samples.append({
+            "T_K": temperature,
+            "tau_s": tau,
+            "criterion": ignition.get("criterion"),
+            "H2_conversion": ignition.get("H2_conversion"),
+            "max_X_OH": ignition.get("max_X_OH"),
+            "max_delta_T_K": ignition.get("max_delta_T_K"),
+        })
         if tau is not None and tau <= residence_s:
             return float(temperature), samples
     return None, samples
+
+
+def evaluate_recommended_condition(
+    ct: Any,
+    temperature0_k: float,
+    pressure0_pa: float,
+    default_pressure0_pa: float,
+    t1_fit: tuple[float, float],
+    t2_fit: tuple[float, float],
+    upstream_pressure_pa: float,
+    downstream_pressure_pa: float,
+    pre_residence_s: float,
+    post_residence_s: float,
+    ignition_horizon_s: float,
+) -> dict[str, Any]:
+    pressure_scale = pressure0_pa / default_pressure0_pa
+    predicted_t1 = t1_fit[0] * temperature0_k + t1_fit[1]
+    predicted_t2 = t2_fit[0] * temperature0_k + t2_fit[1]
+    predicted_p1 = upstream_pressure_pa * pressure_scale
+    predicted_p2 = downstream_pressure_pa * pressure_scale
+    horizon = max(ignition_horizon_s, 100.0 * pre_residence_s, 100.0 * post_residence_s)
+    pre_ignition = ignition_delay(ct, predicted_t1, predicted_p1, horizon)
+    post_ignition = ignition_delay(ct, predicted_t2, predicted_p2, horizon)
+    tau_pre = finite(pre_ignition.get("tau_s"))
+    tau_post = finite(post_ignition.get("tau_s"))
+    da_pre = safe_ratio(pre_residence_s, tau_pre)
+    da_post = safe_ratio(post_residence_s, tau_post)
+    pre_safe = da_pre is None or da_pre < 0.10
+    post_relevant = da_post is not None and da_post >= 0.10
+    if not pre_safe:
+        status = "pre_shock_ignition_risk"
+    elif not post_relevant:
+        status = "postshock_chemistry_too_slow"
+    else:
+        status = "shock_triggered_window_candidate"
+    return {
+        "p0_Pa": pressure0_pa,
+        "T0_K": temperature0_k,
+        "predicted_upstream_T_K": predicted_t1,
+        "predicted_downstream_T_K": predicted_t2,
+        "predicted_upstream_pressure_Pa": predicted_p1,
+        "predicted_downstream_pressure_Pa": predicted_p2,
+        "predicted_tau_pre_s": tau_pre,
+        "predicted_tau_post_s": tau_post,
+        "predicted_Da_pre": da_pre,
+        "predicted_Da_post": da_post,
+        "pre_ignition_criterion": pre_ignition.get("criterion"),
+        "post_ignition_criterion": post_ignition.get("criterion"),
+        "screen_status": status,
+        "passes_shock_triggered_window": pre_safe and post_relevant,
+    }
 
 
 def recommend_matrix(
@@ -519,70 +642,120 @@ def recommend_matrix(
         high_quality = [row for row in group if row.get("quality_for_fit")]
         fit_rows = high_quality if len(high_quality) >= 2 else group
         xs = [float(row["T0_K"]) for row in fit_rows if row.get("T0_K") is not None]
-        ys = [float(row["downstream_Ttr_K"]) for row in fit_rows if row.get("T0_K") is not None]
-        fit = linear_fit(xs, ys)
-        residence_values = [
+        t2_values = [float(row["downstream_Ttr_K"]) for row in fit_rows if row.get("T0_K") is not None]
+        t1_values = [float(row["upstream_Ttr_K"]) for row in fit_rows if row.get("T0_K") is not None]
+        t2_fit = linear_fit(xs, t2_values)
+        t1_fit = linear_fit(xs, t1_values)
+        post_residence_values = [
             float(row["post_shock_time_s"])
             for row in fit_rows
             if finite(row.get("post_shock_time_s")) is not None
         ]
-        pressure_values = [
+        pre_residence_values = [
+            float(row["pre_shock_time_s"])
+            for row in fit_rows
+            if finite(row.get("pre_shock_time_s")) is not None
+        ]
+        downstream_pressure_values = [
             float(row["downstream_pressure_Pa"])
             for row in fit_rows
             if finite(row.get("downstream_pressure_Pa")) is not None
+        ]
+        upstream_pressure_values = [
+            float(row["upstream_pressure_Pa"])
+            for row in fit_rows
+            if finite(row.get("upstream_pressure_Pa")) is not None
         ]
         diagnostic: dict[str, Any] = {
             "pb_over_p0": ratio,
             "fit_case_count": len(fit_rows),
             "used_high_quality_subset": len(high_quality) >= 2,
         }
-        if fit is None or not residence_values or not pressure_values:
+        if (
+            t2_fit is None or t1_fit is None
+            or not post_residence_values or not pre_residence_values
+            or not downstream_pressure_values or not upstream_pressure_values
+        ):
             diagnostic["status"] = "insufficient_steady_shock_data"
             branch_diagnostics.append(diagnostic)
             continue
-        slope, intercept = fit
-        residence = statistics.median(residence_values)
-        downstream_pressure = statistics.median(pressure_values)
-        horizon = max(ignition_horizon_s, 100.0 * residence)
-        target_t2, ignition_scan = find_target_temperature(ct, downstream_pressure, residence, horizon)
+        t2_slope, t2_intercept = t2_fit
+        pre_residence = statistics.median(pre_residence_values)
+        post_residence = statistics.median(post_residence_values)
+        downstream_pressure = statistics.median(downstream_pressure_values)
+        upstream_pressure = statistics.median(upstream_pressure_values)
+        horizon = max(ignition_horizon_s, 100.0 * pre_residence, 100.0 * post_residence)
+        target_t2, ignition_scan = find_target_temperature(
+            ct, downstream_pressure, post_residence, horizon
+        )
         diagnostic.update({
-            "T2_fit_slope_K_per_K": slope,
-            "T2_fit_intercept_K": intercept,
-            "representative_post_shock_residence_s": residence,
+            "T1_fit_slope_K_per_K": t1_fit[0],
+            "T1_fit_intercept_K": t1_fit[1],
+            "T2_fit_slope_K_per_K": t2_slope,
+            "T2_fit_intercept_K": t2_intercept,
+            "representative_pre_shock_residence_s": pre_residence,
+            "representative_post_shock_residence_s": post_residence,
+            "representative_upstream_pressure_Pa": upstream_pressure,
             "representative_downstream_pressure_Pa": downstream_pressure,
             "target_post_shock_T_K_for_Da_ge_1": target_t2,
             "ignition_scan": ignition_scan,
         })
-        if target_t2 is None or slope <= 0.0:
+        if target_t2 is None or t2_slope <= 0.0:
             diagnostic["status"] = "no_Da_one_target_below_3500_K"
             branch_diagnostics.append(diagnostic)
             continue
-        required_t0 = (target_t2 - intercept) / slope
+        required_t0 = (target_t2 - t2_intercept) / t2_slope
         required_t0 = max(1750.0, min(3500.0, required_t0))
         candidates = sorted({
             max(1750.0, min(3500.0, round_to(required_t0 * factor, 25.0)))
             for factor in (0.90, 1.00, 1.10)
         })
-        diagnostic["estimated_T0_K_for_Da_one"] = required_t0
-        diagnostic["status"] = "recommended_screen_branch"
-        branch_diagnostics.append(diagnostic)
+        evaluated: list[dict[str, Any]] = []
         for temperature in candidates:
-            recommendations.append({
+            screen = evaluate_recommended_condition(
+                ct, temperature, default_p0_pa, default_p0_pa,
+                t1_fit, t2_fit, upstream_pressure, downstream_pressure,
+                pre_residence, post_residence, ignition_horizon_s,
+            )
+            screen["pb_over_p0"] = ratio
+            evaluated.append(screen)
+            if screen["passes_shock_triggered_window"]:
+                recommendations.append({
                 "p0_Pa": default_p0_pa,
                 "T0_K": temperature,
                 "pb_over_p0": ratio,
                 "chemistry": "ON",
                 "purpose": "bracket_postshock_Da_ind_near_one",
                 "basis": "linear_T2_vs_T0_fit_plus_Cantera_constant_volume_ignition",
+                "predicted_Da_pre": screen["predicted_Da_pre"],
+                "predicted_Da_post": screen["predicted_Da_post"],
+                })
+        pressure_screen = evaluate_recommended_condition(
+            ct, round_to(required_t0, 25.0), 2.0 * default_p0_pa, default_p0_pa,
+            t1_fit, t2_fit, upstream_pressure, downstream_pressure,
+            pre_residence, post_residence, ignition_horizon_s,
+        )
+        pressure_screen["pb_over_p0"] = ratio
+        evaluated.append(pressure_screen)
+        if pressure_screen["passes_shock_triggered_window"]:
+            recommendations.append({
+                "p0_Pa": 2.0 * default_p0_pa,
+                "T0_K": round_to(required_t0, 25.0),
+                "pb_over_p0": ratio,
+                "chemistry": "ON",
+                "purpose": "pressure_sensitivity_at_predicted_transition",
+                "basis": "kinetic_sensitivity_control; DSMC similarity must be recomputed",
+                "predicted_Da_pre": pressure_screen["predicted_Da_pre"],
+                "predicted_Da_post": pressure_screen["predicted_Da_post"],
             })
-        recommendations.append({
-            "p0_Pa": 2.0 * default_p0_pa,
-            "T0_K": round_to(required_t0, 25.0),
-            "pb_over_p0": ratio,
-            "chemistry": "ON",
-            "purpose": "pressure_sensitivity_at_predicted_transition",
-            "basis": "kinetic_sensitivity_control; not a substitute for recomputing DSMC similarity",
-        })
+        diagnostic["estimated_T0_K_for_Da_one"] = required_t0
+        diagnostic["evaluated_candidates"] = evaluated
+        diagnostic["status"] = (
+            "recommended_screen_branch"
+            if any(item["passes_shock_triggered_window"] for item in evaluated)
+            else "no_pre_safe_shock_triggered_window_in_candidate_set"
+        )
+        branch_diagnostics.append(diagnostic)
     unique: list[dict[str, Any]] = []
     keys: set[tuple[float, float, float]] = set()
     for row in recommendations:
@@ -697,6 +870,29 @@ def self_test() -> None:
     assert fit is not None and abs(fit[0] - 0.6) < 1.0e-12
     assert abs((fit[1])) < 1.0e-9
     assert safe_ratio(2.0, 4.0) == 0.5
+    thermal_history = [
+        {"time_s": 0.0, "T_K": 1000.0, "X_OH": 0.0, "X_H2": 0.33, "X_H2O": 0.0},
+        {"time_s": 1.0e-6, "T_K": 1010.0, "X_OH": 1.0e-6, "X_H2": 0.329, "X_H2O": 1.0e-5},
+        {"time_s": 2.0e-6, "T_K": 1200.0, "X_OH": 1.0e-3, "X_H2": 0.25, "X_H2O": 0.05},
+    ]
+    thermal = classify_ignition_history(thermal_history)
+    assert thermal["ignited"] and thermal["thermal_event"]
+    assert thermal["criterion"] == "maximum_dT_dt_after_50_K_rise"
+    high_temperature_history = [
+        {"time_s": 0.0, "T_K": 3500.0, "X_OH": 0.0, "X_H2": 0.33, "X_H2O": 0.0},
+        {"time_s": 1.0e-8, "T_K": 3495.0, "X_OH": 2.0e-4, "X_H2": 0.30, "X_H2O": 2.0e-3},
+        {"time_s": 2.0e-8, "T_K": 3480.0, "X_OH": 1.0e-3, "X_H2": 0.20, "X_H2O": 0.04},
+    ]
+    high_temperature = classify_ignition_history(high_temperature_history)
+    assert high_temperature["ignited"] and high_temperature["chemical_event"]
+    assert not high_temperature["thermal_event"]
+    assert high_temperature["criterion"] == "maximum_H2_consumption_rate_high_T"
+    inert_history = [
+        {"time_s": 0.0, "T_K": 800.0, "X_OH": 0.0, "X_H2": 0.33, "X_H2O": 0.0},
+        {"time_s": 1.0e-3, "T_K": 800.001, "X_OH": 1.0e-12, "X_H2": 0.3299999, "X_H2O": 1.0e-10},
+    ]
+    inert = classify_ignition_history(inert_history)
+    assert not inert["ignited"] and inert["tau_s"] is None
     print("QK_GATE5_PHYSICS_PRESCREEN_SELF_TEST_PASS")
 
 
