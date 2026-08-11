@@ -4,7 +4,7 @@ set -euo pipefail
 BASE=/project/pi_roohie_umass_edu/Combustion/QK_GATE5_COUPLED
 BASE_BUNDLE_REF=b831b4e4205aa0ad0660dcdc02a7ce0805642a8e
 BASE_BUNDLE_SHA=520d455608f77e3408067de25482dd3a14ed7392322c51443d60c0bc469efffc
-OVERLAY_REF=cb6be14c07df724515dccaebfe43759cb7ceab84
+OVERLAY_REF=3c7830148b6ec7c4984fd204591d3329c1478721
 RAW_BASE="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/$BASE_BUNDLE_REF/qk_gate5_shock_ignition_screen_bundle"
 RAW_OVERLAY="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/$OVERLAY_REF/qk_gate5_geometry_preflight"
 TMP_GEOMETRY="$(mktemp -d)"
