@@ -59,3 +59,29 @@ def test_architecture_output_shape(architecture):
     value = model(torch.zeros(2, 7, 20, 20))
     assert value.shape == (2, 2, 20, 20)
     assert torch.isfinite(value).all()
+
+def test_metric_tree_comparison_tolerates_only_cpu_reduction_roundoff():
+    left = {
+        "raw_composite_nrmse": 0.125,
+        "per_field": {
+            "T": {"raw_nrmse": 0.25, "ratio": float("nan")},
+            "u": {"raw_nrmse": 0.5, "ratio": 1.0},
+        },
+        "label": "raw",
+    }
+    roundoff = {
+        "raw_composite_nrmse": 0.12500000001,
+        "per_field": {
+            "T": {"raw_nrmse": 0.25000000002, "ratio": float("nan")},
+            "u": {"raw_nrmse": 0.50000000003, "ratio": 1.0},
+        },
+        "label": "raw",
+    }
+    changed = {
+        **roundoff,
+        "raw_composite_nrmse": 0.126,
+    }
+
+    assert screen._metrics_equivalent(left, roundoff)
+    assert not screen._metrics_equivalent(left, changed)
+
