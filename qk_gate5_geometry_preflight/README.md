@@ -35,7 +35,7 @@ Run the immutable submitter as a child Bash process on a Unity login node.
 Do not `source` it.
 
 ```bash
-__UNITY_COMMAND__
+bash <(curl -fsSL "https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/2ab68aa57904c9b2adf6b204b05b89e0448f8885/qk_gate5_geometry_preflight/submit_qk_gate5_geometry_preflight_unity.sh")
 ```
 
 The job IDs and output directory are written to:
