@@ -114,3 +114,70 @@ def test_verified_summary_rejects_incomplete_or_unverified_inputs(tmp_path):
         assert "checks" in str(exc)
     else:
         raise AssertionError("false MV7 check should be rejected")
+
+
+def test_physical_temperature_figure_contains_absolute_fields_and_percent_errors(tmp_path):
+    mv7_root = tmp_path / "mv7"
+    mv6_root = tmp_path / "mv6"
+    condition = "kn0p1_u400"
+    identity_condition = np.asarray([condition])
+    identity_numeric = np.asarray([[0.1, 400.0, 94301.0]])
+    y, x = np.mgrid[0:1:20j, 0:1:20j]
+    temperature = (300.0 + 100.0 * y**2 + 12.0 * x)[None, None].astype(np.float32)
+    velocity = np.zeros_like(temperature)
+    target = np.concatenate((temperature, velocity), axis=1)
+
+    for budget, noise in ((1, 5.0), (10, 1.5)):
+        directory = mv7_root / "baselines" / f"budget_{budget}"
+        directory.mkdir(parents=True)
+        raw = target.copy()
+        raw[:, 0] += noise * np.sin(8.0 * x)[None]
+        np.savez_compressed(
+            directory / "predictions.npz",
+            identity_condition=identity_condition,
+            identity_numeric=identity_numeric,
+            target=target,
+            raw=raw,
+            gaussian_like=target + 0.6,
+            tsvd_pod_type=target - 0.4,
+        )
+
+    for architecture_index, architecture in enumerate(publication.ARCHITECTURES):
+        for seed_index, seed in enumerate(publication.TRAINING_SEEDS):
+            directory = mv6_root / "tasks" / architecture / f"training_seed_{seed}"
+            directory.mkdir(parents=True)
+            prediction = target + (architecture_index + seed_index + 1) * 0.08
+            np.savez_compressed(
+                directory / "predictions.npz",
+                identity_condition=identity_condition,
+                identity_numeric=identity_numeric,
+                target=target,
+                architecture_prediction=prediction,
+            )
+
+    publication.configure_matplotlib()
+    names, rows = publication.temperature_physical_figure(
+        tmp_path, mv7_root, mv6_root, condition
+    )
+    assert len(names) == 2
+    assert len(rows) == len(publication.PHYSICAL_COLUMN_SPECS)
+    assert any(row["column_key"] == "raw_b10" for row in rows)
+    assert all((tmp_path / name).is_file() and (tmp_path / name).stat().st_size > 1000 for name in names)
+
+
+def test_completed_budget_one_benchmark_is_reused(tmp_path):
+    directory = tmp_path / "publication_suite_20260812T014102Z"
+    directory.mkdir()
+    record = {
+        "status": "complete_MV7_reused_budget_one_inference_timing_closure",
+        "records": [
+            {"architecture": architecture, "training_seed": seed}
+            for architecture in publication.ARCHITECTURES
+            for seed in publication.TRAINING_SEEDS
+        ],
+    }
+    path = directory / "mv7_b1_inference_cost_closure.json"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    reused = publication.reusable_budget_one_benchmark(tmp_path)
+    assert reused is not None
+    assert reused["reused_from"] == str(path)
