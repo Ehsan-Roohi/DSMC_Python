@@ -17,6 +17,7 @@ from docx.shared import Inches, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results" / "production_62778322"
+REPORT_ASSETS = Path(__file__).resolve().parent / "assets"
 OUTPUT = Path(__file__).resolve().parent / "SPARTA_Lid_Driven_Cavity_Tutorial.docx"
 GITHUB_URL = (
     "https://github.com/Ehsan-Roohi/DSMC_Python/tree/"
@@ -497,7 +498,9 @@ sacct -X -j "${BUILD_JOB_ID},${ARRAY_JOB_ID}" \\
     figure = doc.add_paragraph()
     figure.alignment = WD_ALIGN_PARAGRAPH.CENTER
     figure.paragraph_format.keep_with_next = True
-    figure.add_run().add_picture(str(RESULTS / "ensemble_lid_profiles.png"), width=Inches(6.45))
+    figure.add_run().add_picture(
+        str(REPORT_ASSETS / "ensemble_lid_profiles_report.jpg"), width=Inches(6.45)
+    )
     caption = doc.add_paragraph()
     caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     caption.paragraph_format.keep_with_next = False
@@ -510,7 +513,9 @@ sacct -X -j "${BUILD_JOB_ID},${ARRAY_JOB_ID}" \\
     figure = doc.add_paragraph()
     figure.alignment = WD_ALIGN_PARAGRAPH.CENTER
     figure.paragraph_format.keep_with_next = True
-    figure.add_run().add_picture(str(RESULTS / "ensemble_fields.png"), width=Inches(6.45))
+    figure.add_run().add_picture(
+        str(REPORT_ASSETS / "ensemble_fields_report.jpg"), width=Inches(6.45)
+    )
     caption = doc.add_paragraph()
     caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     caption.paragraph_format.space_after = Pt(8)
