@@ -1,0 +1,79 @@
+{
+  "artifact_id": 9149082510,
+  "artifact_size_bytes": 353090,
+  "artifact_sha256": "a83c09039e956a47f4d18a86db5f2541fe622b9405bb9b09266c4c2d54f1cd7e",
+  "axis_conditioned_asymmetry_maps_sha256": "78b8173d81eaf2523791201690d6464295b8aa65413d9ccb3eb2c2215ac85407",
+  "decision": "stage111_x_axis_asymmetry_coupled_stage112_axis_specific_spatial_audit",
+  "finite": true,
+  "max_parent_closure_relative_l2": 1.049760144141626e-15,
+  "metrics": {
+    "common_axis_coupling": {
+      "x": {
+        "pearson": 0.5947263777420785,
+        "spearman": 0.8169117257050571,
+        "upper_to_lower_mean_amplitude_ratio": 3.336300239702585,
+        "upper_severity_quartile_amplitude_share": 0.4168515470230206
+      },
+      "y": {
+        "pearson": 0.19332978642534565,
+        "spearman": -0.029940873742411493,
+        "upper_to_lower_mean_amplitude_ratio": 1.32820989390207,
+        "upper_severity_quartile_amplitude_share": 0.32070495773528046
+      }
+    },
+    "phi": {
+      "x": {
+        "mean_relative_asymmetry": 0.04582884892159126,
+        "mean_same_sign_support_weight_fraction": 0.9815455274035717,
+        "weighted_change_share": 0.4572198903621674,
+        "spearman": 0.6524774835634927,
+        "upper_to_lower_mean_amplitude_ratio": 2.4717982930851448
+      },
+      "y": {
+        "mean_relative_asymmetry": 0.03293872127240641,
+        "mean_same_sign_support_weight_fraction": 0.992518925583139,
+        "weighted_change_share": 0.5427801096378326,
+        "spearman": 0.28772298315865524,
+        "upper_to_lower_mean_amplitude_ratio": 1.9388645927810972
+      }
+    },
+    "psi": {
+      "x": {
+        "mean_relative_asymmetry": 0.03976755138318209,
+        "mean_same_sign_support_weight_fraction": 0.9855227962272068,
+        "weighted_change_share": 0.48532122032708375,
+        "spearman": 0.8891624384217938,
+        "upper_to_lower_mean_amplitude_ratio": 4.537659855888967
+      },
+      "y": {
+        "mean_relative_asymmetry": 0.027164268148371314,
+        "mean_same_sign_support_weight_fraction": 0.9970137797904427,
+        "weighted_change_share": 0.5146787796729162,
+        "spearman": -0.14959511769596226,
+        "upper_to_lower_mean_amplitude_ratio": 1.0819580055673423
+      }
+    }
+  },
+  "negative_result_guard": "Stage 111 is a frozen axis-conditioned association audit only. The x-axis same-sign relative-asymmetry maps satisfy the preregistered rank and quartile-amplitude guards for both phi and psi while the y-axis maps do not, but x does not dominate the raw same-sign weighted-change magnitude. This is directional diagnostic organization, not limiter causality, nonlinear stability, endpoint convergence, heat-flux improvement, benchmark improvement, or validation. Stage 110 remains confounded by same-sign gradient strength; Stage 99 remains a negative cross-run reproducibility result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; the Stage-89 one-sided boundary slope remains unpromoted. No failed parameter is retuned and no cross-Knudsen MUSCL extension is permitted.",
+  "record_type": "completed_axis_conditioned_asymmetry_audit",
+  "scientific_conclusion": "The Stage-110 association is strongly axis-conditioned. For the common map, x-axis relative asymmetry has Spearman 0.8169117257050571 and an upper/lower severity-quartile mean growth-amplitude ratio of 3.336300239702585, while y gives Spearman -0.029940873742411493 and ratio 1.32820989390207. The same pattern is independently present in phi (x Spearman 0.6524774835634927, ratio 2.4717982930851448) and psi (x Spearman 0.8891624384217938, ratio 4.537659855888967). Because the x share of raw same-sign change is only 0.4572198903621674 for phi and 0.48532122032708375 for psi, the result is not simple x-magnitude dominance. The preregistered next step is a fixed Stage-112 x-axis-specific spatial localization audit, without solver reruns or retuning.",
+  "source_head": "77436ab44b19f634e29913ed66841243675606e0",
+  "stage": 111,
+  "stage110_authorization": {
+    "decision": "stage110_relative_same_sign_asymmetry_coupled_stage111_axis_conditioned_asymmetry_audit",
+    "common_relative_asymmetry_spearman": 0.6201807573555144,
+    "phi_relative_asymmetry_spearman": 0.5516932672324791,
+    "psi_relative_asymmetry_spearman": 0.6159981356808094
+  },
+  "summary_sha256": "93cff62b97e29e7ad5600b7b0c26b5b39bd3f71517e70c15447c95be239f5a77",
+  "tests": {
+    "failed": 0,
+    "passed": 194,
+    "runtime_seconds": 0.99,
+    "total": 194
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 94092631513,
+  "workflow_run_id": 31590035358,
+  "workflow_status": "completed"
+}
