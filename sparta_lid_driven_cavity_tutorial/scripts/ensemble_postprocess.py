@@ -176,19 +176,58 @@ def ensemble(run_dirs: list[Path], output: Path, window: int = 11) -> dict[str, 
     speed_display = np.sqrt(u_display**2 + v_display**2)
     xnorm = x / length
     ynorm = y / length
-    xmesh, ymesh = np.meshgrid(xnorm, ynorm)
-    fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.25), constrained_layout=True)
-    image = axes[0].pcolormesh(xmesh, ymesh, temp_display, shading="auto", cmap="inferno")
-    axes[0].streamplot(xnorm, ynorm, u_display, v_display, color="white", density=1.05, linewidth=0.45)
-    fig.colorbar(image, ax=axes[0], label="Temperature [K]")
-    image = axes[1].pcolormesh(xmesh, ymesh, speed_display, shading="auto", cmap="viridis")
-    skip = max(1, len(x) // 24)
-    axes[1].quiver(xmesh[::skip, ::skip], ymesh[::skip, ::skip], u_display[::skip, ::skip], v_display[::skip, ::skip], color="white", alpha=0.75, scale=800)
-    fig.colorbar(image, ax=axes[1], label="Speed [m/s]")
-    for axis in axes:
-        axis.set(xlabel=r"$x/L$", ylabel=r"$y/L$", aspect="equal")
-    fig.savefig(output / "ensemble_fields.png", dpi=260)
-    fig.savefig(output / "ensemble_fields.pdf")
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(10.0, 4.35),
+        sharex=True,
+        sharey=True,
+        constrained_layout=True,
+    )
+    field_specs = (
+        (temp_display, "inferno", "Temperature [K]"),
+        (speed_display, "viridis", "Speed [m/s]"),
+    )
+    for axis, (field, cmap, colorbar_label) in zip(axes, field_specs):
+        # The dump coordinates are cell centers.  A fixed image extent fills the
+        # complete physical cavity and avoids artificial white strips at x/L=1
+        # or y/L=1.  Both panels show the same continuous streamline topology.
+        image = axis.imshow(
+            field,
+            origin="lower",
+            extent=(0.0, 1.0, 0.0, 1.0),
+            interpolation="nearest",
+            cmap=cmap,
+            aspect="equal",
+        )
+        stream = axis.streamplot(
+            xnorm,
+            ynorm,
+            u_display,
+            v_display,
+            color="white",
+            density=1.08,
+            linewidth=0.52,
+            arrowsize=0.72,
+            minlength=0.08,
+            maxlength=4.0,
+            zorder=3,
+        )
+        stream.lines.set_alpha(0.88)
+        stream.arrows.set_alpha(0.88)
+        axis.set(
+            xlabel=r"$x/L$",
+            ylabel=r"$y/L$",
+            xlim=(0.0, 1.0),
+            ylim=(0.0, 1.0),
+            aspect="equal",
+        )
+        axis.set_xticks(np.linspace(0.0, 1.0, 6))
+        axis.set_yticks(np.linspace(0.0, 1.0, 6))
+        axis.tick_params(labelleft=True)
+        fig.colorbar(image, ax=axis, label=colorbar_label, fraction=0.047, pad=0.035)
+    fig.savefig(output / "ensemble_fields.png", dpi=250, bbox_inches="tight", pad_inches=0.02)
+    fig.savefig(output / "ensemble_fields.pdf", bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
 
     print(json.dumps(summary, indent=2, sort_keys=True))

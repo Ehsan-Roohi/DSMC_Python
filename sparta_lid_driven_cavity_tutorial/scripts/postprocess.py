@@ -209,19 +209,57 @@ def process(run_dir: Path, window: int = 11) -> dict[str, object]:
         temp_display = gaussian_filter(temperature, sigma=sigma, mode="nearest")
         u_stream = gaussian_filter(u, sigma=sigma, mode="nearest")
         v_stream = gaussian_filter(v, sigma=sigma, mode="nearest")
-        xx, yy = np.meshgrid(x / length, y / length)
-        fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.25), constrained_layout=True)
-        image = axes[0].pcolormesh(xx, yy, temp_display, shading="auto", cmap="inferno")
-        axes[0].streamplot(x / length, y / length, u_stream, v_stream, color="white", density=1.0, linewidth=0.45)
-        fig.colorbar(image, ax=axes[0], label="Temperature [K]")
         speed_display = np.sqrt(u_stream**2 + v_stream**2)
-        image = axes[1].pcolormesh(xx, yy, speed_display, shading="auto", cmap="viridis")
-        skip = max(1, len(x) // 24)
-        axes[1].quiver(xx[::skip, ::skip], yy[::skip, ::skip], u_stream[::skip, ::skip], v_stream[::skip, ::skip], color="white", alpha=0.75, scale=800)
-        fig.colorbar(image, ax=axes[1], label="Speed [m/s]")
-        for axis in axes:
-            axis.set(xlabel=r"$x/L$", ylabel=r"$y/L$", aspect="equal")
-        fig.savefig(run_dir / "fields.png", dpi=240)
+        xnorm = x / length
+        ynorm = y / length
+        fig, axes = plt.subplots(
+            1,
+            2,
+            figsize=(10.0, 4.35),
+            sharex=True,
+            sharey=True,
+            constrained_layout=True,
+        )
+        field_specs = (
+            (temp_display, "inferno", "Temperature [K]"),
+            (speed_display, "viridis", "Speed [m/s]"),
+        )
+        for axis, (field, cmap, colorbar_label) in zip(axes, field_specs):
+            image = axis.imshow(
+                field,
+                origin="lower",
+                extent=(0.0, 1.0, 0.0, 1.0),
+                interpolation="nearest",
+                cmap=cmap,
+                aspect="equal",
+            )
+            stream = axis.streamplot(
+                xnorm,
+                ynorm,
+                u_stream,
+                v_stream,
+                color="white",
+                density=1.08,
+                linewidth=0.52,
+                arrowsize=0.72,
+                minlength=0.08,
+                maxlength=4.0,
+                zorder=3,
+            )
+            stream.lines.set_alpha(0.88)
+            stream.arrows.set_alpha(0.88)
+            axis.set(
+                xlabel=r"$x/L$",
+                ylabel=r"$y/L$",
+                xlim=(0.0, 1.0),
+                ylim=(0.0, 1.0),
+                aspect="equal",
+            )
+            axis.set_xticks(np.linspace(0.0, 1.0, 6))
+            axis.set_yticks(np.linspace(0.0, 1.0, 6))
+            axis.tick_params(labelleft=True)
+            fig.colorbar(image, ax=axis, label=colorbar_label, fraction=0.047, pad=0.035)
+        fig.savefig(run_dir / "fields.png", dpi=240, bbox_inches="tight", pad_inches=0.02)
         plt.close(fig)
     except ImportError:
         summary["plot_note"] = "Install requirements.txt to create PNG figures."
@@ -244,4 +282,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

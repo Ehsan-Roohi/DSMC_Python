@@ -520,7 +520,7 @@ sacct -X -j "${BUILD_JOB_ID},${ARRAY_JOB_ID}" \\
     caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
     caption.paragraph_format.space_after = Pt(8)
     run = caption.add_run(
-        "Figure 2. Ensemble-mean temperature with streamlines (left) and speed with velocity vectors (right). A sigma-one-cell filter is used only for display."
+        "Figure 2. Ensemble-mean temperature (left) and speed (right), both with continuous streamlines. A sigma-one-cell filter is used only for display."
     )
     set_run_font(run, size=9, color=MUTED, italic=True)
 
