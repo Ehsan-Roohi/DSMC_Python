@@ -7,6 +7,10 @@ artifact.
 
 The submitted job creates:
 
+- four two-row physical-temperature contour figures, one for every locked
+  condition. The upper row shows the actual temperature field for Reference,
+  budget-one Raw/Gaussian/TSVD/four neural models, and Raw@B=10; the lower row
+  shows signed relative error in percent;
 - a two-panel sampling-accuracy and Raw-equivalent-efficiency figure;
 - a four-panel non-inferiority forest figure with the locked one-sided 95%
   upper bounds and 10% margin;
@@ -14,6 +18,8 @@ The submitted job creates:
 - an FNO diagnostic based on absolute boundary/interior MSE and radial error
   spectra, avoiding a misleading boundary/interior-ratio-only presentation;
 - a CPU benchmark that closes the missing reused-MV6 `B=1` inference timing;
+  a completed timing closure from the same immutable MV7 root is reused by
+  default so a figure-only rerun does not repeat the long benchmark;
 - vector PDF, 600-dpi PNG, CSV/JSON provenance, SHA256 checksums, and a compact
   ZIP archive.
 
