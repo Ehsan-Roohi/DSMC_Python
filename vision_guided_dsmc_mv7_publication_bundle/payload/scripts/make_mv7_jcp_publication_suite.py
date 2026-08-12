@@ -190,17 +190,29 @@ def scalar_identity(value: np.ndarray | object) -> str:
     return ",".join(str(item) for item in array.reshape(-1).tolist())
 
 
-def condition_index(data: Mapping[str, np.ndarray], condition: str, identity: str | None = None) -> int:
+def evaluation_seed(value: np.ndarray | object) -> str:
+    array = np.asarray(value).reshape(-1)
+    if len(array) == 0:
+        raise ValueError("Evaluation identity is empty")
+    seed = array[0].item()
+    if isinstance(seed, (int, np.integer)):
+        return str(int(seed))
+    if isinstance(seed, (float, np.floating)) and np.isfinite(seed) and float(seed).is_integer():
+        return str(int(seed))
+    return str(seed)
+
+
+def condition_index(data: Mapping[str, np.ndarray], condition: str, seed: str | None = None) -> int:
     labels = np.asarray(data["identity_condition"]).astype(str)
     matches = np.flatnonzero(labels == condition)
-    if identity is not None:
+    if seed is not None:
         identities = np.asarray(data["identity_numeric"])
         matches = np.asarray(
-            [index for index in matches if scalar_identity(identities[index]) == identity],
+            [index for index in matches if evaluation_seed(identities[index]) == seed],
             dtype=int,
         )
     if len(matches) == 0:
-        suffix = "" if identity is None else f" with identity {identity}"
+        suffix = "" if seed is None else f" with evaluation seed {seed}"
         raise ValueError(f"Condition {condition}{suffix} is absent from predictions")
     return int(matches[0])
 
@@ -229,13 +241,14 @@ def load_temperature_payload(
     with np.load(baseline_b1, allow_pickle=False) as data:
         index = condition_index(data, condition)
         identity = scalar_identity(np.asarray(data["identity_numeric"])[index])
+        evaluation_seed_id = evaluation_seed(np.asarray(data["identity_numeric"])[index])
         payload["reference"] = np.asarray(data["target"][index, 0], dtype=np.float64)
         payload["raw_b1"] = np.asarray(data["raw"][index, 0], dtype=np.float64)
         payload["gaussian_b1"] = np.asarray(data["gaussian_like"][index, 0], dtype=np.float64)
         payload["tsvd_b1"] = np.asarray(data["tsvd_pod_type"][index, 0], dtype=np.float64)
 
     with np.load(baseline_b10, allow_pickle=False) as data:
-        index = condition_index(data, condition, identity)
+        index = condition_index(data, condition, evaluation_seed_id)
         target_b10 = np.asarray(data["target"][index, 0], dtype=np.float64)
         if not np.array_equal(target_b10, payload["reference"]):
             raise ValueError(f"Reference temperature changed between B=1 and B=10 for {condition}")
@@ -243,12 +256,12 @@ def load_temperature_payload(
 
     for architecture in ARCHITECTURES:
         predictions: list[np.ndarray] = []
-        for seed in TRAINING_SEEDS:
-            path = prediction_path(mv7_root, mv6_root, 1, architecture, seed)
+        for training_seed in TRAINING_SEEDS:
+            path = prediction_path(mv7_root, mv6_root, 1, architecture, training_seed)
             if not path.is_file():
                 raise FileNotFoundError(f"MV6 reused B=1 prediction is absent: {path}")
             with np.load(path, allow_pickle=False) as data:
-                index = condition_index(data, condition, identity)
+                index = condition_index(data, condition, evaluation_seed_id)
                 target = np.asarray(data["target"][index, 0], dtype=np.float64)
                 if not np.array_equal(target, payload["reference"]):
                     raise ValueError(f"Neural reference identity changed in {path}")
