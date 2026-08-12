@@ -14,7 +14,11 @@ set -euo pipefail
 
 REPO_ROOT="${MV7_REPO_ROOT:?exported by installer}"
 cd "${REPO_ROOT}"
+# The saved MV7 job file contains shell assignments.  Export them while sourcing
+# so the Python postprocessor can read the paths through os.environ.
+set -a
 source LAST_MOHAMMADZADEH_MV7_JCP_JOB.env
+set +a
 
 : "${MV7_OUTPUT_ROOT:?MV7_OUTPUT_ROOT is absent}"
 : "${MV7_MV6_ROOT:?MV7_MV6_ROOT is absent}"
