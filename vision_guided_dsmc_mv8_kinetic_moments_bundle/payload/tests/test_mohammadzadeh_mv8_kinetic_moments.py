@@ -97,6 +97,40 @@ def test_merging_additive_blocks_recovers_full_payload():
         assert np.array_equal(merged[name], full[name])
 
 
+def test_block_full_audit_is_fixed_scale_at_momentum_zero_crossings():
+    full = synthetic_payload(samples=10)
+    merged = {
+        name: value.copy() if isinstance(value, np.ndarray) else value
+        for name, value in full.items()
+    }
+    full["m1"][0, 2] = 0.0
+    merged["m1"][0, 2] = 2.0e-10
+    audit = mv8.additive_payload_agreement(merged, full)
+    assert audit["sample_count_match"] is True
+    assert audit["components"]["m1"]["absolute_linf"] == 2.0e-10
+    assert audit["maximum_relative_linf"] < 1.0e-9
+
+    structural = {
+        name: value.copy() if isinstance(value, np.ndarray) else value
+        for name, value in full.items()
+    }
+    structural["m1"] *= 1.001
+    structural_audit = mv8.additive_payload_agreement(structural, full)
+    assert structural_audit["maximum_relative_linf"] > 1.0e-4
+
+
+def test_block_full_audit_reports_sample_count_mismatch_without_crashing():
+    full = synthetic_payload(samples=10)
+    merged = {
+        name: value.copy() if isinstance(value, np.ndarray) else value
+        for name, value in full.items()
+    }
+    merged["samples"] = 9
+    audit = mv8.additive_payload_agreement(merged, full)
+    assert audit["sample_count_match"] is False
+    assert audit["maximum_relative_linf"] == 0.0
+
+
 def test_componentwise_metric_is_scale_safe_at_zero_crossings():
     y = np.ones((3, 4, 5, 5), dtype=np.float32)
     y[:, 2:, :, 2] = 0.0
@@ -134,4 +168,10 @@ def test_protocol_is_explicitly_exploratory_and_forbids_local_percent_error():
     assert protocol["status"] == mv8.STATUS
     assert protocol["scientific_role"]["classification"].startswith("exploratory_")
     assert protocol["moment_contract"]["local_percent_error_forbidden"] is True
+    assert (
+        protocol["pre_model_feasibility_gates"][
+            "block_full_additive_moment_fixed_scale_relative_linf_tolerance"
+        ]
+        == 1.0e-9
+    )
     assert protocol["execution_matrix"]["model_tasks"] == 6

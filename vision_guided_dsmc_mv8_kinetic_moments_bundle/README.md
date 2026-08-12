@@ -18,6 +18,13 @@ covariance, and requires the development-only Raw `B=10` estimate to improve
 on Raw `B=1`. If that information gate fails, the six neural tasks record a
 guarded skip and the postprocessor still returns an audit archive.
 
+The block/full accumulator audit uses a locked fixed-global-scale relative
+L-infinity tolerance. This avoids false failures at momentum zero crossings
+caused only by a different floating-point addition order. The per-component
+differences and the tolerance are written to the source audit and summary. A
+genuine mismatch holds the model gate and returns an audit-only ZIP; it never
+silently trains on an invalid block partition.
+
 If the gate passes, the bundle trains NAFNet-Small and MambaIRv2-Tiny adapted
 with three locked initialization seeds at `B=1`, evaluates all four
 confirmatory conditions against paired Raw `B=10`, and creates four

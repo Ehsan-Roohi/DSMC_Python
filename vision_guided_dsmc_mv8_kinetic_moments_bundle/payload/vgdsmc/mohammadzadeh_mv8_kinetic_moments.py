@@ -45,6 +45,14 @@ ARCHITECTURES = ("nafnet_small", "mambairv2_tiny_adapted")
 TRAINING_SEEDS = (2608091, 2608092, 2608093)
 RESIDUAL_CAP_SIGMA = 4.0
 EPSILON = np.finfo(np.float64).tiny
+ADDITIVE_ARRAY_FIELDS = (
+    "simulated_count",
+    "m0",
+    "m1",
+    "m2",
+    "energy",
+    "energy_velocity",
+)
 
 DISPLAY_NAMES = {
     "raw_b1": "Raw DSMC, B=1",
@@ -209,16 +217,62 @@ def _payload_from_accumulator(accumulator: Any) -> dict[str, Any]:
 def merge_moment_payloads(payloads: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     if not payloads:
         raise ValueError("cannot merge an empty moment-payload sequence")
-    names = ("simulated_count", "m0", "m1", "m2", "energy", "energy_velocity")
     result = {
         "samples": sum(int(payload["samples"]) for payload in payloads),
     }
-    for name in names:
+    for name in ADDITIVE_ARRAY_FIELDS:
         arrays = [np.asarray(payload[name], dtype=np.float64) for payload in payloads]
         if any(array.shape != arrays[0].shape for array in arrays[1:]):
             raise ValueError(f"moment payload shape mismatch for {name}")
         result[name] = np.sum(arrays, axis=0, dtype=np.float64)
     return result
+
+
+def additive_payload_agreement(
+    merged: Mapping[str, Any], full: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Audit two additive payloads without dividing by locally vanishing entries.
+
+    The full accumulator and the sum of independently accumulated blocks contain
+    the same samples, but their floating-point addition orders differ.  A local
+    elementwise relative test is therefore invalid for momentum components that
+    cross zero.  The fixed global L-infinity scale below remains sensitive to a
+    structural block mismatch while tolerating addition-order roundoff.
+    """
+    components: dict[str, dict[str, float]] = {}
+    for name in ADDITIVE_ARRAY_FIELDS:
+        first = np.asarray(merged[name], dtype=np.float64)
+        second = np.asarray(full[name], dtype=np.float64)
+        if first.shape != second.shape:
+            raise ValueError(f"block/full additive-moment shape mismatch: {name}")
+        if not np.all(np.isfinite(first)) or not np.all(np.isfinite(second)):
+            raise ValueError(f"block/full additive-moment non-finite value: {name}")
+        difference = first - second
+        scale = max(
+            float(np.max(np.abs(first))),
+            float(np.max(np.abs(second))),
+            EPSILON,
+        )
+        scaled_difference = difference / scale
+        scaled_reference = second / scale
+        reference_l2 = max(float(np.linalg.norm(scaled_reference.ravel())), EPSILON)
+        components[name] = {
+            "absolute_linf": float(np.max(np.abs(difference))),
+            "fixed_scale": scale,
+            "relative_linf": float(np.max(np.abs(difference)) / scale),
+            "relative_l2": float(
+                np.linalg.norm(scaled_difference.ravel()) / reference_l2
+            ),
+        }
+    return {
+        "sample_count_match": int(merged["samples"]) == int(full["samples"]),
+        "merged_samples": int(merged["samples"]),
+        "full_samples": int(full["samples"]),
+        "maximum_relative_linf": max(
+            record["relative_linf"] for record in components.values()
+        ),
+        "components": components,
+    }
 
 
 def moment_fields(payload: Mapping[str, Any], cfg: Any, kb: float) -> tuple[np.ndarray, np.ndarray, dict[str, float]]:
@@ -325,11 +379,7 @@ def load_moment_source(directory: Path) -> dict[str, Any]:
         raise ValueError(f"MV8 requires ten additive checkpoint blocks: {directory}")
     block_payloads = [dict(block_mapping[key]) for key in sorted(block_mapping)]
     merged = merge_moment_payloads(block_payloads)
-    for name in ("m0", "m1", "m2", "energy", "energy_velocity"):
-        if not np.allclose(
-            np.asarray(merged[name]), np.asarray(full_payload[name]), rtol=2e-13, atol=1e-10
-        ):
-            raise ValueError(f"block/full additive-moment mismatch: {directory}::{name}")
+    additive_agreement = additive_payload_agreement(merged, full_payload)
 
     full, full_aux, full_diagnostics = moment_fields(
         full_payload, cfg, modules["KB"]
@@ -383,6 +433,7 @@ def load_moment_source(directory: Path) -> dict[str, Any]:
         ),
         "q_reconstruction_relative_difference": q_relative_difference,
         "minimum_covariance_eigenvalue_ratio": minimum_eigenvalue_ratio,
+        "block_full_additive_agreement": additive_agreement,
     }
 
 
@@ -563,6 +614,21 @@ def run_assembly(
                     "minimum_covariance_eigenvalue_ratio": source[
                         "minimum_covariance_eigenvalue_ratio"
                     ],
+                    "block_full_sample_count_match": source[
+                        "block_full_additive_agreement"
+                    ]["sample_count_match"],
+                    "block_full_maximum_relative_linf": source[
+                        "block_full_additive_agreement"
+                    ]["maximum_relative_linf"],
+                    "block_full_component_relative_linf_json": json.dumps(
+                        {
+                            name: record["relative_linf"]
+                            for name, record in source[
+                                "block_full_additive_agreement"
+                            ]["components"].items()
+                        },
+                        sort_keys=True,
+                    ),
                 }
             )
     for condition_id, condition in confirmatory_specs.items():
@@ -586,6 +652,21 @@ def run_assembly(
                     "minimum_covariance_eigenvalue_ratio": source[
                         "minimum_covariance_eigenvalue_ratio"
                     ],
+                    "block_full_sample_count_match": source[
+                        "block_full_additive_agreement"
+                    ]["sample_count_match"],
+                    "block_full_maximum_relative_linf": source[
+                        "block_full_additive_agreement"
+                    ]["maximum_relative_linf"],
+                    "block_full_component_relative_linf_json": json.dumps(
+                        {
+                            name: record["relative_linf"]
+                            for name, record in source[
+                                "block_full_additive_agreement"
+                            ]["components"].items()
+                        },
+                        sort_keys=True,
+                    ),
                 }
             )
 
@@ -647,8 +728,20 @@ def run_assembly(
     minimum_eigenvalue_ratio = min(
         float(row["minimum_covariance_eigenvalue_ratio"]) for row in audit_rows
     )
+    maximum_additive_difference = max(
+        float(row["block_full_maximum_relative_linf"]) for row in audit_rows
+    )
+    additive_tolerance = float(
+        gates["block_full_additive_moment_fixed_scale_relative_linf_tolerance"]
+    )
     checks = {
         "all_source_checkpoint_artifacts_hash_verified": True,
+        "all_block_sample_counts_sum_to_full_sample_count": all(
+            bool(row["block_full_sample_count_match"]) for row in audit_rows
+        ),
+        "block_sums_match_full_additive_accumulators_with_fixed_scale_tolerance": (
+            maximum_additive_difference <= additive_tolerance
+        ),
         "all_reconstructed_moment_fields_finite": all(
             np.all(np.isfinite(array))
             for array in (train[0], train[1], validation[0], validation[1], test[0], test[1])
@@ -716,6 +809,12 @@ def run_assembly(
             "confirmatory_B10": len(test_b10[0]),
         },
         "maximum_q_reconstruction_relative_difference": maximum_q_difference,
+        "maximum_block_full_additive_moment_fixed_scale_relative_linf": (
+            maximum_additive_difference
+        ),
+        "block_full_additive_moment_fixed_scale_relative_linf_tolerance": (
+            additive_tolerance
+        ),
         "minimum_covariance_eigenvalue_ratio": minimum_eigenvalue_ratio,
         "development_validation_information_test": {
             "raw_B1": raw_b1_metric,

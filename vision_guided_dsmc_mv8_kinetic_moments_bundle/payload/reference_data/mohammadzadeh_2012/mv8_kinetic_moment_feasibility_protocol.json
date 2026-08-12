@@ -6,7 +6,8 @@
     "classification": "exploratory_feasibility_pilot_not_confirmatory_claim",
     "purpose": "test whether one DSMC sampling block retains enough information to reconstruct non-equilibrium stress and heat-flux fields at the quality of a ten-block raw estimate",
     "mv7_immutability": "MV5_MV6_MV7_T_u_results_protocols_and_artifacts_remain_unchanged",
-    "existing_data_disclosure": "the raw checkpoints existed before this lock and q diagnostics were previously inspected; no MV8 neural outcome existed"
+    "existing_data_disclosure": "the raw checkpoints existed before this lock and q diagnostics were previously inspected; no MV8 neural outcome existed",
+    "implementation_repair_disclosure": "after the first assembly attempt and before any MV8 model outcome, the block/full audit was repaired from a local elementwise allclose test to a fixed-global-scale L-infinity gate because momentum components cross zero; a true mismatch now produces an audit-only archive instead of a crash"
   },
   "moment_contract": {
     "raw_additive_checkpoint_moments": [
@@ -95,6 +96,7 @@
   },
   "pre_model_feasibility_gates": {
     "all_source_checkpoint_artifacts_hash_verified": true,
+    "block_full_additive_moment_fixed_scale_relative_linf_tolerance": 1e-9,
     "all_reconstructed_moment_fields_finite": true,
     "pressure_covariance_positive_semidefinite_tolerance": 1e-10,
     "stored_and_reconstructed_heat_flux_relative_tolerance": 1e-10,
