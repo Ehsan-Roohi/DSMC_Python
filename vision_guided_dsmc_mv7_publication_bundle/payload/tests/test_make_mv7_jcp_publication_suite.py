@@ -121,7 +121,6 @@ def test_physical_temperature_figure_contains_absolute_fields_and_percent_errors
     mv6_root = tmp_path / "mv6"
     condition = "kn0p1_u400"
     identity_condition = np.asarray([condition])
-    identity_numeric = np.asarray([[0.1, 400.0, 94301.0]])
     y, x = np.mgrid[0:1:20j, 0:1:20j]
     temperature = (300.0 + 100.0 * y**2 + 12.0 * x)[None, None].astype(np.float32)
     velocity = np.zeros_like(temperature)
@@ -135,7 +134,7 @@ def test_physical_temperature_figure_contains_absolute_fields_and_percent_errors
         np.savez_compressed(
             directory / "predictions.npz",
             identity_condition=identity_condition,
-            identity_numeric=identity_numeric,
+            identity_numeric=np.asarray([[94301, 0, budget]]),
             target=target,
             raw=raw,
             gaussian_like=target + 0.6,
@@ -150,7 +149,7 @@ def test_physical_temperature_figure_contains_absolute_fields_and_percent_errors
             np.savez_compressed(
                 directory / "predictions.npz",
                 identity_condition=identity_condition,
-                identity_numeric=identity_numeric,
+                identity_numeric=np.asarray([[94301, 0, 1]]),
                 target=target,
                 architecture_prediction=prediction,
             )
