@@ -1,0 +1,146 @@
+{
+  "stage": "MV7_Mohammadzadeh_JCP_full_budget_matrix",
+  "status": "locked_after_MV6_budget_one_screen_before_any_MV7_budget_two_five_or_ten_model_outcome",
+  "locked_utc_date": "2026-08-11",
+  "scientific_question": "How much DSMC sampling can condition-aware residual field recovery replace while preserving paired T-u accuracy, robustness, physical diagnostics, and end-to-end computational value?",
+  "known_before_lock": {
+    "mv6_budget_one_screen_completed": true,
+    "mv6_promoted_architectures": [
+      "corrected_unet",
+      "nafnet_small",
+      "mambairv2_tiny_adapted",
+      "fno_residual_small"
+    ],
+    "qualitative_mv6_order": [
+      "mambairv2_tiny_adapted",
+      "nafnet_small",
+      "corrected_unet",
+      "fno_residual_small"
+    ],
+    "fno_high_speed_weakness_observed": true,
+    "no_budget_two_five_or_ten_mv7_model_outcome_observed": true
+  },
+  "source_contract": {
+    "mv6_protocol_sha256": "e7cfd024a6d3e50cb79b2da9d907395dfc1473c3de4c2f6c396addc61e9465f5",
+    "mv5_reference_repair_protocol_sha256": "695c1b8126701862dd820affb027d511f0b5c6538ceb7d24f6c52e6b2b4d79c3",
+    "mv6_required_status": "complete_MV6_four_architecture_screen",
+    "reuse_exact_mv6_budget_one_tasks_without_retraining": true,
+    "reuse_exact_repaired_sixteen_reference_tree": true,
+    "development_conditions": [
+      "kn0p05_u100",
+      "kn0p05_u200",
+      "kn0p05_u400",
+      "kn0p1_u100"
+    ],
+    "evaluation_conditions": [
+      "kn0p075_u150",
+      "kn0p075_u300",
+      "kn0p1_u200",
+      "kn0p1_u400"
+    ],
+    "evaluation_seed_count": 16,
+    "output_fields": ["T", "u"],
+    "heat_flux_excluded": true
+  },
+  "execution_matrix": {
+    "budget_blocks": [1, 2, 5, 10],
+    "new_model_budget_blocks": [2, 5, 10],
+    "architectures": [
+      "corrected_unet",
+      "nafnet_small",
+      "mambairv2_tiny_adapted",
+      "fno_residual_small"
+    ],
+    "training_initialization_seeds": [2608091, 2608092, 2608093],
+    "existing_budget_one_model_tasks": 12,
+    "new_model_tasks": 36,
+    "total_model_tasks_in_analysis": 48,
+    "classical_baseline_tasks": 4,
+    "classical_baseline_order": "complete and verify all four budget baselines before launching the 36 new model tasks"
+  },
+  "classical_baseline_contract": {
+    "methods": ["raw", "gaussian_like", "tsvd_pod_type"],
+    "gaussian_pass_candidates": [1, 2, 4],
+    "tsvd_rank_candidates": [1, 2, 4, 8, 16, 32],
+    "selection_rule": "select independently at each budget using development validation targets only",
+    "evaluation_targets_used_for_baseline_selection": false,
+    "report_on_every_budget": true
+  },
+  "primary_analysis": {
+    "endpoint": "vision_composite_nrmse from the locked MV3 evaluator for T and u",
+    "reference_comparator": "Raw DSMC at budget_blocks=10",
+    "pairing": "same sixteen evaluation seeds; neural errors are first averaged over the three locked training initializations within each evaluation seed",
+    "analysis_scale": "natural logarithm of method error divided by paired Raw-at-10 error",
+    "cluster_unit": "condition; four evaluation-seed log ratios are averaged within each of the four conditions",
+    "noninferiority_relative_margin": 0.1,
+    "noninferiority_log_margin": 0.09531017980432493,
+    "confidence_rule": "one-sided 95 percent Student-t upper confidence bound over four condition means, df=3",
+    "one_sided_t_critical_df3": 2.3533634348018264,
+    "decision": "noninferior only when the upper confidence bound is at or below log(1.10)",
+    "multiplicity": "one primary endpoint; field, profile, condition, and spectral diagnostics are secondary and descriptive"
+  },
+  "secondary_analysis": {
+    "paired_seed_level_ratios": true,
+    "per_condition_results": true,
+    "per_field_T_and_u": true,
+    "validated_profiles": true,
+    "training_seed_mean_and_sample_standard_deviation": true,
+    "worst_condition": true,
+    "raw_monte_carlo_scaling": {
+      "model": "log(error)=intercept+slope*log(budget)",
+      "theoretical_slope": -0.5,
+      "status": "diagnostic_not_acceptance_gate"
+    },
+    "bias_floor": "report flattening or degradation at large budget as the expected low-budget-method bias regime, without post-hoc exclusion",
+    "effective_variance_reduction": "report both (Raw_at_same_budget/method)^2 and empirical Raw-equivalent budget from the fitted Raw curve"
+  },
+  "cost_contract": {
+    "equation": "C_end_to_end(m,B,N)=C_shared_training_data/A+C_train(m,B)+N*(C_DSMC(B)+C_infer(m,B))",
+    "raw_equation": "C_raw10(N)=N*C_DSMC(10)",
+    "break_even_equation": "N_break_even=(C_shared_training_data/A+C_train)/((C_DSMC(10)-C_DSMC(B))-C_infer)",
+    "report_units": ["DSMC blocks", "wall-clock seconds", "CPU-hours"],
+    "required_measurements": [
+      "per-task training wall time",
+      "confirmatory inference wall time",
+      "Slurm ElapsedRaw and CPUTimeRAW",
+      "parameter count",
+      "artifact size"
+    ],
+    "shared_training_data_amortization_A": [1, 10, 100],
+    "no_claim_when_denominator_is_nonpositive": true
+  },
+  "generalization_scope": {
+    "condition_pairs_excluded_from_training_and_validation": true,
+    "evaluation_targets_excluded_from_training_tuning_and_baseline_selection": true,
+    "evaluation_conditions_informed_the_completed_MV6_architecture_promotion": true,
+    "allowed_claim": "locked post-screen budget robustness on four condition pairs absent from model fitting",
+    "disallowed_claims": [
+      "pristine external test after model selection",
+      "generalization to new geometry",
+      "generalization to untested physics",
+      "universal extrapolation over Kn and lid speed"
+    ],
+    "future_external_test": "a new untouched condition or a separately locked leave-one-condition-out study is required for a stronger external-generalization claim"
+  },
+  "physics_and_failure_diagnostics": {
+    "naming": "condition-aware residual recovery; physics-conditioned is permitted only when conservation and boundary diagnostics are reported prominently",
+    "required": [
+      "positive temperature and finite fields",
+      "T and u field and validated-profile errors",
+      "boundary-band versus interior error",
+      "FNO error power spectrum at kn0p1_u400",
+      "explicit reporting of profile ratios above one"
+    ],
+    "fno_causal_language": "spectral and wall-localization diagnostics may support, but do not prove, spectral-bias or periodic-assumption explanations"
+  },
+  "reproducibility_contract": {
+    "publish_code": true,
+    "publish_protocol": true,
+    "publish_training_and_evaluation_seed_lists": true,
+    "publish_selected_baseline_hyperparameters": true,
+    "publish_summary_metrics_and_checksums": true,
+    "publish_model_weights": "subject to repository or archival size limits",
+    "lite_bundle_excludes_large_model_and_prediction_arrays": true
+  },
+  "automatic_followup_submission": false
+}

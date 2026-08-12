@@ -1,0 +1,144 @@
+{
+  "stage": "MV8_Mohammadzadeh_kinetic_moment_feasibility_pilot",
+  "status": "exploratory_lock_before_any_MV8_kinetic_model_outcome",
+  "locked_utc": "2026-08-12T00:00:00Z",
+  "scientific_role": {
+    "classification": "exploratory_feasibility_pilot_not_confirmatory_claim",
+    "purpose": "test whether one DSMC sampling block retains enough information to reconstruct non-equilibrium stress and heat-flux fields at the quality of a ten-block raw estimate",
+    "mv7_immutability": "MV5_MV6_MV7_T_u_results_protocols_and_artifacts_remain_unchanged",
+    "existing_data_disclosure": "the raw checkpoints existed before this lock and q diagnostics were previously inspected; no MV8 neural outcome existed",
+    "implementation_repair_disclosure": "after the first assembly attempt and before any MV8 model outcome, the block/full audit was repaired from a local elementwise allclose test to a fixed-global-scale L-infinity gate because momentum components cross zero; a true mismatch now produces an audit-only archive instead of a crash"
+  },
+  "moment_contract": {
+    "raw_additive_checkpoint_moments": [
+      "m0",
+      "m1",
+      "m2",
+      "energy",
+      "energy_velocity"
+    ],
+    "outputs": [
+      "tau_xy_over_p_ref",
+      "normal_stress_difference_over_p_ref",
+      "qx_over_q_ref",
+      "qy_over_q_ref"
+    ],
+    "auxiliary_inputs": [
+      "rho_over_rho_ref",
+      "u_over_U_lid",
+      "v_over_U_lid",
+      "T_over_T0",
+      "log10_Kn",
+      "U_lid_over_100"
+    ],
+    "definitions": {
+      "pressure_tensor": "P_ij=m*n*(<v_i v_j>-<v_i><v_j>)",
+      "tau_xy": "P_xy",
+      "normal_stress_difference": "P_xx-P_yy",
+      "heat_flux": "q_i=(m*n/2)<|c|^2 c_i>",
+      "p_ref": "n0*k_B*T0",
+      "q_ref": "p_ref*sqrt(k_B*T0/m)"
+    },
+    "local_percent_error_forbidden": true,
+    "figure_error_definition": "100*(prediction-reference)/fixed_characteristic_scale"
+  },
+  "execution_matrix": {
+    "input_budget_blocks": 1,
+    "raw_comparator_budget_blocks": 10,
+    "architectures": [
+      "nafnet_small",
+      "mambairv2_tiny_adapted"
+    ],
+    "training_initialization_seeds": [
+      2608091,
+      2608092,
+      2608093
+    ],
+    "model_tasks": 6,
+    "primary_condition": "kn0p1_u400",
+    "representative_contour_seed": 94302,
+    "representative_contour_block": 0,
+    "secondary_conditions": [
+      "kn0p075_u150",
+      "kn0p075_u300",
+      "kn0p1_u200",
+      "kn0p1_u400"
+    ]
+  },
+  "target_contract": {
+    "training": "same-condition leave-one-training-seed-out full-window additive-moment target",
+    "validation": "mean of training-seed full-window additive moments",
+    "confirmatory": "same-condition leave-one-evaluation-seed-out full-window additive-moment target",
+    "self_target_leakage": false,
+    "confirmatory_target_used_for_training_or_selection": false
+  },
+  "selection_contract": {
+    "classical_and_residual_gate_data": "development_validation_only",
+    "gaussian_pass_candidates": [
+      1,
+      2,
+      3
+    ],
+    "tsvd_rank_candidates": [
+      2,
+      4,
+      8,
+      12
+    ],
+    "residual_alpha_candidates": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "metric": "mean componentwise RMS-normalized RMSE"
+  },
+  "pre_model_feasibility_gates": {
+    "all_source_checkpoint_artifacts_hash_verified": true,
+    "block_full_additive_moment_fixed_scale_relative_linf_tolerance": 1e-9,
+    "all_reconstructed_moment_fields_finite": true,
+    "pressure_covariance_positive_semidefinite_tolerance": 1e-10,
+    "stored_and_reconstructed_heat_flux_relative_tolerance": 1e-10,
+    "development_validation_raw_B10_composite_better_than_raw_B1": true,
+    "minimum_individual_fields_improved_by_raw_B10": 3,
+    "confirmatory_results_do_not_control_gate": true
+  },
+  "analysis_contract": {
+    "primary_endpoint": "primary-condition composite kinetic-moment NRMSE ratio to paired Raw@B=10",
+    "field_endpoints": [
+      "tau_xy",
+      "Pxx_minus_Pyy",
+      "qx",
+      "qy"
+    ],
+    "pilot_success_rule": "at least one architecture has mean primary-condition composite error no larger than 1.10 times Raw@B10 and improves at least three of four fields",
+    "failure_interpretation": "insufficient one-block signal-to-noise or model bias; no kinetic-moment reduction claim",
+    "full_confirmatory_followup_required_after_pilot_success": true
+  },
+  "figure_contract": {
+    "layout": "one two-row figure per physical moment",
+    "columns": [
+      "Reference",
+      "Raw DSMC B=1",
+      "Gaussian B=1",
+      "TSVD/POD B=1",
+      "NAFNet-Small B=1",
+      "MambaIRv2 B=1",
+      "Raw DSMC B=10"
+    ],
+    "upper_row": "physical field with one shared signed blue-white-red color scale",
+    "lower_row": "signed percent of fixed physical reference scale",
+    "formats": [
+      "vector PDF",
+      "600 dpi PNG"
+    ],
+    "outer_axis_labels_only": true,
+    "no_panel_titles_inside_axes": true
+  },
+  "source_contract": {
+    "mv5_protocol_sha256": "18959a7849eb9fb9fc02e02aad1a14ef9cb6556d604dd39e7b98f9ae8e8491e7",
+    "mv6_protocol_sha256": "e7cfd024a6d3e50cb79b2da9d907395dfc1473c3de4c2f6c396addc61e9465f5",
+    "mv7_protocol_sha256": "14768df20f26897bc66ecc7b1eeae88d1c4dfb85192b85f85229155d90f3bc16"
+  }
+}
