@@ -80,6 +80,23 @@ MARKERS = {
 }
 NONINFERIORITY_MARGIN = 1.10
 EPSILON = 1.0e-12
+CONDITIONS = (
+    "kn0p075_u150",
+    "kn0p075_u300",
+    "kn0p1_u200",
+    "kn0p1_u400",
+)
+PHYSICAL_COLUMN_SPECS = (
+    ("reference", "Reference"),
+    ("raw_b1", "Raw DSMC\n$B=1$"),
+    ("gaussian_b1", "Gaussian\n$B=1$"),
+    ("tsvd_b1", "TSVD/POD\n$B=1$"),
+    ("corrected_unet", "Corrected U-Net\n$B=1$"),
+    ("nafnet_small", "NAFNet-Small\n$B=1$"),
+    ("mambairv2_tiny_adapted", "MambaIRv2\n$B=1$"),
+    ("fno_residual_small", "FNO\n$B=1$"),
+    ("raw_b10", "Raw DSMC\n$B=10$"),
+)
 
 
 def sha256(path: Path) -> str:
@@ -164,6 +181,223 @@ def load_verified_summary(root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     if set(summary.get("curves", {})) != set(METHODS):
         raise ValueError("MV7 method set or order differs from the locked matrix")
     return summary, verification
+
+
+def scalar_identity(value: np.ndarray | object) -> str:
+    array = np.asarray(value)
+    if array.ndim == 0:
+        return str(array.item())
+    return ",".join(str(item) for item in array.reshape(-1).tolist())
+
+
+def condition_index(data: Mapping[str, np.ndarray], condition: str, identity: str | None = None) -> int:
+    labels = np.asarray(data["identity_condition"]).astype(str)
+    matches = np.flatnonzero(labels == condition)
+    if identity is not None:
+        identities = np.asarray(data["identity_numeric"])
+        matches = np.asarray(
+            [index for index in matches if scalar_identity(identities[index]) == identity],
+            dtype=int,
+        )
+    if len(matches) == 0:
+        suffix = "" if identity is None else f" with identity {identity}"
+        raise ValueError(f"Condition {condition}{suffix} is absent from predictions")
+    return int(matches[0])
+
+
+def nice_ceiling(value: float, minimum: float = 0.5) -> float:
+    value = max(float(value), minimum)
+    exponent = 10.0 ** math.floor(math.log10(value))
+    scaled = value / exponent
+    for multiplier in (1.0, 2.0, 2.5, 5.0, 10.0):
+        if scaled <= multiplier + 1.0e-12:
+            return float(multiplier * exponent)
+    return float(10.0 * exponent)
+
+
+def load_temperature_payload(
+    mv7_root: Path,
+    mv6_root: Path,
+    condition: str,
+) -> tuple[dict[str, np.ndarray], str]:
+    payload: dict[str, np.ndarray] = {}
+    baseline_b1 = mv7_root / "baselines" / "budget_1" / "predictions.npz"
+    baseline_b10 = mv7_root / "baselines" / "budget_10" / "predictions.npz"
+    if not baseline_b1.is_file() or not baseline_b10.is_file():
+        raise FileNotFoundError("MV7 baseline predictions for B=1 or B=10 are absent")
+
+    with np.load(baseline_b1, allow_pickle=False) as data:
+        index = condition_index(data, condition)
+        identity = scalar_identity(np.asarray(data["identity_numeric"])[index])
+        payload["reference"] = np.asarray(data["target"][index, 0], dtype=np.float64)
+        payload["raw_b1"] = np.asarray(data["raw"][index, 0], dtype=np.float64)
+        payload["gaussian_b1"] = np.asarray(data["gaussian_like"][index, 0], dtype=np.float64)
+        payload["tsvd_b1"] = np.asarray(data["tsvd_pod_type"][index, 0], dtype=np.float64)
+
+    with np.load(baseline_b10, allow_pickle=False) as data:
+        index = condition_index(data, condition, identity)
+        target_b10 = np.asarray(data["target"][index, 0], dtype=np.float64)
+        if not np.array_equal(target_b10, payload["reference"]):
+            raise ValueError(f"Reference temperature changed between B=1 and B=10 for {condition}")
+        payload["raw_b10"] = np.asarray(data["raw"][index, 0], dtype=np.float64)
+
+    for architecture in ARCHITECTURES:
+        predictions: list[np.ndarray] = []
+        for seed in TRAINING_SEEDS:
+            path = prediction_path(mv7_root, mv6_root, 1, architecture, seed)
+            if not path.is_file():
+                raise FileNotFoundError(f"MV6 reused B=1 prediction is absent: {path}")
+            with np.load(path, allow_pickle=False) as data:
+                index = condition_index(data, condition, identity)
+                target = np.asarray(data["target"][index, 0], dtype=np.float64)
+                if not np.array_equal(target, payload["reference"]):
+                    raise ValueError(f"Neural reference identity changed in {path}")
+                predictions.append(
+                    np.asarray(data["architecture_prediction"][index, 0], dtype=np.float64)
+                )
+        payload[architecture] = np.mean(np.stack(predictions, axis=0), axis=0)
+
+    reference_shape = payload["reference"].shape
+    if len(reference_shape) != 2 or any(field.shape != reference_shape for field in payload.values()):
+        raise ValueError(f"Temperature-field shapes differ for {condition}")
+    return payload, identity
+
+
+def temperature_physical_figure(
+    output: Path,
+    mv7_root: Path,
+    mv6_root: Path,
+    condition: str,
+) -> tuple[list[str], list[dict[str, Any]]]:
+    payload, identity = load_temperature_payload(mv7_root, mv6_root, condition)
+    reference = payload["reference"]
+    errors = {
+        key: 100.0 * (field - reference) / np.maximum(np.abs(reference), EPSILON)
+        for key, field in payload.items()
+        if key != "reference"
+    }
+    finite_error = np.concatenate(
+        [np.abs(value[np.isfinite(value)]).reshape(-1) for value in errors.values()]
+    )
+    percentile_value = float(np.percentile(finite_error, 99.5))
+    error_limit = nice_ceiling(percentile_value)
+    temperature_min = float(np.nanmin(reference))
+    temperature_max = float(np.nanmax(reference))
+
+    figure = plt.figure(figsize=(22.4, 7.15))
+    grid = figure.add_gridspec(
+        2,
+        len(PHYSICAL_COLUMN_SPECS) + 1,
+        width_ratios=[1.0] * len(PHYSICAL_COLUMN_SPECS) + [0.065],
+        left=0.038,
+        right=0.965,
+        bottom=0.105,
+        top=0.915,
+        wspace=0.18,
+        hspace=0.30,
+    )
+    axes = np.empty((2, len(PHYSICAL_COLUMN_SPECS)), dtype=object)
+    for row in range(2):
+        for column in range(len(PHYSICAL_COLUMN_SPECS)):
+            axes[row, column] = figure.add_subplot(grid[row, column])
+    temperature_cax = figure.add_subplot(grid[0, -1])
+    error_cax = figure.add_subplot(grid[1, -1])
+
+    temperature_image = None
+    error_image = None
+    metadata_rows: list[dict[str, Any]] = []
+    for column, (key, title) in enumerate(PHYSICAL_COLUMN_SPECS):
+        field = payload[key]
+        top = axes[0, column]
+        temperature_image = top.imshow(
+            field,
+            origin="lower",
+            extent=(0.0, 1.0, 0.0, 1.0),
+            cmap="coolwarm",
+            vmin=temperature_min,
+            vmax=temperature_max,
+            interpolation="bilinear",
+            rasterized=True,
+        )
+        top.set_title(title, pad=4.5, linespacing=0.90)
+        bottom = axes[1, column]
+        if key == "reference":
+            bottom.set_facecolor("#F7F7F7")
+            bottom.text(
+                0.5,
+                0.5,
+                "Reference",
+                transform=bottom.transAxes,
+                ha="center",
+                va="center",
+                color="0.45",
+                fontsize=9.0,
+            )
+            error_rms = 0.0
+            error_abs_995 = 0.0
+        else:
+            error = errors[key]
+            error_image = bottom.imshow(
+                error,
+                origin="lower",
+                extent=(0.0, 1.0, 0.0, 1.0),
+                cmap="RdBu_r",
+                vmin=-error_limit,
+                vmax=error_limit,
+                interpolation="bilinear",
+                rasterized=True,
+            )
+            error_rms = float(np.sqrt(np.mean(error**2)))
+            error_abs_995 = float(np.percentile(np.abs(error), 99.5))
+        for axis in (top, bottom):
+            axis.set_xlim(0.0, 1.0)
+            axis.set_ylim(0.0, 1.0)
+            axis.set_aspect("equal")
+            axis.set_xticks((0.0, 0.5, 1.0))
+            axis.set_yticks((0.0, 0.5, 1.0))
+        top.tick_params(labelbottom=False)
+        bottom.set_xlabel(r"$x/L$", labelpad=2.0)
+        if column == 0:
+            top.set_ylabel(r"$y/L$", labelpad=2.0)
+            bottom.set_ylabel(r"$y/L$", labelpad=2.0)
+        else:
+            top.tick_params(labelleft=False)
+            bottom.tick_params(labelleft=False)
+        metadata_rows.append(
+            {
+                "condition": condition,
+                "evaluation_identity": identity,
+                "column_key": key,
+                "column_label": title.replace("\n", " "),
+                "temperature_min_K": float(np.nanmin(field)),
+                "temperature_max_K": float(np.nanmax(field)),
+                "signed_relative_error_rms_percent": error_rms,
+                "signed_relative_error_abs_99p5_percent": error_abs_995,
+            }
+        )
+
+    if temperature_image is None or error_image is None:
+        raise RuntimeError("Physical temperature figure did not create colorbar images")
+    temperature_ticks = np.linspace(temperature_min, temperature_max, 5)
+    temperature_bar = figure.colorbar(
+        temperature_image,
+        cax=temperature_cax,
+        ticks=temperature_ticks,
+        extend="both",
+    )
+    temperature_bar.set_label(r"Temperature, $T$ [K]", labelpad=8.0)
+    temperature_bar.ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:.1f}"))
+    error_ticks = np.linspace(-error_limit, error_limit, 5)
+    error_bar = figure.colorbar(
+        error_image,
+        cax=error_cax,
+        ticks=error_ticks,
+        extend="both",
+    )
+    error_bar.set_label("Signed relative error [%]", labelpad=8.0)
+    error_bar.ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:g}"))
+    stem = output / f"mv7_jcp_temperature_physical_{condition}"
+    return save_figure(figure, stem), metadata_rows
 
 
 def sampling_efficiency_figure(output: Path, summary: Mapping[str, Any]) -> list[str]:
@@ -609,6 +843,27 @@ def benchmark_budget_one_inference(
     }
 
 
+def reusable_budget_one_benchmark(mv7_root: Path) -> dict[str, Any] | None:
+    candidates = sorted(
+        mv7_root.glob("publication_suite_*/mv7_b1_inference_cost_closure.json"),
+        reverse=True,
+    )
+    for path in candidates:
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if record.get("status") != "complete_MV7_reused_budget_one_inference_timing_closure":
+            continue
+        if len(record.get("records", [])) != len(ARCHITECTURES) * len(TRAINING_SEEDS):
+            continue
+        reused = dict(record)
+        reused["reused_from"] = str(path)
+        reused["reuse_rule"] = "immutable completed CPU timing closure from the same verified MV7 root"
+        return reused
+    return None
+
+
 def write_key_results(output: Path, summary: Mapping[str, Any]) -> None:
     with (output / "mv7_jcp_key_results.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
@@ -641,6 +896,11 @@ MV7 budget matrix. It does not replace or edit any locked MV7 result.
 - `mv7_jcp_fno_error_structure`: absolute normalized boundary/interior MSE and
   radial error spectra at Kn=0.1, U_lid=400 m/s. These diagnostics describe the
   error structure but do not prove a spectral-bias or periodic-boundary cause.
+- `mv7_jcp_temperature_physical_<condition>`: the physical temperature field
+  for Reference, budget-one Raw/Gaussian/TSVD and four neural architectures,
+  plus Raw@B=10. The lower row is the signed local relative error in percent.
+  The same absolute and error color scales are used across every method within
+  each condition.
 
 Each figure is supplied as vector PDF and 600-dpi PNG. Fonts are embedded in the
 PDF, legends are outside dense data regions, method colors/markers are consistent,
@@ -678,6 +938,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--skip-prediction-diagnostics", action="store_true")
     parser.add_argument("--skip-b1-benchmark", action="store_true")
+    parser.add_argument("--force-b1-benchmark", action="store_true")
     return parser.parse_args()
 
 
@@ -692,11 +953,28 @@ def main() -> None:
     summary, verification = load_verified_summary(mv7_root)
 
     generated: list[str] = []
+    print("STAGE=physical_temperature_contours", flush=True)
+    physical_rows: list[dict[str, Any]] = []
+    for condition in CONDITIONS:
+        print(f"PHYSICAL_CONDITION={condition}", flush=True)
+        files, rows = temperature_physical_figure(output, mv7_root, mv6_root, condition)
+        generated.extend(files)
+        physical_rows.extend(rows)
+    with (output / "mv7_jcp_temperature_physical_metrics.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as stream:
+        writer = csv.DictWriter(stream, fieldnames=tuple(physical_rows[0]))
+        writer.writeheader()
+        writer.writerows(physical_rows)
+    generated.append("mv7_jcp_temperature_physical_metrics.csv")
+
+    print("STAGE=statistical_summary_figures", flush=True)
     generated.extend(sampling_efficiency_figure(output, summary))
     generated.extend(noninferiority_figure(output, summary))
     generated.extend(bias_floor_figure(output, summary))
     fno_rows: list[dict[str, Any]] = []
     if not args.skip_prediction_diagnostics:
+        print("STAGE=fno_diagnostics", flush=True)
         files, fno_rows = fno_diagnostic_figure(output, mv7_root, mv6_root)
         generated.extend(files)
         generated.extend(("mv7_jcp_fno_absolute_error_diagnostics.csv", "mv7_jcp_fno_radial_spectra.csv"))
@@ -705,16 +983,21 @@ def main() -> None:
     if args.skip_b1_benchmark:
         benchmark = {"status": "skipped_by_explicit_command_line_flag"}
     else:
-        repo_root = Path(os.environ["MV7_REPO_ROOT"]).resolve()
-        benchmark = benchmark_budget_one_inference(
-            summary,
-            mv7_root,
-            mv6_root,
-            Path(os.environ["MV7_M3_ROOT"]).resolve(),
-            Path(os.environ["MV7_MV3_ROOT"]).resolve(),
-            Path(os.environ["MV7_REFERENCE_ROOT"]).resolve(),
-            repo_root,
-        )
+        benchmark = None if args.force_b1_benchmark else reusable_budget_one_benchmark(mv7_root)
+        if benchmark is None:
+            print("STAGE=budget_one_inference_benchmark", flush=True)
+            repo_root = Path(os.environ["MV7_REPO_ROOT"]).resolve()
+            benchmark = benchmark_budget_one_inference(
+                summary,
+                mv7_root,
+                mv6_root,
+                Path(os.environ["MV7_M3_ROOT"]).resolve(),
+                Path(os.environ["MV7_MV3_ROOT"]).resolve(),
+                Path(os.environ["MV7_REFERENCE_ROOT"]).resolve(),
+                repo_root,
+            )
+        else:
+            print(f"STAGE=reuse_budget_one_inference_benchmark SOURCE={benchmark['reused_from']}", flush=True)
     (output / "mv7_b1_inference_cost_closure.json").write_text(
         json.dumps(benchmark, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -741,6 +1024,7 @@ def main() -> None:
         },
         "fno_interpretation_guard": "diagnostics describe but do not prove a causal spectral or boundary mechanism",
         "fno_rows": fno_rows,
+        "physical_temperature_rows": physical_rows,
         "files": generated,
     }
     (output / "figure_metadata.json").write_text(
@@ -751,6 +1035,7 @@ def main() -> None:
         "\n".join(f"{sha256(path)}  {path.relative_to(output)}" for path in manifest_paths) + "\n",
         encoding="utf-8",
     )
+    print("STAGE=archive", flush=True)
     archive = create_archive(output, Path(os.environ.get("MV7_ARCHIVE_DIR", str(Path.home()))).expanduser())
     if archive.stat().st_size > 450 * 1024 * 1024:
         raise SystemExit("Publication archive exceeds the 450 MiB upload limit")
