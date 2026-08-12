@@ -1,0 +1,52 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+
+application         dsmcFoam;
+startFrom           startTime;
+startTime           0;
+stopAt              endTime;
+endTime             1e-7;
+deltaT              5e-12;
+writeControl        timeStep;
+writeInterval       2000;
+purgeWrite          0;
+writeFormat         ascii;
+writePrecision      10;
+writeCompression    off;
+timeFormat          scientific;
+timePrecision       10;
+runTimeModifiable   false;
+adjustTimeStep      no;
+
+functions
+{
+    fieldAverage1
+    {
+        #includeEtc "caseDicts/postProcessing/fields/fieldAverage.cfg"
+        timeStart       2e-8;
+        fields
+        (
+            rhoN
+            rhoM
+            dsmcRhoN
+            momentum
+            linearKE
+            internalE
+            iDof
+            q
+            fD
+        );
+    }
+
+    dsmcFields1
+    {
+        type            dsmcFields;
+        libs            ("liblagrangianFunctionObjects.so");
+        writeControl    writeTime;
+    }
+}

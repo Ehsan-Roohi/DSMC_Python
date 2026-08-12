@@ -1,0 +1,24 @@
+FoamFile
+{
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      boundaryU;
+}
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform (0 0 0);
+boundaryField
+{
+    fixedWalls
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    movingWall
+    {
+        type            fixedValue;
+        value           uniform (100 0 0);
+    }
+    front { type cyclic; }
+    back  { type cyclic; }
+}

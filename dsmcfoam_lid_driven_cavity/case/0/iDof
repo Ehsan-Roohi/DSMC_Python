@@ -1,0 +1,16 @@
+FoamFile
+{
+    format ascii;
+    class volScalarField;
+    location "0";
+    object iDof;
+}
+dimensions [0 -3 0 0 0 0 0];
+internalField uniform 0;
+boundaryField
+{
+    fixedWalls { type zeroGradient; }
+    movingWall { type zeroGradient; }
+    front { type cyclic; }
+    back  { type cyclic; }
+}
