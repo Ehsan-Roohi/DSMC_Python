@@ -311,3 +311,48 @@ Use this order when reconstructing project state in a future chat:
 
 This ordering prevents chat-length limits or partial memory retrieval from
 changing the scientific record.
+
+## 12. MV9 completed outcome and MV10 handoff (appended 2026-08-13 UTC)
+
+MV9 finished successfully as software and physics-audit execution, but failed
+its locked scientific feasibility rule. Preserve both facts.
+
+- Jobs: assembly `62848201`, model array `62848202_[0-5]`, post `62848203`.
+- Every job completed with exit code `0:0`.
+- Output root:
+  `/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc/results/mohammadzadeh_2012/mv9_heat_flux_noise2noise/run_20260813T022352Z`.
+- Block/full additivity: `5.3420642483461805e-14` versus locked `1e-9`.
+- Heat-flux provenance: `1.8512365465180513e-16` versus locked `1e-10`.
+- Minimum PSD eigenvalue ratio: `0.4490867716985249`.
+- Recursive return verification: `14` files, decision `verified`.
+- Return archive: `MOHAMMADZADEH_MV9_HEAT_FLUX_NOISE2NOISE_20260813T050529Z.zip`,
+  `39,136,606` bytes, SHA256
+  `e7e213cf9668469cb016340dbc5ad946f2622838a942b6198c44c2c3817301c6`.
+
+At primary condition `kn0p1_u400`, Raw `B=10` qy NRMSE was
+`0.0818394756`. NAFNet qy was `0.1345279922` (`1.6438 x Raw B10`) and
+Mamba qy was `0.1488360010` (`1.8186 x Raw B10`). Mamba did beat Raw `B=10`
+for qx (`0.9195 x`) and both stress components, but its all-moment composite
+ratio was `1.2640` and heat-flux composite ratio was `1.4641`. NAFNet's
+corresponding ratios were `1.2712` and `1.4510`. Both locked pilot decisions
+were false. Official decision:
+`MV9_feasibility_does_not_support_one_block_kinetic_moment_claim`.
+
+The qy failure was systematic across all four old evaluation seeds and appeared
+as a broad coherent amplitude/sign bias, not merely high-frequency pixel noise.
+Those old seeds (`94301-94304`) have now been observed and can never be used as
+confirmatory evidence again.
+
+MV10 is therefore an explicitly post-MV9 exploratory repair. Its bundle is
+`vision_guided_dsmc_mv10_qy_multiscale_bundle/`. It preserves the MV9 Mamba
+stress/qx channels and replaces only qy with a bounded local-coarse-global
+residual ensemble trained and selected exclusively on development data. The old
+MV9 evaluation set is read only by postprocessing as a legacy diagnostic. Even
+if every MV10 diagnostic gate passes, a separate protocol with fresh unobserved
+DSMC seeds must be locked and run before any JCP confirmatory claim.
+
+Exact MV10 Unity command:
+
+```bash
+MV10_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --branch agent/mv10-qy-multiscale-repair https://github.com/Ehsan-Roohi/DSMC_Python.git "${MV10_TMP}/repo" && git -C "${MV10_TMP}/repo" sparse-checkout set vision_guided_dsmc_mv8_kinetic_moments_bundle vision_guided_dsmc_mv9_heat_flux_bundle vision_guided_dsmc_mv10_qy_multiscale_bundle && bash "${MV10_TMP}/repo/vision_guided_dsmc_mv10_qy_multiscale_bundle/install_and_submit_unity.sh" "$PWD"
+```
