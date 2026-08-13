@@ -1,7 +1,7 @@
 {
   "stage": "MV12_Mohammadzadeh_SAGE_qy",
   "status": "locked_after_observing_MV10_before_any_MV12_outcome",
-  "locked_utc": "2026-08-13T18:15:00Z",
+  "locked_utc": "2026-08-13T17:50:08Z",
   "method_name": "SAGE-QY",
   "method_expansion": "Safety-Aware Gated Ensemble for q_y",
   "scientific_role": {
