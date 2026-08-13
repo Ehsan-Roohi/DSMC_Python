@@ -174,10 +174,32 @@ run_stage() {
     echo "[stage:${stage}] PASS $(date -u +%FT%TZ)"
 }
 
+verify_parallel_initial_state() {
+    local proc field
+    local -a required_fields=(
+        boundaryT boundaryU dsmcRhoN fD iDof internalE linearKE
+        momentum q rhoM rhoN
+    )
+
+    for proc in processor{0..15}; do
+        [[ -d "$proc/0" ]] || {
+            echo "ERROR: missing zero-time directory: $proc/0" >&2
+            return 1
+        }
+        for field in "${required_fields[@]}"; do
+            [[ -f "$proc/0/$field" ]] || {
+                echo "ERROR: missing decomposed field: $proc/0/$field" >&2
+                return 1
+            }
+        done
+    done
+}
+
 run_stage blockMesh blockMesh
 run_stage checkMesh checkMesh
 run_stage dsmcInitialise dsmcInitialise
 run_stage decomposePar decomposePar -force
+run_stage initialState verify_parallel_initial_state
 run_stage dsmcFoam mpirun -np "$SLURM_NTASKS" dsmcFoam -parallel
 run_stage reconstructPar reconstructPar -latestTime
 
