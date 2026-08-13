@@ -90,13 +90,32 @@ def test_manifest_verification() -> None:
         assert verified == manifest
 
 
+def test_slurm_jobs_reuse_the_verified_mv10_torch_environment() -> None:
+    scripts = Path(__file__).resolve().parents[1] / "scripts"
+    submit = (scripts / "submit_mohammadzadeh_mv12_sage_unity.sh").read_text(
+        encoding="utf-8"
+    )
+    predict = (scripts / "unity_mohammadzadeh_mv12_sage_predict.sbatch").read_text(
+        encoding="utf-8"
+    )
+    post = (scripts / "unity_mohammadzadeh_mv12_sage_post.sbatch").read_text(
+        encoding="utf-8"
+    )
+    assert 'MV12_VENV_DIR=${MV10_VENV_DIR}' in submit
+    assert '"${MV10_VENV_DIR}/bin/python" -c' in submit
+    assert 'source "${MV12_VENV_DIR}/bin/activate"' in predict
+    assert 'import torch' in predict
+    assert 'source "${MV12_VENV_DIR}/bin/activate"' in post
+
+
 def main() -> None:
     test_protocol_lock()
     test_simplex_projection()
     test_convex_fit_recovers_safe_mixture()
     test_condition_gate_abstains_without_test_labels()
     test_manifest_verification()
-    print("MV12_SAGE_TESTS_PASS count=5")
+    test_slurm_jobs_reuse_the_verified_mv10_torch_environment()
+    print("MV12_SAGE_TESTS_PASS count=6")
 
 
 if __name__ == "__main__":

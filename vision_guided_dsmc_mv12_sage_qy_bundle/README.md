@@ -46,7 +46,13 @@ MV12_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --bra
 
 The installer reads `LAST_MOHAMMADZADEH_MV10_QY_JOB.env`, verifies the
 completed MV10/MV9 ancestry, runs the MV12 unit tests, and submits only CPU
-prediction/postprocessing jobs. It neither submits nor cancels DSMC jobs.
+prediction/postprocessing jobs. It reuses the exact `MV10_VENV_DIR` recorded by
+the successful MV10 chain and fails before submission if that environment
+cannot import PyTorch. It neither submits nor cancels DSMC jobs.
+
+If an older MV12 job failed with `ModuleNotFoundError: No module named 'torch'`,
+rerun the one-line command above. It creates a new timestamped MV12 output and
+replaces the job pointer; it does not rerun MV9, MV10, or any DSMC trajectory.
 
 ## Monitor and collect
 
