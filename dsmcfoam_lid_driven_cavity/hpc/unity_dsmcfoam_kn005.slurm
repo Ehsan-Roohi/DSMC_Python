@@ -4,6 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=16
 #SBATCH --cpus-per-task=1
+#SBATCH --constraint=avx512
 #SBATCH --mem=64G
 #SBATCH --time=48:00:00
 #SBATCH --output=logs/dsmcfoam-kn005-%j.out
