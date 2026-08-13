@@ -1,6 +1,6 @@
 # Unity OpenFOAM / dsmcFoam Runbook
 
-Last verified: 2026-08-12 (America/New_York)
+Last verified: 2026-08-13 (America/New_York)
 
 Purpose: persistent instructions for running OpenFOAM `dsmcFoam` on the UMass Unity cluster without repeating module-loading mistakes.
 
@@ -38,6 +38,14 @@ module load uri/main
 module load OpenFOAM/v2406-foss-2023a
 command -v dsmcFoam
 ```
+
+## Failure 62847159: module loaded but solver not in PATH
+
+Job `62847159` ran on `umd-cscdr-cpu040` for 52 seconds and failed with exit `127:0` before creating a case directory. The module names were visible, but `command -v dsmcFoam` failed. This does not by itself prove that the solver or source is absent from the installation.
+
+Unity's EasyBuild module can expose `EBROOTOPENFOAM` without placing all OpenFOAM applications in `PATH`. Inside the AVX-512 job, check and source `$EBROOTOPENFOAM/etc/bashrc` (or the installation-root `etc/bashrc`) before deciding that a separate installation is needed. The maintained Slurm script performs this step and, on failure, records `EBROOTOPENFOAM`, `WM_PROJECT_DIR`, `FOAM_APPBIN`, `FOAM_USER_APPBIN`, module state, and discovered DSMC candidates.
+
+Do not compile or install a second OpenFOAM copy until these compute-node diagnostics confirm that no usable solver environment is available.
 
 ## Required Slurm directives
 
