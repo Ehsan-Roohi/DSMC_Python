@@ -2,16 +2,43 @@ name: Vision-guided DSMC Stage 116
 on:
   push:
     paths:
+      - 'vision_guided_dsmc/vgdsmc/stage116_pair_resolved_radial_node_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/stage116_fixed_snapshot_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage116_pair_resolved_radial_node_audit.py'
+      - 'vision_guided_dsmc/results/stage116_pair_resolved_radial_node_fixed_input.json'
       - '.github/workflows/vision-guided-dsmc-stage116.yml'
 permissions:
   contents: read
 jobs:
-  fixed-design-check:
+  pair-resolved-radial-node-audit:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: cd vision_guided_dsmc && python -m pip install -e '.[dev]'
-      - run: cd vision_guided_dsmc && pytest -q tests/test_stage116_pair_resolved_radial_node_audit.py
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage116_pair_resolved_radial_node_audit.py tests/test_stage115_distribution_specific_velocity_sector_audit.py
+      - run: python -m vgdsmc.stage116_fixed_snapshot_audit --input results/stage116_pair_resolved_radial_node_fixed_input.json --output-dir /tmp/stage116
+      - name: Verify fixed-design result
+        run: |
+          python - <<'PY'
+          import json, numpy as np
+          s=json.load(open('/tmp/stage116/summary.json')); c=s['configuration']
+          assert s['stage']==116 and s['finite'] is True
+          assert c['grid']==[64,64] and c['kn0']==10.0 and c['rule']==[40,96] and c['pair_sectors']==[5,6]
+          assert s['max_stage115_pair_share_reconstruction_abs_error']<=1e-12
+          assert not any(v for k,v in c.items() if k.endswith('_retuning'))
+          assert c['cross_knudsen_extension_permitted'] is False and c['validation_claim_permitted'] is False
+          assert s['decision'] in {'stage116_common_pair_radial_nodes_stage117_pair_node_wall_distance_interaction_audit','stage116_pair_support_radially_diffuse_stage117_gradient_strength_confound_audit','stage116_mixed_pair_radial_structure_stage117_pair_node_transition_audit'}
+          with np.load('/tmp/stage116/pair_resolved_radial_node_profiles.npz') as d:
+              assert d['phi'].shape==(3,10) and d['psi'].shape==(3,10)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage116-pair-resolved-radial-node-audit
+          path: /tmp/stage116
+          retention-days: 30
