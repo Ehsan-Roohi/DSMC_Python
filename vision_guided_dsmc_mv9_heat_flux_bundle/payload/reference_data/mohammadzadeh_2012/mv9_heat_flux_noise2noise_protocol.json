@@ -1,0 +1,170 @@
+{
+  "stage": "MV9_Mohammadzadeh_heat_flux_noise2noise_pilot",
+  "status": "locked_before_any_MV9_heat_flux_model_outcome",
+  "locked_utc": "2026-08-13T02:00:00Z",
+  "scientific_role": {
+    "classification": "exploratory_prospectively_locked_heat_flux_recovery_pilot_not_confirmatory_claim",
+    "purpose": "test whether independent-seed Noise2Noise restoration can recover qx and qy from one DSMC block at the quality of a ten-block raw estimate without degrading stress fields",
+    "ancestry_immutability": "MV5_MV6_MV7_MV8_protocols_results_and_artifacts_remain_unchanged",
+    "existing_data_disclosure": "the immutable raw checkpoints and MV8 audit-only physical figures existed before this lock; MV8 trained no neural moment model and no MV9 neural outcome existed",
+    "implementation_repair_disclosure": "MV8 reconstructed normalized q in float64 but cast it to float32 before redimensionalizing and comparing with stored physical q, imposing a roughly single-precision round-trip discrepancy; MV9 performs the complete provenance comparison in float64 and casts only the post-gate training tensor; the locked 1e-10 gate is not relaxed"
+  },
+  "moment_contract": {
+    "raw_additive_checkpoint_moments": [
+      "m0",
+      "m1",
+      "m2",
+      "energy",
+      "energy_velocity"
+    ],
+    "outputs": [
+      "tau_xy_over_p_ref",
+      "normal_stress_difference_over_p_ref",
+      "qx_over_q_ref",
+      "qy_over_q_ref"
+    ],
+    "auxiliary_inputs": [
+      "rho_over_rho_ref",
+      "u_over_U_lid",
+      "v_over_U_lid",
+      "T_over_T0",
+      "log10_Kn",
+      "U_lid_over_100"
+    ],
+    "definitions": {
+      "pressure_tensor": "P_ij=m*n*(<v_i v_j>-<v_i><v_j>)",
+      "tau_xy": "P_xy",
+      "normal_stress_difference": "P_xx-P_yy",
+      "heat_flux": "q_i=(m*n/2)<|c|^2 c_i>",
+      "p_ref": "n0*k_B*T0",
+      "q_ref": "p_ref*sqrt(k_B*T0/m)"
+    },
+    "local_percent_error_forbidden": true,
+    "figure_error_definition": "100*(prediction-reference)/fixed_characteristic_scale"
+  },
+  "execution_matrix": {
+    "input_budget_blocks": 1,
+    "raw_comparator_budget_blocks": 10,
+    "architectures": [
+      "nafnet_small",
+      "mambairv2_tiny_adapted"
+    ],
+    "training_initialization_seeds": [
+      2608091,
+      2608092,
+      2608093
+    ],
+    "model_tasks": 6,
+    "primary_condition": "kn0p1_u400",
+    "representative_contour_seed": 94302,
+    "representative_contour_block": 0,
+    "secondary_conditions": [
+      "kn0p075_u150",
+      "kn0p075_u300",
+      "kn0p1_u200",
+      "kn0p1_u400"
+    ]
+  },
+  "target_contract": {
+    "method": "cross_seed_Noise2Noise_with_lower_variance_disjoint_seed_target",
+    "training": "one-block input from seed s mapped to the mean full-window additive-moment target from other same-condition training seeds",
+    "validation": "mean of training-seed full-window additive moments",
+    "confirmatory": "same-condition leave-one-evaluation-seed-out full-window additive-moment target",
+    "input_and_target_particle_histories_disjoint": true,
+    "target_expected_noise_zero_mean_assumption_audited_by_budget_scaling": true,
+    "self_target_leakage": false,
+    "confirmatory_target_used_for_training_or_selection": false
+  },
+  "training_contract": {
+    "backbones": [
+      "nafnet_small",
+      "mambairv2_tiny_adapted"
+    ],
+    "prediction": "bounded_residual_correction_to_raw_B1_all_four_moment_channels",
+    "loss": "linear_weighted_MSE_plus_linear_gradient_MSE",
+    "channel_weights_tau_normal_qx_qy": [
+      0.75,
+      0.75,
+      1.5,
+      2.0
+    ],
+    "boundary_weight": "1+exp(-distance_to_wall_over_0p08L)",
+    "gradient_loss_weight": 0.1,
+    "adversarial_perceptual_or_diffusion_loss": false,
+    "reason": "linear deterministic weighting preserves the Noise2Noise conditional-mean optimum while prioritizing the low-SNR qy field and wall layer"
+  },
+  "selection_contract": {
+    "classical_and_residual_gate_data": "development_validation_only",
+    "gaussian_pass_candidates": [
+      1,
+      2,
+      3
+    ],
+    "tsvd_rank_candidates": [
+      2,
+      4,
+      8,
+      12
+    ],
+    "residual_alpha_candidates": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "metric": "mean componentwise RMS-normalized RMSE"
+  },
+  "pre_model_feasibility_gates": {
+    "all_source_checkpoint_artifacts_hash_verified": true,
+    "block_full_additive_moment_fixed_scale_relative_linf_tolerance": 1e-9,
+    "all_reconstructed_moment_fields_finite": true,
+    "pressure_covariance_positive_semidefinite_tolerance": 1e-10,
+    "stored_and_reconstructed_heat_flux_relative_tolerance": 1e-10,
+    "development_validation_raw_B10_composite_better_than_raw_B1": true,
+    "minimum_individual_fields_improved_by_raw_B10": 3,
+    "confirmatory_results_do_not_control_gate": true
+  },
+  "analysis_contract": {
+    "primary_endpoint": "primary-condition mean qx-qy NRMSE ratio to paired Raw@B=10",
+    "field_endpoints": [
+      "tau_xy",
+      "Pxx_minus_Pyy",
+      "qx",
+      "qy"
+    ],
+    "maximum_heat_flux_composite_ratio_to_raw_B10": 1.0,
+    "maximum_individual_heat_flux_ratio_to_raw_B10": 1.1,
+    "maximum_all_moment_composite_ratio_to_raw_B10": 1.1,
+    "pilot_success_rule": "at least one architecture has primary-condition mean qx-qy error no larger than Raw@B10, neither q component exceeds 1.10 times Raw@B10, and all-moment composite error does not exceed 1.10 times Raw@B10",
+    "failure_interpretation": "insufficient one-block signal-to-noise or model bias; no kinetic-moment reduction claim",
+    "full_confirmatory_followup_required_after_pilot_success": true
+  },
+  "figure_contract": {
+    "layout": "one two-row figure per physical moment",
+    "columns": [
+      "Reference",
+      "Raw DSMC B=1",
+      "Gaussian B=1",
+      "TSVD/POD B=1",
+      "NAFNet-Small B=1",
+      "MambaIRv2 B=1",
+      "Raw DSMC B=10"
+    ],
+    "upper_row": "physical field with one shared signed blue-white-red color scale",
+    "lower_row": "signed percent of fixed physical reference scale",
+    "formats": [
+      "vector PDF",
+      "600 dpi PNG"
+    ],
+    "outer_axis_labels_only": true,
+    "no_panel_titles_inside_axes": true
+  },
+  "source_contract": {
+    "mv5_protocol_sha256": "18959a7849eb9fb9fc02e02aad1a14ef9cb6556d604dd39e7b98f9ae8e8491e7",
+    "mv6_protocol_sha256": "e7cfd024a6d3e50cb79b2da9d907395dfc1473c3de4c2f6c396addc61e9465f5",
+    "mv7_protocol_sha256": "14768df20f26897bc66ecc7b1eeae88d1c4dfb85192b85f85229155d90f3bc16",
+    "mv8_protocol_sha256": "e4b31dec8053c1d14ac869bcaf56d6cf87be739ec60c5d16f36bc3082c2f6fe6",
+    "mv8_module_sha256": "b358ae81a4757d068753dc1ef242f6088605ec3f1aa559cee76e093773037c51"
+  }
+}
