@@ -356,3 +356,23 @@ Exact MV10 Unity command:
 ```bash
 MV10_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --branch agent/mv10-qy-multiscale-repair https://github.com/Ehsan-Roohi/DSMC_Python.git "${MV10_TMP}/repo" && git -C "${MV10_TMP}/repo" sparse-checkout set vision_guided_dsmc_mv8_kinetic_moments_bundle vision_guided_dsmc_mv9_heat_flux_bundle vision_guided_dsmc_mv10_qy_multiscale_bundle && bash "${MV10_TMP}/repo/vision_guided_dsmc_mv10_qy_multiscale_bundle/install_and_submit_unity.sh" "$PWD"
 ```
+
+## 13. MV11 independent cylinder geometry (appended 2026-08-13 UTC)
+
+MV11 introduces an external hypersonic geometry rather than another cavity
+condition. The locked Bird/VHS argon cylinder state is Mach 10 with
+`D=0.3048 m`, `T_inf=200 K`, and `T_wall=500 K`. The default development gate
+uses a 194x100 grid, 1.5 million simulator particles, and four prospectively
+locked fresh seeds. Legacy seeds from the Shojaa/JFM and MV9 campaigns are
+explicitly forbidden.
+
+The bundle `vision_guided_dsmc_mv11_ds2v_cylinder_bundle/` patches the corrected
+DS2V source already stored on Unity. It adds restart-safe RNG control when
+restart calls exist, guards exact-zero RNG logarithms, and writes thirteen
+additive raw moments needed for `Pxy`, `Pxx-Pyy`, `qx`, and `qy`. The complete
+Bird source is not duplicated in GitHub; source and executable hashes are
+recorded with every campaign.
+
+The post job places a compact `MV11_DS2V_CYLINDER_ANALYSIS_BUNDLE_*.zip`
+directly in the Unity project root. MV11 is a prospective second-geometry
+data-acquisition gate, not by itself a confirmatory JCP result.
