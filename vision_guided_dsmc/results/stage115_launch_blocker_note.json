@@ -1,6 +1,0 @@
-{
-  "stage": 115,
-  "status": "workflow_missing",
-  "head": "0de859a21cba9ea707787f0ce794561c9a37dd3b",
-  "note": "Stage 115 implementation and tests are present, but no dedicated Stage 115 Actions workflow exists at this head. Do not interpret generic CI success as a completed Stage 115 artifact run."
-}
