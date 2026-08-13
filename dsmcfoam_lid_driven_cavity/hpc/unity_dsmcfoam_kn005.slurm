@@ -31,8 +31,8 @@ load_openfoam() {
 
     if command -v module >/dev/null 2>&1; then
         local candidate parent
-        # Unity uses hierarchical Lmod modules: the foss parent toolchain must
-        # be loaded before the corresponding OpenFOAM module becomes visible.
+        # Unity uses hierarchical Lmod modules.  The module spider output for
+        # OpenFOAM/v2406-foss-2023a identifies uri/main as its parent.
         while read -r parent candidate; do
             module purge >/dev/null 2>&1 || true
             if [[ "$parent" != "none" ]]; then
@@ -46,6 +46,8 @@ load_openfoam() {
                 module unload "$candidate" >/dev/null 2>&1 || true
             fi
         done <<'MODULE_CANDIDATES'
+uri/main OpenFOAM/v2406-foss-2023a
+uri/main OpenFOAM/v2006-foss-2020a
 foss/2023a OpenFOAM/v2406-foss-2023a
 foss/2020a OpenFOAM/v2006-foss-2020a
 none OpenFOAM/10
