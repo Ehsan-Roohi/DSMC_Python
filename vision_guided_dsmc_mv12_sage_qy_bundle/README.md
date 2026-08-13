@@ -8,15 +8,22 @@ already paid for?
 
 SAGE-QY (Safety-Aware Gated Ensemble for `q_y`) uses six experts: Raw `B=1`,
 Gaussian `B=1`, TSVD/POD `B=1`, MV9 NAFNet, MV9 Mamba, and MV10 multiscale.
-For each physical condition it:
+Across all four development-validation conditions it:
 
-- chooses a single-expert anchor using development validation only;
-- selects ridge strength by leave-one-block-out validation;
+- chooses one global single-expert anchor using development validation only;
+- selects ridge strength by leaving out an entire development condition;
 - fits deterministic nonnegative weights that sum exactly to one;
 - falls back to the anchor unless the blend improves validation by at least
   0.5%; and
 - measures target-free expert disagreement, abstaining to the anchor on
-  high-disagreement samples.
+high-disagreement samples.
+
+The four development conditions and four legacy-evaluation conditions are
+intentionally disjoint. A pre-outcome runtime attempt exposed that the original
+condition-specific matching contract was impossible; before any MV12 prediction
+or evaluation-label access, the protocol was transparently amended to this
+global leave-one-condition-out transfer gate. The amendment and failed job ID
+are recorded in the locked JSON protocol.
 
 Only `q_y/q_ref` is replaced. The other three MV9 Mamba channels are preserved
 bitwise. The prediction job does not index the legacy evaluation targets and
@@ -48,7 +55,9 @@ The installer reads `LAST_MOHAMMADZADEH_MV10_QY_JOB.env`, verifies the
 completed MV10/MV9 ancestry, runs the MV12 unit tests, and submits only CPU
 prediction/postprocessing jobs. It reuses the exact `MV10_VENV_DIR` recorded by
 the successful MV10 chain and fails before submission if that environment
-cannot import PyTorch. It neither submits nor cancels DSMC jobs.
+cannot import PyTorch. It also verifies the disjoint development/evaluation
+condition identity matrices without loading targets. It neither submits nor
+cancels DSMC jobs.
 
 If an older MV12 job failed with `ModuleNotFoundError: No module named 'torch'`,
 rerun the one-line command above. It creates a new timestamped MV12 output and

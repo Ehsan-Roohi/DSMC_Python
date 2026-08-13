@@ -1,13 +1,22 @@
 {
   "stage": "MV12_Mohammadzadeh_SAGE_qy",
-  "status": "locked_after_observing_MV10_before_any_MV12_outcome",
+  "status": "amended_after_pre_outcome_split_failure_before_any_MV12_SAGE_output",
   "locked_utc": "2026-08-13T17:50:08Z",
+  "amended_utc": "2026-08-13T18:20:47Z",
+  "amendment_history": [
+    {
+      "trigger": "prediction job 62864284 failed before writing any prediction because exact condition matching was attempted between intentionally disjoint development-validation and legacy-evaluation matrices",
+      "scientific_outcome_observed": false,
+      "legacy_evaluation_label_accessed": false,
+      "change": "replace impossible condition-specific fitting with one global convex gate selected by leave-one-development-condition-out validation"
+    }
+  ],
   "method_name": "SAGE-QY",
   "method_expansion": "Safety-Aware Gated Ensemble for q_y",
   "scientific_role": {
     "classification": "exploratory_post_MV10_method_development_not_confirmatory_evidence",
     "observed_failure": "MV10 improved q_y in three secondary conditions but was 2.1998103102306312 times Raw_B10 in the primary kn0p1_u400 condition",
-    "purpose": "replace aggressive single-model residual correction with condition-wise convex multifidelity stacking and explicit uncertainty abstention",
+    "purpose": "replace aggressive single-model residual correction with a globally transferable convex multifidelity gate and explicit uncertainty abstention",
     "legacy_evaluation_labels_forbidden_during_model_stage": true,
     "legacy_evaluation_labels_allowed_only_after_prediction_manifest_lock": true,
     "fresh_unobserved_seed_followup_required_for_any_JCP_claim": true,
@@ -22,6 +31,12 @@
   },
   "execution_contract": {
     "primary_condition": "kn0p1_u400",
+    "development_validation_conditions": [
+      "kn0p05_u100",
+      "kn0p05_u200",
+      "kn0p05_u400",
+      "kn0p1_u100"
+    ],
     "conditions": [
       "kn0p075_u150",
       "kn0p075_u300",
@@ -43,8 +58,9 @@
   },
   "stacking_contract": {
     "weights": "nonnegative and sum to one",
-    "fit_data": "development validation only",
-    "regularization_selection": "leave-one-block-out within each condition",
+    "weight_scope": "one global vector across development conditions",
+    "fit_data": "all development-validation blocks across four development conditions only",
+    "regularization_selection": "leave-one-development-condition-out",
     "normalized_ridge_strength_candidates": [
       0.0,
       0.0001,
@@ -55,7 +71,7 @@
       10.0,
       100.0
     ],
-    "anchor": "lowest development-validation q_y NRMSE single expert in the condition",
+    "anchor": "lowest global development-validation q_y NRMSE single expert",
     "minimum_relative_validation_gain_for_blend": 0.005,
     "fallback_if_gain_absent": "anchor expert",
     "optimizer": "deterministic projected gradient on the probability simplex",
@@ -64,9 +80,9 @@
   },
   "abstention_contract": {
     "score": "RMS expert disagreement divided by RMS expert mean",
-    "threshold": "1.5 times the condition-wise development-validation 95th percentile",
+    "threshold": "1.5 times the global development-validation 95th percentile",
     "minimum_threshold": 1e-06,
-    "fallback": "condition-wise anchor expert",
+    "fallback": "global development-validation anchor expert",
     "test_labels_used": false
   },
   "analysis_contract": {

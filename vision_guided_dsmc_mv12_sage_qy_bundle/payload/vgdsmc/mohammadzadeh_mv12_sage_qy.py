@@ -23,10 +23,22 @@ import numpy as np
 
 
 STAGE = "MV12_Mohammadzadeh_SAGE_qy"
-STATUS = "locked_after_observing_MV10_before_any_MV12_outcome"
+STATUS = "amended_after_pre_outcome_split_failure_before_any_MV12_SAGE_output"
 PROTOCOL_FILE = "mv12_sage_qy_protocol.json"
 METHOD_NAME = "SAGE-QY"
 QY_INDEX = 3
+DEVELOPMENT_CONDITIONS = (
+    "kn0p05_u100",
+    "kn0p05_u200",
+    "kn0p05_u400",
+    "kn0p1_u100",
+)
+EVALUATION_CONDITIONS = (
+    "kn0p075_u150",
+    "kn0p075_u300",
+    "kn0p1_u200",
+    "kn0p1_u400",
+)
 EXPERT_NAMES = (
     "raw_b1",
     "gaussian_b1",
@@ -80,7 +92,13 @@ def locked_protocol() -> dict[str, Any]:
     if (
         value.get("method_name") != METHOD_NAME
         or tuple(execution["experts"]) != EXPERT_NAMES
+        or tuple(execution["development_validation_conditions"])
+        != DEVELOPMENT_CONDITIONS
+        or tuple(execution["conditions"]) != EVALUATION_CONDITIONS
         or execution["output_replaced"] != "qy_over_q_ref"
+        or stacking["weight_scope"] != "one global vector across development conditions"
+        or stacking["regularization_selection"]
+        != "leave-one-development-condition-out"
         or float(stacking["minimum_relative_validation_gain_for_blend"]) != 0.005
         or float(abstention["minimum_threshold"]) != 1.0e-6
     ):
@@ -98,14 +116,62 @@ def verify_lock() -> dict[str, Any]:
     return {
         "stage": STAGE,
         "status": "MV12_lock_verified",
+        "protocol_status": protocol["status"],
+        "protocol_amendment_count": len(protocol.get("amendment_history", [])),
         "protocol_sha256": _sha256(protocol_path()),
         "experts": list(EXPERT_NAMES),
+        "selection_scope": protocol["stacking_contract"]["weight_scope"],
         "legacy_labels_forbidden_during_prediction": bool(
             protocol["scientific_role"][
                 "legacy_evaluation_labels_forbidden_during_model_stage"
             ]
         ),
         "fresh_confirmation_required": True,
+    }
+
+
+def _condition_values(values: np.ndarray) -> tuple[str, ...]:
+    return tuple(sorted(str(item) for item in np.unique(np.asarray(values).astype("U32"))))
+
+
+def verify_data_contract(mv10_output_root: Path) -> dict[str, Any]:
+    """Verify disjoint condition identities without loading any target array."""
+
+    protocol = locked_protocol()
+    dataset = Path(mv10_output_root).resolve() / "dataset.npz"
+    with np.load(dataset, allow_pickle=False) as data:
+        validation_conditions = np.asarray(data["validation_condition"])
+        evaluation_conditions = np.asarray(data["test_condition"])
+    observed_development = _condition_values(validation_conditions)
+    observed_evaluation = _condition_values(evaluation_conditions)
+    expected_development = tuple(
+        sorted(protocol["execution_contract"]["development_validation_conditions"])
+    )
+    expected_evaluation = tuple(sorted(protocol["execution_contract"]["conditions"]))
+    checks = {
+        "development_condition_matrix_matches_protocol": observed_development
+        == expected_development,
+        "evaluation_condition_matrix_matches_protocol": observed_evaluation
+        == expected_evaluation,
+        "development_and_evaluation_conditions_disjoint": set(
+            observed_development
+        ).isdisjoint(observed_evaluation),
+        "targets_not_loaded": True,
+    }
+    if not all(checks.values()):
+        raise ValueError(
+            "MV12 dataset condition contract failed: "
+            f"development={observed_development}, evaluation={observed_evaluation}, "
+            f"checks={checks}"
+        )
+    return {
+        "stage": STAGE,
+        "status": "MV12_condition_identity_contract_verified_without_targets",
+        "development_conditions": list(observed_development),
+        "evaluation_conditions": list(observed_evaluation),
+        "development_sample_count": int(validation_conditions.size),
+        "evaluation_sample_count": int(evaluation_conditions.size),
+        "checks": checks,
     }
 
 
@@ -219,25 +285,37 @@ def _anchor_index(experts: np.ndarray, target: np.ndarray) -> tuple[int, list[fl
     return int(min(range(len(errors)), key=lambda index: (errors[index], index))), errors
 
 
-def fit_condition_gate(
+def fit_global_gate(
     validation_experts: np.ndarray,
     validation_target: np.ndarray,
+    validation_conditions: np.ndarray,
     test_experts: np.ndarray,
+    test_conditions: np.ndarray,
     protocol: Mapping[str, Any],
 ) -> tuple[np.ndarray, dict[str, Any]]:
-    """Fit one condition gate and apply target-free test abstention."""
+    """Fit one transferable gate and apply target-free test abstention."""
 
     validation_experts = np.asarray(validation_experts, dtype=np.float64)
     validation_target = np.asarray(validation_target, dtype=np.float64)
+    validation_conditions = np.asarray(validation_conditions).astype("U32")
     test_experts = np.asarray(test_experts, dtype=np.float64)
+    test_conditions = np.asarray(test_conditions).astype("U32")
     if validation_experts.ndim != 4 or test_experts.ndim != 4:
-        raise ValueError("condition experts must be [expert,sample,y,x]")
+        raise ValueError("global gate experts must be [expert,sample,y,x]")
     if validation_experts.shape[0] != test_experts.shape[0]:
         raise ValueError("validation and test expert counts differ")
     if validation_experts.shape[1:] != validation_target.shape:
         raise ValueError("validation expert and target shapes differ")
-    if validation_experts.shape[1] < 3:
-        raise ValueError("condition gate requires at least three validation blocks")
+    if validation_conditions.shape != (validation_target.shape[0],):
+        raise ValueError("validation condition identity shape differs")
+    if test_conditions.shape != (test_experts.shape[1],):
+        raise ValueError("test condition identity shape differs")
+    validation_groups = tuple(sorted(str(item) for item in np.unique(validation_conditions)))
+    evaluation_groups = tuple(sorted(str(item) for item in np.unique(test_conditions)))
+    if len(validation_groups) < 2 or not evaluation_groups:
+        raise ValueError("global transfer gate requires multiple development conditions")
+    if set(validation_groups) & set(evaluation_groups):
+        raise ValueError("development and evaluation condition sets must be disjoint")
 
     stacking = protocol["stacking_contract"]
     anchor, expert_errors = _anchor_index(validation_experts, validation_target)
@@ -248,8 +326,10 @@ def fit_condition_gate(
     for strength in ridge_candidates:
         squared_error = 0.0
         squared_target = 0.0
-        for held_out in range(validation_target.shape[0]):
-            keep = np.arange(validation_target.shape[0]) != held_out
+        condition_errors: dict[str, float] = {}
+        for held_out in validation_groups:
+            keep = validation_conditions != held_out
+            held = ~keep
             fold_anchor, _ = _anchor_index(
                 validation_experts[:, keep], validation_target[keep]
             )
@@ -262,23 +342,33 @@ def fit_condition_gate(
                 tolerance=float(stacking["optimizer_tolerance"]),
             )
             held_prediction = _weighted_prediction(
-                validation_experts[:, held_out : held_out + 1], fold_weights
-            )[0]
-            held_target = validation_target[held_out]
-            squared_error += float(np.sum((held_prediction - held_target) ** 2))
-            squared_target += float(np.sum(held_target**2))
+                validation_experts[:, held], fold_weights
+            )
+            held_target = validation_target[held]
+            condition_squared_error = float(
+                np.sum((held_prediction - held_target) ** 2)
+            )
+            condition_squared_target = float(np.sum(held_target**2))
+            squared_error += condition_squared_error
+            squared_target += condition_squared_target
+            condition_errors[held_out] = float(
+                np.sqrt(
+                    condition_squared_error / max(condition_squared_target, 1.0e-24)
+                )
+            )
         loo_records.append(
             {
                 "normalized_ridge_strength": strength,
-                "leave_one_block_out_qy_nrmse": float(
+                "leave_one_condition_out_qy_nrmse": float(
                     np.sqrt(squared_error / max(squared_target, 1.0e-24))
                 ),
+                "held_out_condition_qy_nrmse": condition_errors,
             }
         )
     selected = min(
         loo_records,
         key=lambda item: (
-            item["leave_one_block_out_qy_nrmse"],
+            item["leave_one_condition_out_qy_nrmse"],
             item["normalized_ridge_strength"],
         ),
     )
@@ -314,6 +404,10 @@ def fit_condition_gate(
         test_prediction[abstained] = test_experts[anchor, abstained]
 
     record = {
+        "weight_scope": "global_across_disjoint_development_and_evaluation_conditions",
+        "development_validation_conditions": list(validation_groups),
+        "evaluation_conditions": list(evaluation_groups),
+        "development_validation_sample_count": int(validation_target.shape[0]),
         "anchor_expert": EXPERT_NAMES[anchor],
         "anchor_validation_qy_nrmse": anchor_error,
         "expert_validation_qy_nrmse": {
@@ -322,7 +416,7 @@ def fit_condition_gate(
         "selected_normalized_ridge_strength": float(
             selected["normalized_ridge_strength"]
         ),
-        "leave_one_block_out_selection": loo_records,
+        "leave_one_development_condition_out_selection": loo_records,
         "final_weights": {
             name: float(weights[index]) for index, name in enumerate(EXPERT_NAMES)
         },
@@ -333,6 +427,10 @@ def fit_condition_gate(
         "test_sample_count": int(test_experts.shape[1]),
         "test_abstention_count": int(np.count_nonzero(abstained)),
         "test_abstention_indices": [int(item) for item in np.flatnonzero(abstained)],
+        "test_abstention_count_by_condition": {
+            condition: int(np.count_nonzero(abstained[test_conditions == condition]))
+            for condition in evaluation_groups
+        },
         "simplex_verified": bool(
             np.min(weights) >= -1.0e-12 and abs(float(weights.sum()) - 1.0) <= 1.0e-10
         ),
@@ -475,6 +573,7 @@ def run_prediction_stage(
     output_root = Path(output_root).resolve()
     if output_root.exists():
         raise FileExistsError(f"refusing to overwrite MV12 output: {output_root}")
+    data_contract = verify_data_contract(mv10_output_root)
     mv10_summary = json.loads(
         (mv10_output_root / "summary.json").read_text(encoding="utf-8")
     )
@@ -582,21 +681,28 @@ def run_prediction_stage(
             test_mv10,
         )
     )
-    sage_qy = np.empty_like(test_raw[:, QY_INDEX], dtype=np.float32)
-    condition_records: dict[str, Any] = {}
-    for condition in protocol["execution_contract"]["conditions"]:
-        validation_mask = validation_conditions == condition
-        test_mask = test_conditions == condition
-        if np.count_nonzero(validation_mask) < 3 or np.count_nonzero(test_mask) == 0:
-            raise ValueError(f"MV12 condition is absent or undersampled: {condition}")
-        prediction, record = fit_condition_gate(
-            validation_experts[:, validation_mask],
-            validation_y[validation_mask, QY_INDEX],
-            test_experts[:, test_mask],
-            protocol,
+    observed_development = _condition_values(validation_conditions)
+    observed_evaluation = _condition_values(test_conditions)
+    expected_development = tuple(
+        sorted(protocol["execution_contract"]["development_validation_conditions"])
+    )
+    expected_evaluation = tuple(sorted(protocol["execution_contract"]["conditions"]))
+    if (
+        observed_development != expected_development
+        or observed_evaluation != expected_evaluation
+    ):
+        raise ValueError(
+            "MV12 development/evaluation condition matrix mismatch: "
+            f"development={observed_development}, evaluation={observed_evaluation}"
         )
-        sage_qy[test_mask] = prediction
-        condition_records[str(condition)] = record
+    sage_qy, global_gate = fit_global_gate(
+        validation_experts,
+        validation_y[:, QY_INDEX],
+        validation_conditions,
+        test_experts,
+        test_conditions,
+        protocol,
+    )
 
     if not np.all(np.isfinite(sage_qy)):
         raise ValueError("MV12 produced a nonfinite SAGE prediction")
@@ -616,18 +722,19 @@ def run_prediction_stage(
         "mv10_output_root": str(mv10_output_root),
         "mv9_output_root": str(mv9_root),
         "legacy_test_targets_loaded": False,
+        "condition_identity_contract": data_contract,
         "expert_ancestry": [nafnet_record, mamba_record, mv10_record],
         "classical_selection_inherited_from_MV9_development": {
             "gaussian_passes": int(classical["gaussian_passes"]),
             "tsvd_rank": int(classical["tsvd_rank"]),
         },
-        "condition_gates": condition_records,
+        "global_transfer_gate": global_gate,
         "checks": {
             "all_upstream_manifests_recursively_verified": True,
             "stored_expert_predictions_reproduced": True,
-            "all_condition_weights_on_simplex": all(
-                bool(record["simplex_verified"])
-                for record in condition_records.values()
+            "global_weights_on_simplex": bool(global_gate["simplex_verified"]),
+            "development_and_evaluation_condition_matrices_verified_disjoint": bool(
+                set(observed_development).isdisjoint(observed_evaluation)
             ),
             "legacy_test_targets_not_loaded": True,
             "finite_prediction": True,
@@ -1043,6 +1150,9 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
     verify = subparsers.add_parser("verify-lock")
     verify.set_defaults(action="verify")
+    verify_data = subparsers.add_parser("verify-data")
+    verify_data.add_argument("--mv10-output-root", required=True, type=Path)
+    verify_data.set_defaults(action="verify_data")
     predict = subparsers.add_parser("predict")
     predict.add_argument("--mv10-output-root", required=True, type=Path)
     predict.add_argument("--output-root", required=True, type=Path)
@@ -1058,6 +1168,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.action == "verify":
         value = verify_lock()
+    elif args.action == "verify_data":
+        value = verify_data_contract(args.mv10_output_root)
     elif args.action == "predict":
         value = run_prediction_stage(
             args.mv10_output_root,

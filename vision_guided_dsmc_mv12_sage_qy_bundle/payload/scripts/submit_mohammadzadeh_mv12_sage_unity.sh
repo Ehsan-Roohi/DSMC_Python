@@ -17,6 +17,9 @@ test -s "${MV10_OUTPUT_ROOT}/dataset.npz"
 test -x "${MV10_VENV_DIR}/bin/python"
 "${MV10_VENV_DIR}/bin/python" -c \
   'import torch; print("MV12_TORCH_PREFLIGHT_PASS", torch.__version__)'
+PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}" \
+  "${MV10_VENV_DIR}/bin/python" -m vgdsmc.mohammadzadeh_mv12_sage_qy \
+  verify-data --mv10-output-root "${MV10_OUTPUT_ROOT}"
 mkdir -p "${PROJECT_ROOT}/logs"
 
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
