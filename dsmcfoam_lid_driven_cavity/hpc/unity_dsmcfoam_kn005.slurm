@@ -68,7 +68,7 @@ load_openfoam() {
         fi
 
         # Unity's EasyBuild module can expose the installation root without
-        # sourcing OpenFOAM's etc/bashrc.  Source it inside the AVX-512 job.
+        # sourcing OpenFOAM's etc/bashrc. Source it inside the AVX-512 job.
         if source_openfoam_environment; then
             return 0
         fi
@@ -146,14 +146,42 @@ cd "$RUN_DIR"
     command -v foamVersion >/dev/null 2>&1 && foamVersion || true
 } | tee RUN_METADATA.txt
 
-blockMesh > log.blockMesh 2>&1
-checkMesh > log.checkMesh 2>&1
-dsmcInitialise > log.dsmcInitialise 2>&1
-decomposePar -force > log.decomposePar 2>&1
+CURRENT_STAGE="case-setup"
+report_failure() {
+    local rc=$?
+    (( rc != 0 )) || return 0
+    set +e
+    echo "[stage:${CURRENT_STAGE}] FAILED exit_code=$rc" >&2
+    {
+        echo "finished_utc=$(date -u +%FT%TZ)"
+        echo "status=FAILED"
+        echo "failed_stage=$CURRENT_STAGE"
+        echo "exit_code=$rc"
+    } >> RUN_METADATA.txt
+    if [[ -f "log.${CURRENT_STAGE}" ]]; then
+        echo "===== tail log.${CURRENT_STAGE} =====" >&2
+        tail -120 "log.${CURRENT_STAGE}" >&2
+    fi
+}
+trap report_failure EXIT
 
-mpirun -np "$SLURM_NTASKS" dsmcFoam -parallel > log.dsmcFoam 2>&1
-reconstructPar -latestTime > log.reconstructPar 2>&1
+run_stage() {
+    local stage=$1
+    shift
+    CURRENT_STAGE="$stage"
+    echo "[stage:${stage}] START $(date -u +%FT%TZ)"
+    "$@" > "log.${stage}" 2>&1
+    echo "[stage:${stage}] PASS $(date -u +%FT%TZ)"
+}
 
+run_stage blockMesh blockMesh
+run_stage checkMesh checkMesh
+run_stage dsmcInitialise dsmcInitialise
+run_stage decomposePar decomposePar -force
+run_stage dsmcFoam mpirun -np "$SLURM_NTASKS" dsmcFoam -parallel
+run_stage reconstructPar reconstructPar -latestTime
+
+CURRENT_STAGE="finalize"
 {
     echo "finished_utc=$(date -u +%FT%TZ)"
     echo "status=COMPLETED"
@@ -166,3 +194,4 @@ tmp_env="${LAST_ENV}.tmp.${SLURM_JOB_ID}"
     printf 'export SLURM_LOG=%q\n' "${SLURM_LOG_PATH:-${CASE_ROOT%/case}/logs/dsmcfoam-kn005-${SLURM_JOB_ID}.out}"
 } > "$tmp_env"
 mv "$tmp_env" "$LAST_ENV"
+trap - EXIT
