@@ -44,11 +44,12 @@ fresh-seed confirmation.
 
 ## One-line Unity submission
 
-Run this from the Unity project root, normally
-`/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc`:
+This command can be run from any directory. It passes the canonical Unity
+project root explicitly, so an Open OnDemand/Jupyter working directory cannot
+be mistaken for the repository:
 
 ```bash
-MV12_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --branch agent/mv12-sage-qy https://github.com/Ehsan-Roohi/DSMC_Python.git "${MV12_TMP}/repo" && git -C "${MV12_TMP}/repo" sparse-checkout set vision_guided_dsmc_mv8_kinetic_moments_bundle vision_guided_dsmc_mv9_heat_flux_bundle vision_guided_dsmc_mv10_qy_multiscale_bundle vision_guided_dsmc_mv12_sage_qy_bundle && bash "${MV12_TMP}/repo/vision_guided_dsmc_mv12_sage_qy_bundle/install_and_submit_unity.sh" "$PWD"
+MV12_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --branch agent/mv12-sage-qy https://github.com/Ehsan-Roohi/DSMC_Python.git "${MV12_TMP}/repo" && git -C "${MV12_TMP}/repo" sparse-checkout set vision_guided_dsmc_mv8_kinetic_moments_bundle vision_guided_dsmc_mv9_heat_flux_bundle vision_guided_dsmc_mv10_qy_multiscale_bundle vision_guided_dsmc_mv12_sage_qy_bundle && bash "${MV12_TMP}/repo/vision_guided_dsmc_mv12_sage_qy_bundle/install_and_submit_unity.sh" /project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc
 ```
 
 The installer reads `LAST_MOHAMMADZADEH_MV10_QY_JOB.env`, verifies the
@@ -58,6 +59,10 @@ the successful MV10 chain and fails before submission if that environment
 cannot import PyTorch. It also verifies the disjoint development/evaluation
 condition identity matrices without loading targets. It neither submits nor
 cancels DSMC jobs.
+
+For a different checkout, pass its absolute path as the installer's first
+argument or set `MV12_PROJECT_ROOT`. An invalid path now exits with a
+`MV12_INSTALL_ERROR` message before copying files or submitting jobs.
 
 If an older MV12 job failed with `ModuleNotFoundError: No module named 'torch'`,
 rerun the one-line command above. It creates a new timestamped MV12 output and

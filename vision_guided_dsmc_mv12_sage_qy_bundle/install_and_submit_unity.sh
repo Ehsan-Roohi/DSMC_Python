@@ -7,11 +7,23 @@ MV9_BUNDLE_ROOT="$(cd "${BUNDLE_ROOT}/../vision_guided_dsmc_mv9_heat_flux_bundle
 MV10_BUNDLE_ROOT="$(cd "${BUNDLE_ROOT}/../vision_guided_dsmc_mv10_qy_multiscale_bundle" && pwd)"
 DEFAULT_TARGET="/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc"
 TARGET_ROOT="${1:-${MV12_PROJECT_ROOT:-${DEFAULT_TARGET}}}"
+
+die() {
+  printf 'MV12_INSTALL_ERROR: %s\n' "$*" >&2
+  exit 2
+}
+
+[[ -d "${TARGET_ROOT}" ]] || die \
+  "Unity project root is not a directory: ${TARGET_ROOT}. Expected ${DEFAULT_TARGET}."
+TARGET_ROOT="$(cd "${TARGET_ROOT}" && pwd)"
 PAYLOAD_TARGET="${TARGET_ROOT}/mv12_sage_qy"
 
-test -d "${TARGET_ROOT}"
-test -f "${TARGET_ROOT}/vgdsmc/mohammadzadeh_architecture_screen.py"
-test -s "${TARGET_ROOT}/LAST_MOHAMMADZADEH_MV10_QY_JOB.env"
+[[ -f "${TARGET_ROOT}/vgdsmc/mohammadzadeh_architecture_screen.py" ]] || die \
+  "Not a vision_guided_dsmc project root: ${TARGET_ROOT} (missing vgdsmc/mohammadzadeh_architecture_screen.py)."
+[[ -s "${TARGET_ROOT}/LAST_MOHAMMADZADEH_MV10_QY_JOB.env" ]] || die \
+  "Completed MV10 job pointer is missing: ${TARGET_ROOT}/LAST_MOHAMMADZADEH_MV10_QY_JOB.env."
+
+printf 'MV12_INSTALL_TARGET=%s\n' "${TARGET_ROOT}"
 
 # Reinstall the exact immutable ancestors required by the MV12 source lock.
 for relative in \
