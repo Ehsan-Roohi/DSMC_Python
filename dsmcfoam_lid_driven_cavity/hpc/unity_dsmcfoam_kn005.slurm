@@ -31,11 +31,20 @@ load_openfoam() {
 
     if command -v module >/dev/null 2>&1; then
         local candidate
-        for candidate in OpenFOAM/10 openfoam/10 OpenFOAM/v2306 openfoam/2306 OpenFOAM openfoam; do
+        # Exact Unity module names are listed first.  The earlier launcher only
+        # tried generic names, so it missed these installed modules entirely.
+        for candidate in \
+            OpenFOAM/v2406-foss-2023a \
+            OpenFOAM/v2006-foss-2020a \
+            OpenFOAM/10 openfoam/10 \
+            OpenFOAM/v2306 openfoam/2306 \
+            OpenFOAM openfoam; do
             if module load "$candidate" >/dev/null 2>&1; then
                 if command -v dsmcFoam >/dev/null 2>&1; then
+                    export DSMCFOAM_MODULE="$candidate"
                     return 0
                 fi
+                module unload "$candidate" >/dev/null 2>&1 || true
             fi
         done
     fi
@@ -89,6 +98,7 @@ cd "$RUN_DIR"
     echo "job_id=$SLURM_JOB_ID"
     echo "host=$(hostname)"
     echo "started_utc=$(date -u +%FT%TZ)"
+    echo "openfoam_module=${DSMCFOAM_MODULE:-user-local/bashrc}"
     echo "dsmcFoam=$(command -v dsmcFoam)"
     command -v foamVersion >/dev/null 2>&1 && foamVersion || true
 } | tee RUN_METADATA.txt
