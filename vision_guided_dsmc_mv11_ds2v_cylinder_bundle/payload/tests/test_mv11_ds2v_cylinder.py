@@ -132,6 +132,31 @@ def test_reconstruction_matches_direct_central_moment():
     assert np.isclose(result["qy_W_m2"][0], direct_qy)
 
 
+def test_parser_accepts_fortran_fixed_width_metadata(tmp_path: Path):
+    moment_file = tmp_path / "MV11_MOMENTS_NOUT0001.DAT"
+    data_row = [
+        1, 1, 0.1, 0.2, 0.01,
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+    ]
+    moment_file.write_text(
+        "# MV11_ADDITIVE_KINETIC_MOMENTS_VERSION=1\n"
+        "# NOUT=1 TIME=  1.2500000000000000D-03"
+        " SFAC=  1.0000000000000000E+00"
+        " FNUM=  3.5000000000000000E+06"
+        " NSAMP_DS2V=40 BLOCK_SAMPLES=20\n"
+        "# columns\n"
+        + " ".join(str(value) for value in data_row)
+        + "\n",
+        encoding="utf-8",
+    )
+    metadata, data = ANALYSIS.parse_moment_file(moment_file)
+    assert metadata["NOUT"] == 1.0
+    assert metadata["TIME"] == 1.25e-3
+    assert metadata["FNUM"] == 3.5e6
+    assert metadata["BLOCK_SAMPLES"] == 20.0
+    assert data.shape == (1, 18)
+
+
 def test_protocol_uses_fresh_unique_seeds():
     import json
 
@@ -148,9 +173,10 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as directory:
         test_patcher_is_fail_closed_and_inserts_required_markers(Path(directory))
+        test_parser_accepts_fortran_fixed_width_metadata(Path(directory))
     test_reconstruction_matches_direct_central_moment()
     test_protocol_uses_fresh_unique_seeds()
-    print("MV11_TESTS_PASS count=3")
+    print("MV11_TESTS_PASS count=4")
 
 
 if __name__ == "__main__":

@@ -34,6 +34,13 @@ MV11_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --bra
 The launcher submits one preparation/build job, a four-task seed array (two
 simultaneous cases by default), and one dependent analysis/package job.
 
+If all four seed runs completed but a legacy fixed-width metadata parser caused
+only the post job to fail, use `payload/scripts/recover_mv11_post_unity.sh` from
+the current bundle. It verifies the four status files and 240 moment blocks,
+installs the corrected analyzer, and submits postprocessing only; it never
+reruns DS2V. Analysis version 2 also requires positive physical time and the
+locked `tU/D >= 30` completion target before setting `analysis_pass=true`.
+
 ## Monitor
 
 ```bash

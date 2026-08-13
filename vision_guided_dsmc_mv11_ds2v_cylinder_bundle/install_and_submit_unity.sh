@@ -18,6 +18,7 @@ for relative in \
   scripts/unity_mv11_prepare.sbatch \
   scripts/unity_mv11_run_array.sbatch \
   scripts/unity_mv11_post.sbatch \
+  scripts/recover_mv11_post_unity.sh \
   scripts/submit_mv11_ds2v_cylinder_unity.sh; do
   install -D -m 0644 "${BUNDLE_ROOT}/payload/${relative}" "${PAYLOAD_TARGET}/${relative}"
 done
@@ -25,6 +26,7 @@ chmod +x \
   "${PAYLOAD_TARGET}/patcher/patch_ds2v_mv11.py" \
   "${PAYLOAD_TARGET}/tools/analyze_mv11_cylinder.py" \
   "${PAYLOAD_TARGET}/tests/test_mv11_ds2v_cylinder.py" \
+  "${PAYLOAD_TARGET}/scripts/recover_mv11_post_unity.sh" \
   "${PAYLOAD_TARGET}/scripts/submit_mv11_ds2v_cylinder_unity.sh"
 
 python3 "${PAYLOAD_TARGET}/tests/test_mv11_ds2v_cylinder.py"

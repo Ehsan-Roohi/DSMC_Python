@@ -15,7 +15,13 @@ import numpy as np
 
 
 ARGON_MASS = 6.63e-26
-META_RE = re.compile(r"([A-Z0-9_]+)=([^\s]+)")
+U_INF = 2634.1
+CYLINDER_DIAMETER = 0.3048
+MINIMUM_NOUT = 20
+TARGET_T_U_OVER_D = 30.0
+# Fortran ES output is fixed-width and therefore pads a positive number with
+# spaces after '='.  Accept both compact integer fields and padded real fields.
+META_RE = re.compile(r"([A-Z0-9_]+)=\s*([^\s]+)")
 
 
 def parse_moment_file(path: Path) -> tuple[dict[str, float], np.ndarray]:
@@ -24,7 +30,7 @@ def parse_moment_file(path: Path) -> tuple[dict[str, float], np.ndarray]:
         raise ValueError(f"invalid MV11 moment header: {path}")
     metadata: dict[str, float] = {}
     for key, raw in META_RE.findall(lines[1]):
-        metadata[key] = float(raw.replace("D", "E"))
+        metadata[key] = float(raw.replace("D", "E").replace("d", "e"))
     required = {"NOUT", "TIME", "FNUM", "BLOCK_SAMPLES"}
     missing = required - metadata.keys()
     if missing:
@@ -185,16 +191,27 @@ def analyze_campaign(campaign_root: Path, output_dir: Path, molecular_mass: floa
         latest = moment_files[-1]
         metadata, raw = parse_moment_file(latest)
         fields = reconstruct(metadata, raw, molecular_mass)
+        nout = int(metadata["NOUT"])
+        time_s = float(metadata["TIME"])
+        time_u_over_d = time_s * U_INF / CYLINDER_DIAMETER
+        completion_gate = (
+            len(moment_files) >= MINIMUM_NOUT
+            and nout >= MINIMUM_NOUT
+            and time_s > 0.0
+            and time_u_over_d >= TARGET_T_U_OVER_D
+        )
         fields_by_case[case_id] = fields
         write_csv(output_dir / f"fields_{case_id}.csv", fields)
         np.savez_compressed(output_dir / f"fields_{case_id}.npz", **fields)
         cases[case_id] = {
             "latest_moment_file": str(latest.relative_to(campaign_root)),
-            "nout": int(metadata["NOUT"]),
-            "time_s": metadata["TIME"],
+            "nout": nout,
+            "time_s": time_s,
+            "time_U_over_D": time_u_over_d,
             "block_samples": int(metadata["BLOCK_SAMPLES"]),
             "seed": case_meta.get("seed"),
             "completed_moment_blocks": len(moment_files),
+            "completion_gate": completion_gate,
             "metrics": scalar_metrics(fields),
         }
 
@@ -214,14 +231,18 @@ def analyze_campaign(campaign_root: Path, output_dir: Path, molecular_mass: floa
         )
     seeds = [entry.get("seed") for entry in cases.values()]
     summary = {
-        "analysis_version": 1,
+        "analysis_version": 2,
         "campaign_root": str(campaign_root),
         "molecular_mass_kg": molecular_mass,
         "case_count": len(cases),
         "distinct_seed_count": len(set(seed for seed in seeds if seed is not None)),
         "cases": cases,
         "pairwise": pairs,
-        "analysis_pass": len(cases) == 4 and len(set(seeds)) == 4,
+        "analysis_pass": (
+            len(cases) == 4
+            and len(set(seeds)) == 4
+            and all(entry["completion_gate"] for entry in cases.values())
+        ),
     }
     (output_dir / "mv11_cylinder_summary.json").write_text(
         json.dumps(summary, indent=2, allow_nan=False) + "\n", encoding="utf-8"

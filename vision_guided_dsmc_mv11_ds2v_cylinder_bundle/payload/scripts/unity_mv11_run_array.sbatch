@@ -94,7 +94,12 @@ sync_outputs() {
   NOUT=${FILE#MV11_MOMENTS_NOUT}; NOUT=${NOUT%.DAT}; NOUT=$((10#${NOUT}))
   if (( NOUT <= LAST_NOUT )); then return 0; fi
   LAST_NOUT=${NOUT}
-  LAST_TIME=$(sed -n '2s/.* TIME=\([^ ]*\).*/\1/p' "${LOCAL}/${FILE}")
+  LAST_TIME=$(awk 'NR == 2 {
+    for (i=1; i<=NF; i++) {
+      if ($i == "TIME=") { print $(i+1); exit }
+      if ($i ~ /^TIME=[^[:space:]]+$/) { sub(/^TIME=/, "", $i); print $i; exit }
+    }
+  }' "${LOCAL}/${FILE}")
   LAST_TIME=${LAST_TIME:-0}
   LAST_TUD=$(awk -v T="${LAST_TIME}" -v U="${UINF}" -v D="${DIAMETER}" 'BEGIN{printf "%.12g",T*U/D}')
   DEST="NOUT$(printf '%04d' "${LAST_NOUT}")"
