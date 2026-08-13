@@ -149,8 +149,17 @@ def angular_sector_indices(vx: np.ndarray, vy: np.ndarray) -> np.ndarray:
     if x.shape != y.shape or x.ndim != 1:
         raise ValueError("Stage-114 velocity components must be matching vectors")
     angle = np.mod(np.arctan2(y, x) + 2.0 * np.pi, 2.0 * np.pi)
-    labels = np.floor(angle / (2.0 * np.pi / ANGULAR_SECTORS)).astype(np.int64)
-    return np.clip(labels, 0, ANGULAR_SECTORS - 1)
+    sector_width = 2.0 * np.pi / ANGULAR_SECTORS
+    scaled = angle / sector_width
+    nearest_boundary = np.rint(scaled)
+    boundary_tolerance = 64.0 * np.finfo(np.float64).eps
+    scaled = np.where(
+        np.isclose(scaled, nearest_boundary, rtol=0.0, atol=boundary_tolerance),
+        nearest_boundary,
+        scaled,
+    )
+    labels = np.floor(scaled).astype(np.int64)
+    return np.mod(labels, ANGULAR_SECTORS)
 
 
 def wall_distance_band_masks() -> dict[str, np.ndarray]:
