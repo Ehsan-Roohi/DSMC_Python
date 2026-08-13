@@ -1,0 +1,4 @@
+# VHS collision parameters. alpha=1 converts SPARTA's VSS style to VHS.
+# ID  diameter(m)  omega  Tref(K)  alpha
+Ar    4.17e-10     0.81   273.0    1.0
+

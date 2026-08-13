@@ -1,0 +1,64 @@
+{
+  "case": "two-dimensional rarefied lid-driven cavity",
+  "display_filter": "centred 11-cell lid average and sigma=1-cell field Gaussian; raw values retained in CSV",
+  "domain_mean_speed_max_m_per_s": 67.33702357884503,
+  "domain_temperature_mean_max_K": 314.1016666666667,
+  "domain_temperature_mean_min_K": 294.5696666666667,
+  "grid": [
+    200,
+    200
+  ],
+  "independent_seed_count": 3,
+  "kn": 0.1,
+  "lid_temperature_11cell_max_K": 312.99139393939396,
+  "lid_temperature_11cell_min_K": 304.3780909090909,
+  "lid_temperature_mean_K": 311.03553,
+  "lid_velocity_m_per_s": 100.0,
+  "mean_cellwise_seed_standard_deviation_temperature_K": 1.2068061824983942,
+  "mean_lid_seed_standard_deviation_temperature_K": 1.19938439171912,
+  "nominal_simulator_particles": 1280000,
+  "particles_per_cell": 32,
+  "runtime_by_seed": {
+    "20260803": {
+      "mpi_ranks": 16,
+      "particles_stuck": 0,
+      "sampling_collisions": 53397088,
+      "sampling_loop_seconds": 326.124,
+      "sampling_mparticle_steps_per_second": 102.047,
+      "sampling_timesteps_per_second": 79.724,
+      "simulator_particles": 1279999,
+      "warmup_loop_seconds": 138.664
+    },
+    "20260819": {
+      "mpi_ranks": 16,
+      "particles_stuck": 0,
+      "sampling_collisions": 53404533,
+      "sampling_loop_seconds": 132.906,
+      "sampling_mparticle_steps_per_second": 250.402,
+      "sampling_timesteps_per_second": 195.627,
+      "simulator_particles": 1279999,
+      "warmup_loop_seconds": 69.7501
+    },
+    "20260831": {
+      "mpi_ranks": 16,
+      "particles_stuck": 0,
+      "sampling_collisions": 53407045,
+      "sampling_loop_seconds": 149.983,
+      "sampling_mparticle_steps_per_second": 221.892,
+      "sampling_timesteps_per_second": 173.353,
+      "simulator_particles": 1279999,
+      "warmup_loop_seconds": 69.5929
+    }
+  },
+  "sample_steps": 26000,
+  "sample_stride": 10,
+  "seeds": [
+    20260803,
+    20260819,
+    20260831
+  ],
+  "source_job_array": 62778322,
+  "uncertainty": "two-sided 95% Student-t interval across independent seeds",
+  "wall_temperature_K": 300.0,
+  "warmup_steps": 14000
+}
