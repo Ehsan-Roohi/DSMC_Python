@@ -12,7 +12,7 @@ Baseline:
 - number density `2.588767306032e25 1/m3`
 - `80 x 80 x 1` cells and approximately 32 simulator particles per cell
 - `deltaT=5e-12 s`, 20,000 steps; averaging begins at `2e-8 s`
-- 16 MPI ranks (`4 x 4 x 1` decomposition)
+- 16 MPI ranks (`4 x 4 x 1` decomposition) on a Unity `avx512` node, as required by `uri/main`
 
 The dictionaries follow the OpenFOAM `dsmcFoam` tutorial syntax. The Unity job script first uses an already-loaded OpenFOAM environment, then tries Unity's confirmed hierarchical module stack (`uri/main` + `OpenFOAM/v2406-foss-2023a`, followed by fallbacks), common module names, and installation paths. If your installation has a non-standard path, submit with `DSMCFOAM_BASHRC=/absolute/path/to/OpenFOAM/etc/bashrc`.
 
