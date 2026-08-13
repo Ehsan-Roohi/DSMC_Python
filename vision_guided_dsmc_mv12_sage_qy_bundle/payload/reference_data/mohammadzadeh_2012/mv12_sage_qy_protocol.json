@@ -1,0 +1,119 @@
+{
+  "stage": "MV12_Mohammadzadeh_SAGE_qy",
+  "status": "amended_after_pre_outcome_split_failure_before_any_MV12_SAGE_output",
+  "locked_utc": "2026-08-13T17:50:08Z",
+  "amended_utc": "2026-08-13T18:20:47Z",
+  "amendment_history": [
+    {
+      "trigger": "prediction job 62864284 failed before writing any prediction because exact condition matching was attempted between intentionally disjoint development-validation and legacy-evaluation matrices",
+      "scientific_outcome_observed": false,
+      "legacy_evaluation_label_accessed": false,
+      "change": "replace impossible condition-specific fitting with one global convex gate selected by leave-one-development-condition-out validation"
+    }
+  ],
+  "method_name": "SAGE-QY",
+  "method_expansion": "Safety-Aware Gated Ensemble for q_y",
+  "scientific_role": {
+    "classification": "exploratory_post_MV10_method_development_not_confirmatory_evidence",
+    "observed_failure": "MV10 improved q_y in three secondary conditions but was 2.1998103102306312 times Raw_B10 in the primary kn0p1_u400 condition",
+    "purpose": "replace aggressive single-model residual correction with a globally transferable convex multifidelity gate and explicit uncertainty abstention",
+    "legacy_evaluation_labels_forbidden_during_model_stage": true,
+    "legacy_evaluation_labels_allowed_only_after_prediction_manifest_lock": true,
+    "fresh_unobserved_seed_followup_required_for_any_JCP_claim": true,
+    "DSMC_rerun_in_this_stage": false
+  },
+  "source_contract": {
+    "mv9_module_sha256": "e4eb5e55907f77f2c819860031f95122aecf75888ce7dae8dceeddeb0f41f93f",
+    "mv10_module_sha256": "fe27e69cd05d481d8f03c272da4c0ca84d62a8a3ca443db54aebdc762bae52ed",
+    "required_mv10_decision": "MV10_legacy_diagnostic_does_not_support_fresh_seed_confirmation",
+    "required_mv9_decision": "MV9_feasibility_does_not_support_one_block_kinetic_moment_claim",
+    "recursive_hash_verification": true
+  },
+  "execution_contract": {
+    "primary_condition": "kn0p1_u400",
+    "development_validation_conditions": [
+      "kn0p05_u100",
+      "kn0p05_u200",
+      "kn0p05_u400",
+      "kn0p1_u100"
+    ],
+    "conditions": [
+      "kn0p075_u150",
+      "kn0p075_u300",
+      "kn0p1_u200",
+      "kn0p1_u400"
+    ],
+    "experts": [
+      "raw_b1",
+      "gaussian_b1",
+      "tsvd_b1",
+      "mv9_nafnet",
+      "mv9_mamba",
+      "mv10_multiscale"
+    ],
+    "preserved_non_qy_channels": "bitwise MV9 Mamba ensemble",
+    "output_replaced": "qy_over_q_ref",
+    "representative_seed": 94302,
+    "representative_block": 0
+  },
+  "stacking_contract": {
+    "weights": "nonnegative and sum to one",
+    "weight_scope": "one global vector across development conditions",
+    "fit_data": "all development-validation blocks across four development conditions only",
+    "regularization_selection": "leave-one-development-condition-out",
+    "normalized_ridge_strength_candidates": [
+      0.0,
+      0.0001,
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0
+    ],
+    "anchor": "lowest global development-validation q_y NRMSE single expert",
+    "minimum_relative_validation_gain_for_blend": 0.005,
+    "fallback_if_gain_absent": "anchor expert",
+    "optimizer": "deterministic projected gradient on the probability simplex",
+    "maximum_optimizer_iterations": 3000,
+    "optimizer_tolerance": 1e-11
+  },
+  "abstention_contract": {
+    "score": "RMS expert disagreement divided by RMS expert mean",
+    "threshold": "1.5 times the global development-validation 95th percentile",
+    "minimum_threshold": 1e-06,
+    "fallback": "global development-validation anchor expert",
+    "test_labels_used": false
+  },
+  "analysis_contract": {
+    "maximum_primary_mean_qy_ratio_to_raw_B10": 1.0,
+    "maximum_primary_composite_ratio_to_raw_B10": 1.1,
+    "maximum_individual_seed_qy_ratio_to_raw_B10": 1.1,
+    "maximum_each_condition_mean_qy_ratio_to_raw_B10": 1.0,
+    "non_qy_fields_must_be_bitwise_identical_to_MV9_Mamba": true,
+    "authorization_rule": "all gates must pass before separately locking fresh unseen DSMC seeds",
+    "failure_rule": "do not spend fresh confirmatory DSMC budget on SAGE-QY"
+  },
+  "method_basis": [
+    {
+      "concept": "training from independent noisy targets",
+      "source": "https://proceedings.mlr.press/v80/lehtinen18a.html"
+    },
+    {
+      "concept": "deep-ensemble disagreement for uncertainty under distribution shift",
+      "source": "https://papers.nips.cc/paper_files/paper/2017/hash/9ef2ed4b7fd2c810847ffa5fa85bce38-Abstract.html"
+    },
+    {
+      "concept": "multiple control variates for kinetic equations",
+      "source": "https://epubs.siam.org/doi/10.1137/18M1231985"
+    },
+    {
+      "concept": "multioutput approximate control variates",
+      "source": "https://epubs.siam.org/doi/10.1137/23M1607994"
+    },
+    {
+      "concept": "selective regression with abstention",
+      "source": "https://proceedings.mlr.press/v162/shah22a.html"
+    }
+  ]
+}
