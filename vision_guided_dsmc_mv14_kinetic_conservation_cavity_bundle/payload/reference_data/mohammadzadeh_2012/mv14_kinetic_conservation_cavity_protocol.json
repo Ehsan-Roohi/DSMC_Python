@@ -1,0 +1,120 @@
+{
+  "stage": "MV14_Mohammadzadeh_kinetic_conservation_cavity",
+  "status": "locked_after_MV12_failure_before_any_MV14_outcome",
+  "locked_utc": "2026-08-14T02:45:00Z",
+  "method_name": "KCR-Cavity",
+  "method_expansion": "Kinetic-Conservation Reconciliation for the DSMC cavity",
+  "scientific_role": {
+    "classification": "prospectively_locked_post_MV12_five_arm_legacy_ablation_not_confirmatory_evidence",
+    "observed_failure": "MV12 did not beat paired Raw_B10 for q_y at the locked primary condition",
+    "root_cause_hypothesis": "q_y is a weak signed third central moment with substantially higher relative DSMC sampling variance than velocity, temperature, or q_x",
+    "purpose": "test whether machine vision adds measurable information when a direct B1 kinetic third-moment observation is softly reconciled with exact collision-invariant Boltzmann moment balances",
+    "DSMC_rerun_in_this_stage": false,
+    "old_evaluation_seeds_are_legacy_diagnostic_only": true,
+    "fresh_unobserved_seed_followup_required_for_any_claim": true
+  },
+  "kinetic_physics_contract": {
+    "raw_observables": [
+      "m0",
+      "m1x",
+      "m1y",
+      "m1z",
+      "m2xx",
+      "m2yy",
+      "m2zz",
+      "m2xy",
+      "m2xz",
+      "m2yz",
+      "energy",
+      "energy_velocity_x",
+      "energy_velocity_y",
+      "energy_velocity_z"
+    ],
+    "direct_fields": "rho, u, v, w, T, Pxx, Pxy, Pxz, Pyy, Pyz, Pzz, qx and qy are reconstructed directly from the indexed additive moments of the exact B1 DSMC block",
+    "exact_balance": "steady monatomic Boltzmann internal-energy moment: div(q)=-(3/2)n k_B u.grad(T)-P:grad(u)",
+    "weak_form": "finite-volume vertical interval integrals of d(q_y)/dy are used at local, multiscale and coarse spans",
+    "statistical_model": "generalized least-squares observation fidelity weighted by a preregistered third-moment variance proxy proportional to rho^2 T^3/N_cell",
+    "wall_mode": "no wall heat flux is prescribed; first and last cell rows remain noisy kinetic observations and are corrected only through the same soft GLS objective",
+    "additive_constant_mode": "anchored exclusively by direct q_y observations, never by a boundary closure",
+    "Fourier_law_used": false,
+    "Newtonian_stress_law_used": false,
+    "Navier_Stokes_closure_used": false,
+    "Pzz_equals_p_closure_used": false,
+    "anti_Fourier_heat_transfer_permitted": true,
+    "pointwise_hard_PDE_projection_used": false
+  },
+  "ablation_contract": {
+    "arms": [
+      "Raw_B1",
+      "vision_only_MV9_Mamba",
+      "physics_only_raw_B1_plus_weak_kinetic_balance",
+      "vision_plus_weak_kinetic_balance",
+      "paired_Raw_B10"
+    ],
+    "machine_vision_contribution_rule": "the hybrid must beat both vision-only and physics-only at the primary condition; otherwise no q_y machine-vision contribution is claimed",
+    "equal_information_rule": "physics-only and hybrid use the same indexed B1 raw moment block and the same weak-balance selection matrix; neither sees B10 or legacy labels during prediction",
+    "whole_cavity_outputs": [
+      "Pxy",
+      "Pxx-Pyy",
+      "qx",
+      "qy"
+    ]
+  },
+  "selection_contract": {
+    "data": "MV9 development validation conditions and labels only",
+    "macro_smoothing_passes": [0, 1, 2],
+    "weak_vertical_span_sets": {
+      "local": [1, 2],
+      "multiscale": [1, 2, 4, 8],
+      "coarse": [4, 8, 16]
+    },
+    "lambda_strengths": [0.03, 0.1, 0.3, 1.0, 3.0, 10.0],
+    "maximum_development_weak_residual_ratio": 0.85,
+    "score": "separately for physics-only and hybrid, among candidates reducing the development weak energy-balance residual by at least 15 percent, minimize condition-balanced q_y RMS-normalized RMSE",
+    "tie_break": "lower lambda, fewer macro smoothing passes, lexical span name",
+    "legacy_targets_loaded_by_prediction_stage": false
+  },
+  "analysis_contract": {
+    "primary_condition": "kn0p1_u400",
+    "representative_seed": 94302,
+    "representative_block": 0,
+    "maximum_primary_mean_qy_ratio_to_raw_B10": 1.0,
+    "maximum_individual_seed_qy_ratio_to_raw_B10": 1.1,
+    "maximum_each_condition_mean_qy_ratio_to_raw_B10": 1.0,
+    "maximum_weak_residual_ratio": 0.85,
+    "authorization_rule": "all legacy gates including hybrid superiority over both single-component arms must pass before separately locking fresh unseen DSMC seeds",
+    "failure_rule": "report which arm failed; do not call the method machine-vision acceleration and do not tune on legacy labels"
+  },
+  "source_contract": {
+    "required_MV9_decision": "MV9_feasibility_does_not_support_one_block_kinetic_moment_claim",
+    "required_MV12_decision": "MV12_SAGE_legacy_diagnostic_does_not_support_fresh_seed_confirmation",
+    "mv9_module_sha256": "e4eb5e55907f77f2c819860031f95122aecf75888ce7dae8dceeddeb0f41f93f",
+    "mv9_protocol_sha256": "47b5c7e4b59aa0ce9db0c3a2ab07e002b8148cc9f338905a826cb8d99b3bd3ec",
+    "mv12_module_sha256": "6df9e8c8647b97513c2ee837051c0f0ebc4430d639b783edcdb7ac381d0569c6",
+    "mv12_protocol_sha256": "bf8bcb8f872dd9e9c009ea61b3e657134138b2aad6c35c71de51ccabc1d48b65"
+  },
+  "method_basis": [
+    {
+      "concept": "DSMC statistical uncertainty for heat flux",
+      "source": "https://doi.org/10.1016/S0021-9991(03)00099-8"
+    },
+    {
+      "concept": "low-variance Boltzmann particle simulation",
+      "source": "https://doi.org/10.1016/j.jcp.2007.07.006"
+    },
+    {
+      "concept": "physics-informed super-resolution and denoising of fluid fields",
+      "source": "https://arxiv.org/abs/2011.02364"
+    },
+    {
+      "concept": "Boltzmann-BGK physics-informed neural formulation",
+      "source": "https://doi.org/10.1016/j.jcp.2021.110676"
+    }
+  ],
+  "return_contract": {
+    "compact_archive_written_to_Unity_project_root": true,
+    "raw_dataset_and_model_weights_excluded": true,
+    "recursive_SHA256_verification_required": true,
+    "maximum_archive_MiB": 450
+  }
+}
