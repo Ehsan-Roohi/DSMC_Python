@@ -179,7 +179,10 @@ END SUBROUTINE MV11_RESET
 SUBROUTINE MV11_WRITE_BLOCK(NOUT,TIME,SFAC,FNUM,NSAMP,NCELLS,NSPECIES,CELL_ARRAY)
 IMPLICIT NONE
 INTEGER, INTENT(IN) :: NOUT,NSAMP,NCELLS,NSPECIES
-REAL, INTENT(IN) :: TIME,SFAC,FNUM
+! Bird's locked DS2V source declares TIME as REAL(KIND=8), while SFAC and
+! FNUM are default REAL.  Keep the explicit module interface kind-exact.
+REAL(KIND=8), INTENT(IN) :: TIME
+REAL, INTENT(IN) :: SFAC,FNUM
 REAL, INTENT(IN) :: CELL_ARRAY(:,:)
 INTEGER :: UNIT,N,L
 REAL(KIND=8) :: X,Y,AREA
@@ -376,7 +379,7 @@ def patch_source(source: Path, output: Path, report_path: Path) -> None:
     output.write_text(text, encoding="utf-8")
     output_bytes = output.read_bytes()
     report = {
-        "patch_version": 1,
+        "patch_version": 2,
         "source": str(source),
         "output": str(output),
         "source_sha256": sha256_bytes(source_bytes),

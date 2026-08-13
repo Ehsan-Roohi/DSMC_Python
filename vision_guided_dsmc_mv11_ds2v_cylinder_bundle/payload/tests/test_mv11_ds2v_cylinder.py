@@ -82,6 +82,9 @@ def test_patcher_is_fail_closed_and_inserts_required_markers(tmp_path: Path):
     assert "LOG(MAX(RANF,0.5*EPSILON(RANF)))" in text
     assert "CALL MV11_ACCUMULATE" in text
     assert "CALL MV11_WRITE_BLOCK" in text
+    assert "REAL(KIND=8), INTENT(IN) :: TIME" in text
+    assert "REAL, INTENT(IN) :: SFAC,FNUM" in text
+    assert "REAL, INTENT(IN) :: TIME,SFAC,FNUM" not in text
     # Two DS2V reset hooks plus the reset after each written MV11 block.
     assert text.count("CALL MV11_RESET") == 3
 

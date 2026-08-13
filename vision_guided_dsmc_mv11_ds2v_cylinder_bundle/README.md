@@ -20,7 +20,8 @@ bow shock, stagnation region, curved diffuse wall and wake.
 The full Bird source is not copied into this public repository. The fail-closed
 patcher operates on the corrected source already present in the Unity
 `ABINITIO_SHOCK_TESTS_v2` project, records its SHA256, and refuses an
-unrecognized source layout.
+unrecognized source layout. Patcher version 2 also preserves Bird's
+`REAL(KIND=8)` interface for simulation time when writing MV11 moment blocks.
 
 ## One-line Unity submission
 
