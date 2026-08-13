@@ -1,0 +1,17 @@
+name: Vision-guided DSMC Stage 116
+on:
+  push:
+    paths:
+      - '.github/workflows/vision-guided-dsmc-stage116.yml'
+permissions:
+  contents: read
+jobs:
+  fixed-design-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: cd vision_guided_dsmc && python -m pip install -e '.[dev]'
+      - run: cd vision_guided_dsmc && pytest -q tests/test_stage116_pair_resolved_radial_node_audit.py
