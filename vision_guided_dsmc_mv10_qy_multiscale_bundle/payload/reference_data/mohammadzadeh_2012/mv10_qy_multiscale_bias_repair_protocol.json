@@ -1,0 +1,144 @@
+{
+  "stage": "MV10_Mohammadzadeh_qy_multiscale_bias_repair",
+  "status": "locked_after_observing_MV9_before_any_MV10_model_outcome",
+  "locked_utc": "2026-08-13T05:15:00Z",
+  "scientific_role": {
+    "classification": "exploratory_post_MV9_method_development_not_confirmatory_evidence",
+    "purpose": "test whether explicit local-coarse-global residual modeling repairs the coherent low-frequency qy bias that caused the locked MV9 primary-condition failure",
+    "MV9_outcomes_observed_before_lock": true,
+    "observed_MV9_primary_result": "Mamba repaired qx but both neural architectures remained worse than Raw_B10 for qy at kn0p1_u400; the qy error was broad and sign-coherent rather than pixelwise noise",
+    "old_evaluation_seeds": [
+      94301,
+      94302,
+      94303,
+      94304
+    ],
+    "old_evaluation_seeds_forbidden_as_confirmation": true,
+    "old_evaluation_role": "legacy diagnostic for deciding whether a new prospectively locked fresh-seed confirmation is scientifically justified",
+    "fresh_unobserved_seed_followup_required_for_any_JCP_claim": true,
+    "ancestry_immutability": "MV5_through_MV9_protocols_results_and_artifacts_remain_unchanged"
+  },
+  "prior_art_boundary": {
+    "not_claimed": [
+      "first Noise2Noise method",
+      "first neural denoising of Monte Carlo fields",
+      "first self-supervised DSMC denoising",
+      "first denoising particle method for rarefied flow",
+      "novelty based only on the local-coarse-global CNN architecture"
+    ],
+    "closest_disclosed_work": [
+      "Lehtinen et al., Noise2Noise, ICML 2018, DOI/arXiv 10.48550/arXiv.1803.04189",
+      "Wei et al., physics-informed noise-assisted self-supervised hypersonic DSMC denoising, Acta Astronautica 241 (2026), DOI 10.1016/j.actaastro.2025.12.056",
+      "Yang et al., denoising multiscale particle method, Journal of Computational Physics 537 (2025) 114096, DOI 10.1016/j.jcp.2025.114096",
+      "Tatsios et al., DSMC-CFD coupling with Bayesian surrogate modelling, Journal of Computational Physics 520 (2025) 113500, DOI 10.1016/j.jcp.2024.113500"
+    ],
+    "candidate_contribution_if_fresh_confirmation_succeeds": "an end-to-end fail-closed DSMC sampling-budget reduction framework for additive second- and third-order kinetic moments, combining exact checkpoint reconstruction and provenance/PSD/additivity audits with independent-seed noisy targets, component-specific low-frequency bias repair, raw-budget noninferiority gates, and explicit abstention before a fresh-seed claim"
+  },
+  "execution_matrix": {
+    "input_budget_blocks": 1,
+    "raw_comparator_budget_blocks": 10,
+    "model_name": "qy_local_coarse_global_residual",
+    "training_initialization_seeds": [
+      2608101,
+      2608102,
+      2608103
+    ],
+    "model_tasks": 3,
+    "primary_condition": "kn0p1_u400",
+    "secondary_conditions": [
+      "kn0p075_u150",
+      "kn0p075_u300",
+      "kn0p1_u200",
+      "kn0p1_u400"
+    ],
+    "representative_contour_seed": 94302,
+    "representative_contour_block": 0,
+    "non_qy_channels": "bitwise-preserved MV9 Mamba ensemble predictions",
+    "output_replaced_by_MV10": "qy_over_q_ref"
+  },
+  "data_contract": {
+    "DSMC_rerun": false,
+    "source": "recursively verified completed MV9 output root and task artifacts",
+    "training": "MV9 development train_x and cross-seed train_y only",
+    "selection": "MV9 development validation_x and validation_y only",
+    "legacy_diagnostic": "previously observed MV9 evaluation arrays, read only in aggregate postprocessing",
+    "legacy_targets_loaded_by_model_tasks": false,
+    "legacy_targets_used_for_training_or_selection": false,
+    "self_target_leakage": false,
+    "wrong_MV9_outcome_or_failed_manifest_causes_fail_closed_stop": true
+  },
+  "training_contract": {
+    "prediction": "bounded qy-only residual correction to Raw DSMC B1",
+    "backbone": "32-channel dilated local residual trunk plus an 8-cell average-pooled coarse branch and an adaptive global-mean branch",
+    "low_pass_factor": 8,
+    "loss": "linear boundary-weighted pixel MSE plus low-pass MSE plus global-mean MSE plus gradient MSE",
+    "pixel_loss_weight": 1.0,
+    "low_pass_loss_weight": 2.0,
+    "global_mean_loss_weight": 2.0,
+    "gradient_loss_weight": 0.05,
+    "boundary_weight": "1+exp(-distance_to_wall_over_0p08L)",
+    "normalized_residual_tanh_cap_sigma": 5.0,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0008,
+    "maximum_epochs": 240,
+    "early_stopping_patience": 35,
+    "adversarial_perceptual_or_diffusion_loss": false,
+    "reason": "the MV9 failure was a coherent amplitude and low-frequency bias in qy; the added terms target that diagnosed mode while a deterministic bounded residual prevents unconstrained field synthesis"
+  },
+  "selection_contract": {
+    "data": "development_validation_only",
+    "residual_alpha_candidates": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.25
+    ],
+    "metric": "qy RMS-normalized RMSE",
+    "ensemble": "arithmetic mean of all three independently initialized accepted tasks",
+    "legacy_metrics_computed_during_model_selection": false
+  },
+  "analysis_contract": {
+    "classification": "legacy diagnostic thresholds for authorizing fresh-seed confirmation, not hypothesis-test acceptance thresholds",
+    "maximum_primary_mean_qy_ratio_to_raw_B10": 1.0,
+    "maximum_primary_composite_ratio_to_raw_B10": 1.1,
+    "maximum_individual_seed_qy_ratio_to_raw_B10": 1.1,
+    "maximum_each_condition_mean_qy_ratio_to_raw_B10": 1.0,
+    "non_qy_fields_must_be_bitwise_identical_to_MV9_Mamba": true,
+    "authorization_rule": "all listed legacy diagnostic gates must pass before writing a separate fresh-seed confirmatory protocol",
+    "passing_interpretation": "method is sufficiently promising to justify fresh unobserved DSMC seeds; no confirmatory claim yet",
+    "failure_interpretation": "do not spend a new confirmatory budget on this qy method without a newly disclosed redesign"
+  },
+  "figure_contract": {
+    "field": "qy",
+    "columns": [
+      "Reference",
+      "Raw DSMC B1",
+      "Gaussian B1",
+      "TSVD/POD B1",
+      "MV9 NAFNet B1",
+      "MV9 Mamba B1",
+      "MV10 hybrid B1",
+      "Raw DSMC B10"
+    ],
+    "upper_row": "physical qy with one shared signed blue-white-red scale",
+    "lower_row": "signed error as percent of fixed q_ref, never local percent error",
+    "formats": [
+      "vector PDF",
+      "600 dpi PNG"
+    ]
+  },
+  "return_contract": {
+    "compact_archive_written_directly_to_Unity_project_root": true,
+    "model_weights_and_raw_dataset_excluded_from_return_archive": true,
+    "recursive_SHA256_manifest_and_verification_required": true,
+    "maximum_archive_MiB": 450
+  },
+  "source_contract": {
+    "mv9_branch": "agent/mv9-heat-flux-noise2noise",
+    "mv9_head_commit_at_MV10_lock": "9abfe73b184eb1c916d1a9b21bc28940378eb16f",
+    "mv9_protocol_sha256": "47b5c7e4b59aa0ce9db0c3a2ab07e002b8148cc9f338905a826cb8d99b3bd3ec",
+    "mv9_module_sha256": "e4eb5e55907f77f2c819860031f95122aecf75888ce7dae8dceeddeb0f41f93f"
+  }
+}
