@@ -1,0 +1,44 @@
+{
+  "protocol_version": 1,
+  "stage": "MV11",
+  "locked_utc": "2026-08-13T13:03:00Z",
+  "status": "prospective_second_geometry_data_acquisition",
+  "geometry": "two-dimensional circular cylinder",
+  "solver": "Bird DS2V baseline",
+  "collision_model": {
+    "pairing": "nearest-neighbour",
+    "rate": "VHS acceptance-rejection",
+    "scattering": "VHS elastic",
+    "effective_diameter": "fixed species diameter"
+  },
+  "gas": "argon",
+  "freestream": {
+    "number_density_m3": 4.247e20,
+    "temperature_K": 200.0,
+    "velocity_m_s": 2634.1,
+    "mach_approx": 10.0
+  },
+  "geometry_and_wall": {
+    "diameter_m": 0.3048,
+    "wall_temperature_K": 500.0,
+    "domain_m": [-0.2, 0.65, 0.0, 0.4]
+  },
+  "default_numerics": {
+    "grid_divisions": [194, 100],
+    "initial_simulator_particles": 1500000,
+    "minimum_nout": 20,
+    "maximum_nout": 60,
+    "target_tU_over_D": 30.0,
+    "array_concurrency": 2
+  },
+  "prospectively_locked_fresh_seeds": [20260813, 32452843, 49979687, 67867967],
+  "forbidden_legacy_seeds": [12031, 104729, 130363, 94301, 94302, 94303, 94304],
+  "raw_additive_moments": [
+    "m0", "m1x", "m1y", "m1z", "m2xx", "m2yy", "m2zz",
+    "m2xy", "m2xz", "m2yz", "energy", "energy_vx", "energy_vy"
+  ],
+  "primary_reconstructed_fields": [
+    "Pxy", "Pxx-Pyy", "qx", "qy"
+  ],
+  "publication_guard": "No seed is confirmatory after its trajectory or outcome has been inspected. MV11 data acquisition alone does not establish the JCP claim."
+}
