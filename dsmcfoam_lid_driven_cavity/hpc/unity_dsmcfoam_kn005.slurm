@@ -16,48 +16,62 @@ CASE_ROOT="${CASE_ROOT:?CASE_ROOT was not exported by run_unity.sh}"
 RUN_ROOT="${RUN_ROOT:?RUN_ROOT was not exported by run_unity.sh}"
 LAST_ENV="${LAST_ENV:?LAST_ENV was not exported by run_unity.sh}"
 
+source_openfoam_environment() {
+    local root rc
+    local -a roots=()
+
+    [[ -n "${EBROOTOPENFOAM:-}" ]] && roots+=("$EBROOTOPENFOAM")
+    [[ -n "${WM_PROJECT_DIR:-}" ]] && roots+=("$WM_PROJECT_DIR")
+
+    for root in "${roots[@]}"; do
+        for rc in \
+            "$root/etc/bashrc" \
+            "$root/OpenFOAM-v2406/etc/bashrc" \
+            "$root/OpenFOAM-v2006/etc/bashrc"; do
+            [[ -r "$rc" ]] || continue
+            set +u
+            source "$rc" >/dev/null 2>&1 || true
+            set -u
+            if command -v dsmcFoam >/dev/null 2>&1; then
+                export DSMCFOAM_BASHRC_USED="$rc"
+                return 0
+            fi
+        done
+    done
+
+    return 1
+}
+
 load_openfoam() {
     if command -v dsmcFoam >/dev/null 2>&1; then
         return 0
     fi
 
-    set +u
     if [[ -n "${DSMCFOAM_BASHRC:-}" && -r "${DSMCFOAM_BASHRC}" ]]; then
+        set +u
         source "${DSMCFOAM_BASHRC}"
-    fi
-    set -u
-    if command -v dsmcFoam >/dev/null 2>&1; then
-        return 0
+        set -u
+        if command -v dsmcFoam >/dev/null 2>&1; then
+            export DSMCFOAM_BASHRC_USED="$DSMCFOAM_BASHRC"
+            return 0
+        fi
     fi
 
     if command -v module >/dev/null 2>&1; then
-        local candidate parent
-        # Unity uses hierarchical Lmod modules.  The module spider output for
-        # OpenFOAM/v2406-foss-2023a identifies uri/main as its parent.
-        while read -r parent candidate; do
-            module purge >/dev/null 2>&1 || true
-            if [[ "$parent" != "none" ]]; then
-                module load "$parent" >/dev/null 2>&1 || continue
-            fi
-            if module load "$candidate" >/dev/null 2>&1; then
-                if command -v dsmcFoam >/dev/null 2>&1; then
-                    export DSMCFOAM_MODULE="$candidate"
-                    return 0
-                fi
-                module unload "$candidate" >/dev/null 2>&1 || true
-            fi
-        done <<'MODULE_CANDIDATES'
-uri/main OpenFOAM/v2406-foss-2023a
-uri/main OpenFOAM/v2006-foss-2020a
-foss/2023a OpenFOAM/v2406-foss-2023a
-foss/2020a OpenFOAM/v2006-foss-2020a
-none OpenFOAM/10
-none openfoam/10
-none OpenFOAM/v2306
-none openfoam/2306
-none OpenFOAM
-none openfoam
-MODULE_CANDIDATES
+        module purge >/dev/null 2>&1 || true
+        module load uri/main
+        module load OpenFOAM/v2406-foss-2023a
+        export DSMCFOAM_MODULE="OpenFOAM/v2406-foss-2023a"
+
+        if command -v dsmcFoam >/dev/null 2>&1; then
+            return 0
+        fi
+
+        # Unity's EasyBuild module can expose the installation root without
+        # sourcing OpenFOAM's etc/bashrc.  Source it inside the AVX-512 job.
+        if source_openfoam_environment; then
+            return 0
+        fi
     fi
 
     local rc
@@ -72,6 +86,8 @@ MODULE_CANDIDATES
         source "$rc" >/dev/null 2>&1 || true
         set -u
         if command -v dsmcFoam >/dev/null 2>&1; then
+            export DSMCFOAM_BASHRC_USED="$rc"
+            shopt -u nullglob
             return 0
         fi
     done
@@ -79,19 +95,34 @@ MODULE_CANDIDATES
     return 1
 }
 
+diagnose_openfoam_environment() {
+    echo "===== OPENFOAM MODULE DIAGNOSTICS =====" >&2
+    hostname >&2
+    module list 2>&1 || true
+    printf 'EBROOTOPENFOAM=%s\n' "${EBROOTOPENFOAM:-unset}" >&2
+    printf 'WM_PROJECT_DIR=%s\n' "${WM_PROJECT_DIR:-unset}" >&2
+    printf 'FOAM_APPBIN=%s\n' "${FOAM_APPBIN:-unset}" >&2
+    printf 'FOAM_USER_APPBIN=%s\n' "${FOAM_USER_APPBIN:-unset}" >&2
+    for root in "${EBROOTOPENFOAM:-}" "${WM_PROJECT_DIR:-}"; do
+        [[ -d "$root" ]] || continue
+        echo "--- candidates under $root ---" >&2
+        find "$root" -maxdepth 8 \
+            \( -type f -o -type l \) \
+            \( -name dsmcFoam -o -name dsmcInitialise -o -path '*/etc/bashrc' \) \
+            -print 2>/dev/null | head -80 >&2 || true
+    done
+}
+
 if ! load_openfoam; then
-    echo "ERROR: dsmcFoam was not found." >&2
-    echo "Resubmit with DSMCFOAM_BASHRC=/absolute/path/to/OpenFOAM/etc/bashrc." >&2
-    if command -v module >/dev/null 2>&1; then
-        module -t spider OpenFOAM 2>&1 || true
-        module -t avail 2>&1 | grep -i openfoam || true
-    fi
+    echo "ERROR: dsmcFoam was not found after loading the module and sourcing its etc/bashrc." >&2
+    diagnose_openfoam_environment
     exit 127
 fi
 
 for command_name in blockMesh checkMesh dsmcInitialise decomposePar dsmcFoam reconstructPar mpirun; do
     command -v "$command_name" >/dev/null 2>&1 || {
         echo "ERROR: required command not found: $command_name" >&2
+        diagnose_openfoam_environment
         exit 127
     }
 done
@@ -110,6 +141,7 @@ cd "$RUN_DIR"
     echo "host=$(hostname)"
     echo "started_utc=$(date -u +%FT%TZ)"
     echo "openfoam_module=${DSMCFOAM_MODULE:-user-local/bashrc}"
+    echo "openfoam_bashrc=${DSMCFOAM_BASHRC_USED:-module-path}"
     echo "dsmcFoam=$(command -v dsmcFoam)"
     command -v foamVersion >/dev/null 2>&1 && foamVersion || true
 } | tee RUN_METADATA.txt
@@ -131,6 +163,6 @@ tmp_env="${LAST_ENV}.tmp.${SLURM_JOB_ID}"
 {
     printf 'export JOB_ID=%q\n' "$SLURM_JOB_ID"
     printf 'export CASE_DIR=%q\n' "$RUN_DIR"
-    printf 'export SLURM_LOG=%q\n' "${CASE_ROOT%/case}/logs/dsmcfoam-kn005-${SLURM_JOB_ID}.out"
+    printf 'export SLURM_LOG=%q\n' "${SLURM_LOG_PATH:-${CASE_ROOT%/case}/logs/dsmcfoam-kn005-${SLURM_JOB_ID}.out}"
 } > "$tmp_env"
 mv "$tmp_env" "$LAST_ENV"
