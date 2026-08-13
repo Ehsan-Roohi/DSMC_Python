@@ -88,6 +88,8 @@ def locked_protocol() -> dict[str, Any]:
         or float(training["gradient_loss_weight"]) != GRADIENT_LOSS_WEIGHT
         or not bool(disclosure["MV9_outcomes_observed_before_lock"])
         or not bool(disclosure["old_evaluation_seeds_forbidden_as_confirmation"])
+        or tuple(disclosure["old_evaluation_seeds"]) != EXPECTED_LEGACY_SEEDS
+        or execution["primary_condition"] not in execution["secondary_conditions"]
     ):
         raise ValueError("MV10 source differs from the locked protocol")
     source = value["source_contract"]
@@ -161,6 +163,35 @@ def _task_directory(root: Path, seed: int) -> Path:
     return Path(root) / "tasks" / MODEL_NAME / f"training_seed_{seed}"
 
 
+def seed_identity_by_condition(
+    conditions: np.ndarray, identities: np.ndarray
+) -> dict[str, tuple[int, ...]]:
+    """Return the unique evaluation seeds for each condition.
+
+    MV9 stores all four evaluation conditions in one test tensor.  Seed IDs are
+    condition-specific, so the MV10 primary legacy gate must compare the
+    primary-condition slice rather than the union across the complete tensor.
+    """
+
+    conditions = np.asarray(conditions)
+    identities = np.asarray(identities)
+    if conditions.ndim != 1:
+        raise ValueError("MV10 evaluation conditions must be one-dimensional")
+    if (
+        identities.ndim != 2
+        or identities.shape[0] != conditions.shape[0]
+        or identities.shape[1] < 1
+    ):
+        raise ValueError("MV10 evaluation identity/condition shapes do not match")
+    result: dict[str, set[int]] = {}
+    for condition, identity in zip(conditions, identities):
+        result.setdefault(str(condition), set()).add(int(identity[0]))
+    return {
+        condition: tuple(sorted(seeds))
+        for condition, seeds in sorted(result.items())
+    }
+
+
 def run_assembly(mv9_output_root: Path, output_root: Path) -> dict[str, Any]:
     """Verify and stage the completed MV9 dataset without rerunning DSMC."""
 
@@ -231,14 +262,34 @@ def run_assembly(mv9_output_root: Path, output_root: Path) -> dict[str, Any]:
         )
         arrays = {name: np.asarray(source[name]).copy() for name in required}
 
-    observed_seeds = tuple(sorted(set(int(item) for item in arrays["test_identity"][:, 0])))
+    observed_seeds_by_condition = seed_identity_by_condition(
+        arrays["test_condition"], arrays["test_identity"]
+    )
+    observed_seeds10_by_condition = seed_identity_by_condition(
+        arrays["test_condition10"], arrays["test_identity10"]
+    )
+    primary_condition = str(protocol["execution_matrix"]["primary_condition"])
+    expected_conditions = tuple(
+        sorted(str(item) for item in protocol["execution_matrix"]["secondary_conditions"])
+    )
+    observed_seeds = observed_seeds_by_condition.get(primary_condition, ())
+    observed_seeds10 = observed_seeds10_by_condition.get(primary_condition, ())
     checks = {
         "MV9_recursive_return_verified": True,
         "MV9_information_gate_passed": True,
         "MV9_failure_outcome_explicitly_required": True,
         "all_six_MV9_model_tasks_recursively_verified": verified_tasks == 6,
-        "legacy_seed_identity_matches_disclosed_observed_set": observed_seeds
-        == EXPECTED_LEGACY_SEEDS,
+        "legacy_condition_set_matches_locked_matrix": (
+            tuple(observed_seeds_by_condition) == expected_conditions
+            and tuple(observed_seeds10_by_condition) == expected_conditions
+        ),
+        "legacy_B1_and_B10_identity_maps_match": (
+            observed_seeds_by_condition == observed_seeds10_by_condition
+        ),
+        "legacy_seed_identity_matches_disclosed_observed_set": (
+            observed_seeds == EXPECTED_LEGACY_SEEDS
+            and observed_seeds10 == EXPECTED_LEGACY_SEEDS
+        ),
         "training_validation_and_legacy_arrays_finite": all(
             np.all(np.isfinite(value))
             for name, value in arrays.items()
@@ -267,7 +318,12 @@ def run_assembly(mv9_output_root: Path, output_root: Path) -> dict[str, Any]:
         "mv9_dataset_sha256": _sha256(mv9_output_root / "dataset.npz"),
         "mv9_decision": mv9_summary["decision"],
         "verified_MV9_model_tasks": verified_tasks,
+        "primary_legacy_condition": primary_condition,
         "observed_legacy_evaluation_seeds": list(observed_seeds),
+        "observed_evaluation_seeds_by_condition": {
+            condition: list(seeds)
+            for condition, seeds in observed_seeds_by_condition.items()
+        },
         "sample_counts": {
             "development_train_B1": len(arrays["train_x"]),
             "development_validation_B1": len(arrays["validation_x"]),

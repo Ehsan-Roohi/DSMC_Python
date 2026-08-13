@@ -61,6 +61,29 @@ def test_block_average_preserves_constant_and_partial_edges():
     assert coarse_ramp[1, 1] == np.mean(ramp[3:, 3:])
 
 
+def test_legacy_seed_identity_is_scoped_to_the_locked_primary_condition():
+    conditions = np.asarray(
+        ["kn0p075_u150", "kn0p075_u150"]
+        + ["kn0p1_u400"] * 8,
+        dtype="U32",
+    )
+    identities = np.asarray(
+        [(94001, 0, 1), (94002, 0, 1)]
+        + [
+            (seed, block, 1)
+            for seed in mv10.EXPECTED_LEGACY_SEEDS
+            for block in (0, 1)
+        ],
+        dtype=np.int64,
+    )
+    by_condition = mv10.seed_identity_by_condition(conditions, identities)
+    assert by_condition["kn0p075_u150"] == (94001, 94002)
+    assert by_condition["kn0p1_u400"] == mv10.EXPECTED_LEGACY_SEEDS
+    assert tuple(sorted(set(int(item) for item in identities[:, 0]))) != (
+        mv10.EXPECTED_LEGACY_SEEDS
+    )
+
+
 def test_model_task_never_indexes_legacy_target_arrays():
     tree = ast.parse(textwrap.dedent(inspect.getsource(mv10.run_model_task)))
     indexed_names = set()

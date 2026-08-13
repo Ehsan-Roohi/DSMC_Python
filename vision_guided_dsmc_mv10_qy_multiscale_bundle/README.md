@@ -40,7 +40,11 @@ MV10_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --bra
 The installer requires the completed MV9 output referenced by
 `LAST_MOHAMMADZADEH_MV9_HEAT_FLUX_JOB.env`. It verifies the MV9 source ancestry,
 completed failure decision, dataset manifest, recursive return verification, and
-all six model-task manifests before submitting three MV10 model jobs.
+all six model-task manifests before submitting three MV10 model jobs. The
+assembly gate scopes the four disclosed legacy seeds to the locked primary
+condition and independently verifies that the complete B1/B10 condition and
+identity maps agree; seeds belonging to the other three evaluation conditions
+are never mistaken for primary-condition identities.
 
 ## Monitor and inspect
 
