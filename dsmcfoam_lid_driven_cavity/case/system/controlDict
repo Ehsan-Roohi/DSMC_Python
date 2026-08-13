@@ -27,19 +27,66 @@ functions
 {
     fieldAverage1
     {
-        #includeEtc "caseDicts/postProcessing/fields/fieldAverage.cfg"
+        type            fieldAverage;
+        libs            (fieldFunctionObjects);
         timeStart       2e-8;
+        writeControl    writeTime;
         fields
         (
             rhoN
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             rhoM
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             dsmcRhoN
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             momentum
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             linearKE
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             internalE
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             iDof
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             q
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
             fD
+            {
+                mean        yes;
+                prime2Mean  no;
+                base        time;
+            }
         );
     }
 
