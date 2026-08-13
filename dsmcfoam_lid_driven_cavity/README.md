@@ -14,7 +14,7 @@ Baseline:
 - `deltaT=5e-12 s`, 20,000 steps; averaging begins at `2e-8 s`
 - 16 MPI ranks (`4 x 4 x 1` decomposition)
 
-The dictionaries follow the OpenFOAM `dsmcFoam` tutorial syntax. The Unity job script first uses an already-loaded OpenFOAM environment, then explicitly tries Unity's `OpenFOAM/v2406-foss-2023a` and `OpenFOAM/v2006-foss-2020a` modules, followed by common module names and installation paths. If your installation has a non-standard path, submit with `DSMCFOAM_BASHRC=/absolute/path/to/OpenFOAM/etc/bashrc`.
+The dictionaries follow the OpenFOAM `dsmcFoam` tutorial syntax. The Unity job script first uses an already-loaded OpenFOAM environment, then tries Unity's hierarchical module stacks (`foss/2023a` + `OpenFOAM/v2406-foss-2023a`, followed by the 2020a stack), common module names, and installation paths. If your installation has a non-standard path, submit with `DSMCFOAM_BASHRC=/absolute/path/to/OpenFOAM/etc/bashrc`.
 
 From Unity, the public bootstrap command clones this branch into a dedicated checkout and submits the Slurm job:
 
