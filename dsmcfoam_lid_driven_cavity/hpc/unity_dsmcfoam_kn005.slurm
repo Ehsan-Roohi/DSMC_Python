@@ -30,15 +30,14 @@ load_openfoam() {
     fi
 
     if command -v module >/dev/null 2>&1; then
-        local candidate
-        # Exact Unity module names are listed first.  The earlier launcher only
-        # tried generic names, so it missed these installed modules entirely.
-        for candidate in \
-            OpenFOAM/v2406-foss-2023a \
-            OpenFOAM/v2006-foss-2020a \
-            OpenFOAM/10 openfoam/10 \
-            OpenFOAM/v2306 openfoam/2306 \
-            OpenFOAM openfoam; do
+        local candidate parent
+        # Unity uses hierarchical Lmod modules: the foss parent toolchain must
+        # be loaded before the corresponding OpenFOAM module becomes visible.
+        while read -r parent candidate; do
+            module purge >/dev/null 2>&1 || true
+            if [[ "$parent" != "none" ]]; then
+                module load "$parent" >/dev/null 2>&1 || continue
+            fi
             if module load "$candidate" >/dev/null 2>&1; then
                 if command -v dsmcFoam >/dev/null 2>&1; then
                     export DSMCFOAM_MODULE="$candidate"
@@ -46,7 +45,16 @@ load_openfoam() {
                 fi
                 module unload "$candidate" >/dev/null 2>&1 || true
             fi
-        done
+        done <<'MODULE_CANDIDATES'
+foss/2023a OpenFOAM/v2406-foss-2023a
+foss/2020a OpenFOAM/v2006-foss-2020a
+none OpenFOAM/10
+none openfoam/10
+none OpenFOAM/v2306
+none openfoam/2306
+none OpenFOAM
+none openfoam
+MODULE_CANDIDATES
     fi
 
     local rc
