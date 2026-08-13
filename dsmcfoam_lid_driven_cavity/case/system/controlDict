@@ -18,7 +18,10 @@ purgeWrite          0;
 writeFormat         ascii;
 writePrecision      10;
 writeCompression    off;
-timeFormat          scientific;
+// Keep the initial directory named "0".  With scientific formatting,
+// dsmcInitialise can write the cloud into 0.0000000000e+00 while the
+// Eulerian DSMC fields remain in 0, leaving incomplete processor times.
+timeFormat          general;
 timePrecision       10;
 runTimeModifiable   false;
 adjustTimeStep      no;
