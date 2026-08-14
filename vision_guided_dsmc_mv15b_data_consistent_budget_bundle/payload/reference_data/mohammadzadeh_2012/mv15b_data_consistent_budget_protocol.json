@@ -1,0 +1,106 @@
+{
+  "stage": "MV15B_Mohammadzadeh_data_consistent_budget_ladder",
+  "status": "locked_after_MV15A_failure_before_any_MV15B_legacy_outcome",
+  "locked_utc": "2026-08-14T02:38:00Z",
+  "method_name": "DCIR-QY",
+  "method_expansion": "Data-Consistent Information-Regularized reconstruction of wall-normal heat flux",
+  "scientific_role": {
+    "classification": "prospectively_locked_post_MV15A_legacy_diagnostic_not_confirmatory_evidence",
+    "observed_MV15A_failure": "SITR-QY assigned at most 0.223603 percent weight to Raw B1 and remained 1.818595 times the paired Raw B10 q_y error at kn0p1_u400",
+    "mechanistic_diagnosis": [
+      "the MV9 Mamba primary-condition q_y error contains a dominant spatial-mean offset",
+      "Raw B1 preserves spatial mean and scale but is dominated by spatial sampling noise",
+      "the radial MV15A selector grouped the DC mode with other modes and collapsed the complete Raw-B1 correction branch",
+      "the one-block information limit at U=400 remains unresolved"
+    ],
+    "purpose": "separate correctable extrapolation bias from a true sampling-budget limit before spending compute on new DSMC",
+    "DSMC_rerun_in_this_stage": false,
+    "neural_network_retraining_in_this_stage": false,
+    "old_evaluation_seeds_are_legacy_diagnostic_only": true,
+    "fresh_seed_and_fresh_condition_followup_required_for_any_confirmation": true
+  },
+  "budget_contract": {
+    "source": "the ten recursively verified additive B1 blocks already assembled by MV9 for every seed",
+    "construction": "average consecutive nonoverlapping finalized B1 input fields within a seed",
+    "budgets": [1, 2, 3, 5],
+    "paired_comparator": "exact MV9 Raw B10 field obtained by finalizing the merged additive accumulators once",
+    "B1_groups_per_seed": 10,
+    "B2_groups_per_seed": 5,
+    "B3_groups_per_seed": 3,
+    "B3_unused_blocks_per_seed": [9],
+    "B5_groups_per_seed": 2,
+    "no_B1_block_reused_within_a_budget": true,
+    "nested_budget_comparisons_are_descriptive_not_independent_hypothesis_tests": true,
+    "finalized_field_average_is_not_reclassified_as_exact_additive_moment_merge": true
+  },
+  "selection_contract": {
+    "budgets": [1, 2, 3, 5],
+    "mode_reliability_thresholds": [0.5, 0.75, 0.9, 0.97],
+    "trusted_mode_strengths": [0.25, 0.5, 0.75, 1.0],
+    "DC_only_candidate_always_present": true,
+    "signal_estimator": "positive matching-group cross-seed DCT cross-spectrum recomputed separately for every disjoint budget",
+    "budget_noise_estimator": "one-half the matching-group squared DCT difference between independent development seeds, recomputed separately for B1, B2, B3, and B5",
+    "budget_reliability": "R_B(k)=S_B(k)/(S_B(k)+N_B(k)) using the empirical budget-specific spectra",
+    "ideal_independent_noise_scaling_N_B1_over_B_is_secondary": true,
+    "two_dimensional_mode_mask": true,
+    "radial_bin_weighting_forbidden": true,
+    "selection_data": "MV9 development-validation labels only",
+    "selection_metric": "condition-balanced q_y NRMSE",
+    "legacy_test_target_used_for_selection": false
+  },
+  "data_consistency_contract": {
+    "formula": "DCT(q_hat)=DCT(q_Mamba)+W_B(k)[DCT(q_RawBn)-DCT(q_Mamba)]",
+    "trusted_mode_rule": "W_B(k)=strength*R_B(k) when R_B(k)>=threshold and zero otherwise",
+    "DC_rule": "W_B(0,0)=1 exactly for every budget and every condition",
+    "post_inverse_transform_mean_correction": "mean(q_hat)=mean(q_RawBn) to floating-point tolerance",
+    "network_predicts_absolute_DC": false,
+    "continuum_constitutive_closure_used": false,
+    "new_physical_measurement_invented": false,
+    "interpretation": "a hard observation-consistency projection, not a Fourier-law heat-flux closure"
+  },
+  "control_contract": {
+    "required_arms": [
+      "Raw_Bn",
+      "MV9_Mamba_on_Bn",
+      "DC_only_Mamba_correction",
+      "MV15B_DCIR_QY",
+      "TSVD_Bn",
+      "development_condition_only",
+      "cross_condition_permuted_RawBn_correction",
+      "paired_exact_Raw_B10"
+    ],
+    "condition_only_interpretation": "tests whether condition metadata rather than the indexed DSMC observation explains the result",
+    "permutation_control": "cyclically exchange the Raw-Bn observation between legacy conditions while retaining Mamba output and condition identity",
+    "same_condition_mean_control": "the legacy target itself is a leave-one-seed-out same-condition mean; it is an oracle reference construction and cannot support an observation-driven claim",
+    "future_unseen_condition_required": true
+  },
+  "analysis_contract": {
+    "primary_condition": "kn0p1_u400",
+    "representative_seed": 94302,
+    "representative_group": 0,
+    "maximum_primary_ratio_to_Raw_B10": 1.0,
+    "maximum_primary_seed_ratio_to_Raw_B10": 1.1,
+    "maximum_each_condition_ratio_to_Raw_B10": 1.0,
+    "maximum_DC_absolute_error": 1e-10,
+    "permuted_minimum_degradation_fraction": 0.01,
+    "smallest_passing_budget_is_recommended": true,
+    "maximum_publishable_budget": 5,
+    "authorization_rule": "all budget-specific gates and all integrity gates must pass before a separately locked fresh campaign",
+    "failure_rule": "return the full budget ladder and error decomposition without retuning on legacy labels"
+  },
+  "source_contract": {
+    "mv15a_module_sha256": "f06afeb0adf722c6d3785580a4d700285a43b663b5888d518921350f67956b24",
+    "mv15a_protocol_sha256": "118d715ab77d9d9247df7215c29d575fc7fc1b6e2cb4704b72d517a656ddb7db",
+    "required_MV15A_decision": "MV15A_legacy_diagnostic_does_not_authorize_fresh_DSMC",
+    "required_MV15A_primary_spectral_ratio": 1.818594757338136,
+    "required_MV15A_primary_TSVD_ratio": 1.306010467866805,
+    "required_MV15A_maximum_raw_weight": 0.002236033361839107
+  },
+  "return_contract": {
+    "compact_archive_written_to_Unity_project_root": true,
+    "raw_dataset_model_weights_and_locked_prediction_arrays_excluded": true,
+    "recursive_SHA256_verification_required": true,
+    "PNG_and_PDF_figures_required": true,
+    "maximum_archive_MiB": 450
+  }
+}
