@@ -1,0 +1,69 @@
+{
+  "stage": 120,
+  "record_type": "completed_kernel_residual_velocity_cell_audit",
+  "source_head": "6f93b6b50659b7fa86630f57d0c24b3a9c6c8438",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31831746351,
+  "workflow_job_id": 94868814023,
+  "artifact_id": 9237037498,
+  "artifact_size_bytes": 3463,
+  "artifact_sha256": "348b4165582e325069b637d2dae74fe0e698214871ef37e9de39258093987f2d",
+  "summary_sha256": "33feeea2dcc8660ece00bb9361d221eeb28df130a4ccec9439e8014c2dd76761",
+  "kernel_residual_velocity_cells_sha256": "a45ed560aa76d01d02d239efd3e9690d7385e538c932fbcb463e92259434aaca",
+  "tests": {"passed": 4, "failed": 0},
+  "decision": "stage120_exact_kernel_residual_is_radial_within_pair_stage121_radial_kernel_factor_decomposition_audit",
+  "parent_closure_relative_l2": {
+    "phi": 9.827123833422667e-17,
+    "psi": 1.4467546618507112e-16
+  },
+  "aggregate": {
+    "minimum_full_velocity_cell_profile_cosine": 0.9386075070898204,
+    "maximum_full_velocity_cell_total_variation": 0.1801580606055463,
+    "minimum_radial_tv_capture_fraction": 1.0000000000000002,
+    "maximum_within_node_sign_cancellation_fraction": 0.0,
+    "maximum_sector_tv_capture_fraction": 0.028967649923625383,
+    "maximum_top_4_absolute_residual_share": 0.364693613234841,
+    "maximum_stage119_node_marginal_reconstruction_relative_l2": 1.4467546618507112e-16
+  },
+  "key_metrics": {
+    "near_1_4": {
+      "full_velocity_cell_profile_cosine": 0.9445041586819847,
+      "full_velocity_cell_overlap": 0.829056571119273,
+      "full_velocity_cell_total_variation": 0.17094342888072692,
+      "radial_node_marginal_profile_cosine": 0.9445112575879259,
+      "radial_node_marginal_total_variation": 0.17094342888072694,
+      "pair_sector_marginal_profile_cosine": 0.9999858821079125,
+      "pair_sector_marginal_total_variation": 0.002659281090507476,
+      "radial_tv_capture_fraction": 1.0000000000000002,
+      "sector_tv_capture_fraction": 0.015556497888918254,
+      "top_4_absolute_residual_share": 0.3578237830084171
+    },
+    "mid_5_14": {
+      "full_velocity_cell_profile_cosine": 0.9397175330565993,
+      "full_velocity_cell_overlap": 0.8210436514524126,
+      "full_velocity_cell_total_variation": 0.1789563485475873,
+      "radial_node_marginal_profile_cosine": 0.939757214550812,
+      "radial_node_marginal_total_variation": 0.17895634854758735,
+      "pair_sector_marginal_profile_cosine": 0.9999731168223487,
+      "pair_sector_marginal_total_variation": 0.0036759838154699076,
+      "radial_tv_capture_fraction": 1.0000000000000002,
+      "sector_tv_capture_fraction": 0.020541231676351544,
+      "top_4_absolute_residual_share": 0.36406604113771707
+    },
+    "inner_15_28": {
+      "full_velocity_cell_profile_cosine": 0.9386075070898204,
+      "full_velocity_cell_overlap": 0.8198419393944536,
+      "full_velocity_cell_total_variation": 0.1801580606055463,
+      "radial_node_marginal_profile_cosine": 0.9385744907890331,
+      "radial_node_marginal_total_variation": 0.18015806060554634,
+      "pair_sector_marginal_profile_cosine": 0.9999463908179985,
+      "pair_sector_marginal_total_variation": 0.00521875563054075,
+      "radial_tv_capture_fraction": 1.0000000000000002,
+      "sector_tv_capture_fraction": 0.028967649923625383,
+      "top_4_absolute_residual_share": 0.364693613234841
+    }
+  },
+  "scientific_conclusion": "The remaining Stage-119 exact-kernel phi/psi mismatch is radial-speed structured within shell 1, sectors 5+6. Across all three wall-distance bands the radial-node marginal retains the full velocity-cell total-variation distance to numerical closure, while the sector marginal captures at most 2.8968% and within-node sign cancellation is exactly zero. The justified next audit therefore decomposes the radial mismatch into the fixed extra speed-squared factor in the phi heat-flux kernel versus residual distribution-specific radial structure.",
+  "design_guard": "No model, wall, collision/source, reconstruction, transport, positivity/correction floor, normalization, source-relaxation, velocity-grid, or failed MUSCL parameter was changed. Stage 90 remains nonconverged, Stage 28 remains a failed MUSCL endpoint, Stage 89 remains unpromoted, no solver endpoint is advanced, and no cross-Knudsen MUSCL extension is permitted."
+}
