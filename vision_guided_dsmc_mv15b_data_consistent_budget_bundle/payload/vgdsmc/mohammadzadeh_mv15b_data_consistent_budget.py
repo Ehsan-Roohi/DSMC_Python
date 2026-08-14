@@ -66,12 +66,32 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _json_default(value: Any) -> Any:
+    """Convert NumPy scalars at the JSON boundary without hiding arrays."""
+
+    if isinstance(value, np.generic):
+        return value.item()
+    raise TypeError(
+        f"Object of type {value.__class__.__name__} is not JSON serializable"
+    )
+
+
+def _json_dumps(value: Any) -> str:
+    return json.dumps(
+        value,
+        indent=2,
+        sort_keys=True,
+        allow_nan=False,
+        default=_json_default,
+    )
+
+
 def _atomic_json(path: Path, value: Mapping[str, Any]) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
-        json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n",
+        _json_dumps(value) + "\n",
         encoding="utf-8",
     )
     temporary.replace(path)
@@ -179,23 +199,29 @@ def verify_data_contract(mv9_output_root: Path, mv15a_output_root: Path) -> dict
         == expected["required_MV15A_decision"],
         "MV15A_primary_condition_matches": mv15a_summary.get("primary_condition")
         == PRIMARY_CONDITION,
-        "MV15A_primary_spectral_ratio_matches": np.isclose(
-            float(primary.get("spectral_fusion", math.nan)),
-            float(expected["required_MV15A_primary_spectral_ratio"]),
-            rtol=0.0,
-            atol=1.0e-12,
+        "MV15A_primary_spectral_ratio_matches": bool(
+            np.isclose(
+                float(primary.get("spectral_fusion", math.nan)),
+                float(expected["required_MV15A_primary_spectral_ratio"]),
+                rtol=0.0,
+                atol=1.0e-12,
+            )
         ),
-        "MV15A_primary_TSVD_ratio_matches": np.isclose(
-            float(primary.get("tsvd_b1", math.nan)),
-            float(expected["required_MV15A_primary_TSVD_ratio"]),
-            rtol=0.0,
-            atol=1.0e-12,
+        "MV15A_primary_TSVD_ratio_matches": bool(
+            np.isclose(
+                float(primary.get("tsvd_b1", math.nan)),
+                float(expected["required_MV15A_primary_TSVD_ratio"]),
+                rtol=0.0,
+                atol=1.0e-12,
+            )
         ),
-        "MV15A_raw_weight_collapse_matches": np.isclose(
-            float(selected.get("maximum_weight", math.nan)),
-            float(expected["required_MV15A_maximum_raw_weight"]),
-            rtol=0.0,
-            atol=1.0e-12,
+        "MV15A_raw_weight_collapse_matches": bool(
+            np.isclose(
+                float(selected.get("maximum_weight", math.nan)),
+                float(expected["required_MV15A_maximum_raw_weight"]),
+                rtol=0.0,
+                atol=1.0e-12,
+            )
         ),
         "MV9_dataset_present": (mv9_root / "dataset.npz").is_file(),
         "MV15A_predictions_present": (mv15a_root / "locked_predictions.npz").is_file(),
@@ -1103,7 +1129,7 @@ def main() -> None:
         result = run_legacy_post(args.output_root)
     else:
         result = package_results(args.output_root, args.return_directory)
-    print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+    print(_json_dumps(result))
 
 
 if __name__ == "__main__":

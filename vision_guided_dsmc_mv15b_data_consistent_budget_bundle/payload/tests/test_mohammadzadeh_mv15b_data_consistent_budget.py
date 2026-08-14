@@ -46,6 +46,17 @@ def test_protocol_lock() -> None:
     assert result["exact_DCT_DC_preservation"] is True
 
 
+def test_cli_json_boundary_converts_numpy_scalars() -> None:
+    encoded = mv15b._json_dumps(
+        {
+            "checks": {"close": np.bool_(True)},
+            "count": np.int64(3),
+        }
+    )
+    decoded = json.loads(encoded)
+    assert decoded == {"checks": {"close": True}, "count": 3}
+
+
 def test_disjoint_budget_groups() -> None:
     images, conditions, identities, targets = synthetic_blocks()
     result = mv15b.aggregate_disjoint(images, conditions, identities, 2, targets)
@@ -325,6 +336,7 @@ def test_synthetic_prediction_to_post_lock() -> None:
 def main() -> None:
     tests = [
         test_protocol_lock,
+        test_cli_json_boundary_converts_numpy_scalars,
         test_disjoint_budget_groups,
         test_B3_explicitly_drops_only_block9,
         test_budget_reliability_is_monotone,
