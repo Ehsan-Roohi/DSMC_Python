@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import csv
 from datetime import datetime, timezone
+from functools import lru_cache
 import hashlib
 import json
 import math
@@ -188,15 +189,50 @@ def verify_data_contract(mv9_output_root: Path, mv14_output_root: Path) -> dict[
     }
 
 
-def _dct2(value: np.ndarray) -> np.ndarray:
-    from scipy.fft import dctn
+@lru_cache(maxsize=16)
+def _orthonormal_dct_matrix(size: int) -> np.ndarray:
+    """Return the exact orthonormal DCT-II matrix for a nonperiodic axis."""
 
+    size = int(size)
+    if size < 1:
+        raise ValueError("DCT axis must be nonempty")
+    modes = np.arange(size, dtype=np.float64)[:, None]
+    points = np.arange(size, dtype=np.float64)[None, :]
+    matrix = np.sqrt(2.0 / size) * np.cos(
+        np.pi * (points + 0.5) * modes / size
+    )
+    matrix[0] /= math.sqrt(2.0)
+    matrix.setflags(write=False)
+    return matrix
+
+
+def _numpy_dct2(value: np.ndarray) -> np.ndarray:
+    value = np.asarray(value, dtype=np.float64)
+    cy = _orthonormal_dct_matrix(value.shape[-2])
+    cx = _orthonormal_dct_matrix(value.shape[-1])
+    return np.matmul(np.matmul(cy, value), cx.T)
+
+
+def _numpy_idct2(value: np.ndarray) -> np.ndarray:
+    value = np.asarray(value, dtype=np.float64)
+    cy = _orthonormal_dct_matrix(value.shape[-2])
+    cx = _orthonormal_dct_matrix(value.shape[-1])
+    return np.matmul(np.matmul(cy.T, value), cx)
+
+
+def _dct2(value: np.ndarray) -> np.ndarray:
+    try:
+        from scipy.fft import dctn
+    except ModuleNotFoundError:
+        return _numpy_dct2(value)
     return dctn(np.asarray(value, dtype=np.float64), axes=(-2, -1), norm="ortho")
 
 
 def _idct2(value: np.ndarray) -> np.ndarray:
-    from scipy.fft import idctn
-
+    try:
+        from scipy.fft import idctn
+    except ModuleNotFoundError:
+        return _numpy_idct2(value)
     return idctn(np.asarray(value, dtype=np.float64), axes=(-2, -1), norm="ortho")
 
 
@@ -250,6 +286,7 @@ def cross_spectral_information(
     if raw_qy.ndim != 3 or len(raw_qy) != len(conditions) or identities.shape[0] != len(raw_qy):
         raise ValueError("MV15A spectral inputs have incompatible shapes")
     mapping, centers = radial_bin_map(raw_qy.shape[-2:], bins)
+    transformed = _dct2(raw_qy)
     records: list[dict[str, Any]] = []
     all_products: list[np.ndarray] = []
     all_differences: list[np.ndarray] = []
@@ -260,7 +297,7 @@ def cross_spectral_information(
             raise ValueError(f"MV15A needs independent development seeds: {condition}")
         products, differences = [], []
         for left, right in pairs:
-            first, second = _dct2(raw_qy[left]), _dct2(raw_qy[right])
+            first, second = transformed[left], transformed[right]
             products.append(first * second)
             differences.append(0.5 * (first - second) ** 2)
         product = np.mean(products, axis=0)
@@ -357,6 +394,25 @@ def optimal_bin_weights(
 ) -> np.ndarray:
     raw_error = _dct2(np.asarray(raw_qy) - np.asarray(target_qy))
     vision_error = _dct2(np.asarray(vision_qy) - np.asarray(target_qy))
+    return _optimal_bin_weights_from_errors(
+        raw_error,
+        vision_error,
+        mapping,
+        reliability_bins,
+        shrinkage=shrinkage,
+        smoothing_passes=smoothing_passes,
+    )
+
+
+def _optimal_bin_weights_from_errors(
+    raw_error: np.ndarray,
+    vision_error: np.ndarray,
+    mapping: np.ndarray,
+    reliability_bins: np.ndarray,
+    *,
+    shrinkage: float,
+    smoothing_passes: int,
+) -> np.ndarray:
     bins = len(reliability_bins)
     optimum = np.empty(bins, dtype=np.float64)
     for index in range(bins):
@@ -409,19 +465,26 @@ def select_spectral_fusion(
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     records: list[dict[str, Any]] = []
     unique = sorted(str(x) for x in np.unique(conditions))
+    raw_coefficients = _dct2(raw_qy)
+    vision_coefficients = _dct2(vision_qy)
+    target_coefficients = _dct2(target_qy)
+    raw_error = raw_coefficients - target_coefficients
+    vision_error = vision_coefficients - target_coefficients
     for shrinkage in WEIGHT_SHRINKAGES:
         for smoothing in RADIAL_SMOOTHING_PASSES:
             held_scores: dict[str, float] = {}
             for held in unique:
                 fit = conditions != held
                 evaluate = conditions == held
-                weights = optimal_bin_weights(
-                    raw_qy[fit], vision_qy[fit], target_qy[fit], mapping,
+                weights = _optimal_bin_weights_from_errors(
+                    raw_error[fit], vision_error[fit], mapping,
                     reliability_bins, shrinkage=shrinkage,
                     smoothing_passes=smoothing,
                 )
-                prediction = spectral_fuse(
-                    raw_qy[evaluate], vision_qy[evaluate], expand_bin_weights(weights, mapping)
+                weight_map = expand_bin_weights(weights, mapping)
+                prediction = _idct2(
+                    weight_map * raw_coefficients[evaluate]
+                    + (1.0 - weight_map) * vision_coefficients[evaluate]
                 )
                 held_scores[held] = _nrmse(prediction, target_qy[evaluate])
             records.append(
@@ -440,8 +503,8 @@ def select_spectral_fusion(
             row["radial_smoothing_passes"],
         ),
     )
-    final_weights = optimal_bin_weights(
-        raw_qy, vision_qy, target_qy, mapping, reliability_bins,
+    final_weights = _optimal_bin_weights_from_errors(
+        raw_error, vision_error, mapping, reliability_bins,
         shrinkage=float(selected["shrinkage_to_development_optimum"]),
         smoothing_passes=int(selected["radial_smoothing_passes"]),
     )

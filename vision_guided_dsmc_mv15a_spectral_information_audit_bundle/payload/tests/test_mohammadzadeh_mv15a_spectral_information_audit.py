@@ -64,6 +64,24 @@ def test_spectral_fusion_preserves_convex_endpoints() -> None:
     )
 
 
+def test_numpy_dct_backend_is_orthonormal_and_matches_scipy_when_available() -> None:
+    rng = np.random.default_rng(202615)
+    value = rng.normal(size=(3, 9, 11))
+    coefficients = mv15a._numpy_dct2(value)
+    np.testing.assert_allclose(mv15a._numpy_idct2(coefficients), value, atol=2.0e-13)
+    np.testing.assert_allclose(
+        np.sum(coefficients**2, axis=(-2, -1)),
+        np.sum(value**2, axis=(-2, -1)),
+        atol=2.0e-12,
+    )
+    try:
+        from scipy.fft import dctn
+    except ModuleNotFoundError:
+        return
+    expected = dctn(value, axes=(-2, -1), norm="ortho")
+    np.testing.assert_allclose(coefficients, expected, atol=2.0e-13)
+
+
 def test_leave_condition_out_selection_returns_bounded_weights() -> None:
     rng = np.random.default_rng(987)
     shape = (12, 10)
@@ -131,11 +149,12 @@ def main() -> None:
     test_exact_affine_decomposition_closes_and_separates_modes()
     test_cross_seed_spectrum_detects_reliable_low_modes()
     test_spectral_fusion_preserves_convex_endpoints()
+    test_numpy_dct_backend_is_orthonormal_and_matches_scipy_when_available()
     test_leave_condition_out_selection_returns_bounded_weights()
     test_condition_only_control_never_uses_indexed_B1_fields()
     test_cross_condition_permutation_is_balanced_and_changes_condition()
     test_prediction_stage_cannot_index_legacy_targets_and_scripts_submit_no_solver()
-    print("MV15A_SPECTRAL_INFORMATION_TESTS_PASS count=8")
+    print("MV15A_SPECTRAL_INFORMATION_TESTS_PASS count=9")
 
 
 if __name__ == "__main__":

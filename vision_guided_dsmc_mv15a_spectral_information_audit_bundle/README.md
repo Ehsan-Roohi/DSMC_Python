@@ -45,10 +45,13 @@ directory:
 MV15A_ROOT=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc; MV15A_TMP="$(mktemp -d)" && git clone --depth 1 --filter=blob:none --sparse --branch agent/mv15a-spectral-information-audit https://github.com/Ehsan-Roohi/DSMC_Python.git "${MV15A_TMP}/repo" && git -C "${MV15A_TMP}/repo" sparse-checkout set vision_guided_dsmc_mv9_heat_flux_bundle vision_guided_dsmc_mv12_sage_qy_bundle vision_guided_dsmc_mv14_kinetic_conservation_cavity_bundle vision_guided_dsmc_mv15a_spectral_information_audit_bundle && bash "${MV15A_TMP}/repo/vision_guided_dsmc_mv15a_spectral_information_audit_bundle/install_and_submit_unity.sh" "${MV15A_ROOT}"
 ```
 
-The installer requires completed MV10/MV9 and MV14 pointers, reuses the
-verified MV10 Torch/SciPy environment, runs eight protocol/numerical tests, and
+The installer requires completed MV10/MV9 and MV14 pointers, prefers an active
+Conda/Mamba environment when it provides NumPy and Torch, otherwise reuses the
+verified MV10 environment, runs nine protocol/numerical tests, and
 submits a prediction-lock job followed by a dependency-separated legacy post
-job.
+job. SciPy is optional: the DCT uses SciPy when available and an independently
+tested exact orthonormal NumPy backend otherwise. `MV15A_PYTHON` can explicitly
+select an environment.
 
 ## Monitor and collect
 

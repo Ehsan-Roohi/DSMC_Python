@@ -48,11 +48,27 @@ chmod +x \
 
 source "${TARGET_ROOT}/LAST_MOHAMMADZADEH_MV10_QY_JOB.env"
 test -x "${MV10_VENV_DIR:?}/bin/python"
+PYTHON_BIN="${MV15A_PYTHON:-}"
+if [[ -z "${PYTHON_BIN}" && -n "${CONDA_PREFIX:-}" \
+      && -x "${CONDA_PREFIX}/bin/python" ]]; then
+  if "${CONDA_PREFIX}/bin/python" -c 'import numpy, torch' >/dev/null 2>&1; then
+    PYTHON_BIN="${CONDA_PREFIX}/bin/python"
+  fi
+fi
+if [[ -z "${PYTHON_BIN}" ]]; then
+  PYTHON_BIN="${MV10_VENV_DIR}/bin/python"
+fi
+if [[ ! -x "${PYTHON_BIN}" ]] \
+   || ! "${PYTHON_BIN}" -c 'import numpy, torch' >/dev/null 2>&1; then
+  echo "MV15A_INSTALL_ERROR: selected Python lacks numpy or torch: ${PYTHON_BIN}" >&2
+  echo "Activate dsmc-gpu or set MV15A_PYTHON=/absolute/path/to/python." >&2
+  exit 4
+fi
 cd "${TARGET_ROOT}"
-"${MV10_VENV_DIR}/bin/python" -m py_compile \
+"${PYTHON_BIN}" -m py_compile \
   vgdsmc/mohammadzadeh_mv15a_spectral_information_audit.py
 PYTHONPATH="${TARGET_ROOT}:${PYTHONPATH:-}" \
-  "${MV10_VENV_DIR}/bin/python" \
+  "${PYTHON_BIN}" \
   "${PAYLOAD_TARGET}/tests/test_mohammadzadeh_mv15a_spectral_information_audit.py"
-MV15A_PROJECT_ROOT="${TARGET_ROOT}" \
+MV15A_PROJECT_ROOT="${TARGET_ROOT}" MV15A_PYTHON="${PYTHON_BIN}" \
   exec bash "${PAYLOAD_TARGET}/scripts/submit_mohammadzadeh_mv15a_spectral_audit_unity.sh"

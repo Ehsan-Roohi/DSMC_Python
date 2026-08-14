@@ -18,6 +18,18 @@
     "old_evaluation_seeds_are_legacy_diagnostic_only": true,
     "fresh_seed_and_fresh_condition_followup_required_for_generalization_claim": true
   },
+  "pre_outcome_runtime_amendments": [
+    {
+      "utc": "2026-08-14T01:47:00Z",
+      "observed_failure": "the installer selected the verified MV10 Torch environment, whose Python did not contain SciPy; the synthetic spectral unit test stopped at the SciPy import",
+      "outcome_access_before_failure": false,
+      "prediction_written_before_failure": false,
+      "legacy_label_access_before_failure": false,
+      "repair": "retain SciPy DCT-II when available, add an independently tested exact orthonormal NumPy DCT-II/inverse backend, and propagate an explicitly selected active Conda/Mamba Python to both Slurm jobs",
+      "scientific_selection_matrix_changed": false,
+      "legacy_outcome_used_to_design_repair": false
+    }
+  ],
   "information_audit_contract": {
     "transform": "orthonormal two-dimensional DCT-II with nonperiodic cavity boundaries",
     "replicate_rule": "cross-spectra and half-difference noise spectra use matching block indices from distinct development seeds only",
