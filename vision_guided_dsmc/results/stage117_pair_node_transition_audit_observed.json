@@ -1,0 +1,30 @@
+{
+  "stage": 117,
+  "record_type": "completed_pair_node_transition_audit",
+  "source_head": "d61f5eb677f1580b563fe62691a11fb535d707df",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31748875063,
+  "workflow_job_id": 94609793461,
+  "artifact_id": 9211647861,
+  "artifact_sha256": "742226adf7b15d0d4e22ad1124fb39eac26deeaac9bac9d610af015b6f56aba4",
+  "summary_sha256": "d3176700d7a03e5c0c10ac9429c4330802a4f6ef11c411739ae6bcd86f10b1f6",
+  "profiles_sha256": "8e73a6afff8021bd15e26dc9de6bd122ae6e2d8b0494015d07f6aad46c37b86e",
+  "tests": {"passed": 3, "failed": 0},
+  "decision": "stage117_stable_single_radial_transition_stage118_distribution_role_weighting_audit",
+  "aggregate": {
+    "minimum_cross_band_difference_cosine": 0.9990556897491106,
+    "centroid_speed_gap_relative_range": 0.05673810625118321,
+    "minimum_total_variation": 0.35334117142524535,
+    "maximum_total_variation": 0.3634309375672982,
+    "mean_total_variation": 0.3579972950751891,
+    "mean_centroid_speed_gap": 0.2440965594730827
+  },
+  "key_metrics": {
+    "near_1_4": {"transition_boundary": 2, "phi_low_0_2_share": 0.5066375481621871, "psi_low_0_2_share": 0.14320661059488884, "centroid_speed_gap_psi_minus_phi": 0.2524427052570095, "total_variation_distance": 0.3634309375672982},
+    "mid_5_14": {"transition_boundary": 2, "phi_low_0_2_share": 0.5024334185739989, "psi_low_0_2_share": 0.1490922471487537, "centroid_speed_gap_psi_minus_phi": 0.241253844432161, "total_variation_distance": 0.35334117142524535},
+    "inner_15_28": {"transition_boundary": 2, "phi_low_0_2_share": 0.5031889407077921, "psi_low_0_2_share": 0.14596916447476826, "centroid_speed_gap_psi_minus_phi": 0.23859312873007749, "total_variation_distance": 0.35721977623302387}
+  },
+  "scientific_conclusion": "The fixed Stage-117 audit finds one coherent radial transition across all three wall-distance bands: phi exceeds psi on shell-1 radial nodes 0-2 and psi exceeds phi on nodes 3-9. The difference-profile cross-band cosine is at least 0.99906, the centroid-speed gap varies by only 5.67% relative to its mean, and total-variation distance remains 0.353-0.363. This is a positive localization/coherence result only. It does not establish why the reduced distributions separate this way, does not establish MUSCL instability causality, and does not validate or repair the nonconverged solver.",
+  "design_guard": "No model, wall, reconstruction, source, transport, floor, normalization, velocity-grid, or failed MUSCL parameter was retuned. Stage 90 remains nonconverged, Stage 28 remains failed, and no solver endpoint or validation claim is advanced."
+}
