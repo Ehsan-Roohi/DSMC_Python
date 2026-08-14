@@ -1,0 +1,31 @@
+{
+  "stage": 119,
+  "record_type": "completed_exact_directional_moment_kernel_audit",
+  "source_head": "2ec3ba831e74e9e7b92f122aa1611cc0fa61ee43",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31807927456,
+  "workflow_job_id": 94791241679,
+  "artifact_id": 9230035282,
+  "artifact_size_bytes": 4102,
+  "artifact_sha256": "a31c7cab7ff95e0ff68d00e84927e3c16292f03331db225ae92ea2efdc49063d",
+  "summary_sha256": "3158721e18b73a7aecf65259185352becbcf2c1d927845c9afddb8dac04a5088",
+  "exact_directional_moment_kernel_profiles_sha256": "49d91f353d5bfbfaa41bf17f2a745f3762a41a814278fa9bbf0980e1645ac326",
+  "tests": {"passed": 4, "failed": 0},
+  "decision": "stage119_exact_x_heat_flux_kernel_incomplete_stage120_kernel_residual_velocity_cell_audit",
+  "aggregate": {
+    "minimum_exact_profile_cosine": 0.9385744907890333,
+    "minimum_exact_overlap": 0.8198419393944537,
+    "maximum_exact_total_variation": 0.1801580606055464,
+    "minimum_cosine_gain_over_stage118_role_weighting": 0.029821342178834476,
+    "minimum_tv_reduction_fraction_over_stage118_role_weighting": 0.14510193301870775,
+    "maximum_stage118_raw_profile_reconstruction_relative_l2": 1.0012100293782192e-16
+  },
+  "key_metrics": {
+    "near_1_4": {"profile_cosine": 0.9445112575879261, "overlap_coefficient": 0.8290565711192731, "total_variation_distance": 0.17094342888072692, "cosine_gain_over_stage118_role_weighting": 0.029821342178834476, "tv_reduction_fraction_over_stage118_role_weighting": 0.15472555213582512, "phi_centroid_node": 6.277150519642307, "psi_centroid_node": 5.625096113779945, "transition_boundaries": [1, 5]},
+    "mid_5_14": {"profile_cosine": 0.9397572145508122, "overlap_coefficient": 0.8210436514524126, "total_variation_distance": 0.17895634854758738, "cosine_gain_over_stage118_role_weighting": 0.03199527950708758, "tv_reduction_fraction_over_stage118_role_weighting": 0.14510193301870775, "phi_centroid_node": 6.2596071823439905, "psi_centroid_node": 5.58159636555619, "transition_boundaries": [1, 5]},
+    "inner_15_28": {"profile_cosine": 0.9385744907890333, "overlap_coefficient": 0.8198419393944537, "total_variation_distance": 0.1801580606055464, "cosine_gain_over_stage118_role_weighting": 0.03315190947718094, "tv_reduction_fraction_over_stage118_role_weighting": 0.15254110584570563, "phi_centroid_node": 6.318762686403847, "psi_centroid_node": 5.6271834847012485, "transition_boundaries": [1, 5]}
+  },
+  "scientific_conclusion": "The exact pointwise x-directed reduced heat-flux magnitude kernels materially improve the Stage-118 phi/psi radial-profile agreement, but they do not satisfy the fixed common-alignment guards. The minimum profile cosine is 0.93857 and the minimum overlap is 0.81984, below 0.95 and 0.90, although cosine improves by at least 0.02982 and total-variation distance falls by at least 14.51% relative to Stage 118. Thus exact directional moment weighting is relevant but insufficient to explain the residual radial split. The justified next fixed audit resolves the remaining exact-kernel discrepancy in the existing shell-1 sectors 5+6 velocity cells, without changing the solver or any retained parameter.",
+  "design_guard": "The x-directed kernels abs(c_x)*(c_x^2+c_y^2) for phi and abs(c_x) for psi are fixed by the reduced heat-flux moment and were not fitted. No model, wall, reconstruction, source, transport, floor, normalization, velocity-grid, or failed MUSCL parameter was retuned. Stage 90 remains nonconverged, Stage 28 remains a failed MUSCL endpoint, Stage 89 remains unpromoted, and no stability, endpoint, heat-flux-improvement, benchmark, or validation claim is advanced."
+}
