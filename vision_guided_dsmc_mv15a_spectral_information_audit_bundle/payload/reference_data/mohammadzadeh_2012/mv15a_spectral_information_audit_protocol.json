@@ -1,0 +1,108 @@
+{
+  "stage": "MV15A_Mohammadzadeh_spectral_information_audit",
+  "status": "locked_after_MV14_failure_before_any_MV15A_legacy_outcome",
+  "locked_utc": "2026-08-14T01:21:00Z",
+  "method_name": "SITR-QY",
+  "method_expansion": "Spectral Information and Trust-Region reconstruction of wall-normal heat flux",
+  "scientific_role": {
+    "classification": "prospectively_locked_post_MV14_legacy_diagnostic_not_confirmatory_evidence",
+    "observed_failure": "MV14 reduced the exact weak energy-balance residual but did not improve legacy q_y over MV9 vision-only or paired Raw_B10",
+    "working_hypotheses": [
+      "corner extrapolation can induce systematic amplitude shrinkage and mean offset",
+      "Raw_B1 can measure selected low-frequency modes more reliably than a learned conditional mean",
+      "the one-block information limit remains an open alternative until a spectral bound and controlled estimator are evaluated"
+    ],
+    "purpose": "separate spectral information, extrapolation bias, and observation contribution before authorizing any new DSMC trajectory",
+    "DSMC_rerun_in_this_stage": false,
+    "neural_network_retraining_in_this_stage": false,
+    "old_evaluation_seeds_are_legacy_diagnostic_only": true,
+    "fresh_seed_and_fresh_condition_followup_required_for_generalization_claim": true
+  },
+  "pre_outcome_runtime_amendments": [
+    {
+      "utc": "2026-08-14T01:47:00Z",
+      "observed_failure": "the installer selected the verified MV10 Torch environment, whose Python did not contain SciPy; the synthetic spectral unit test stopped at the SciPy import",
+      "outcome_access_before_failure": false,
+      "prediction_written_before_failure": false,
+      "legacy_label_access_before_failure": false,
+      "repair": "retain SciPy DCT-II when available, add an independently tested exact orthonormal NumPy DCT-II/inverse backend, and propagate an explicitly selected active Conda/Mamba Python to both Slurm jobs",
+      "scientific_selection_matrix_changed": false,
+      "legacy_outcome_used_to_design_repair": false
+    }
+  ],
+  "information_audit_contract": {
+    "transform": "orthonormal two-dimensional DCT-II with nonperiodic cavity boundaries",
+    "replicate_rule": "cross-spectra and half-difference noise spectra use matching block indices from distinct development seeds only",
+    "signal_power_estimator": "positive part of the mean cross-spectrum between independent-seed B1 replicates",
+    "noise_power_estimator": "one half the mean squared DCT difference between independent-seed B1 replicates",
+    "radial_frequency_bins": 12,
+    "linear_MMSE_bound": "sum_k S_k N_k/(S_k+N_k), reported against the ideal independent Raw_B10 noise N_k/10",
+    "block_autocorrelation_lags": [1, 2, 3, 4, 5],
+    "reference_noise_corrected_metric_is_secondary_not_a_gate": true
+  },
+  "spectral_fusion_contract": {
+    "formula": "DCT(q_hat)=w_raw(k) DCT(q_Raw_B1)+(1-w_raw(k)) DCT(q_MV9_Mamba)",
+    "development_optimal_weight": "per radial bin, clipped minimum-MSE convex weight using development residual variances and covariance",
+    "target_free_anchor": "cross-seed spectral reliability S/(S+N)",
+    "candidate_weight_shrinkage_to_development_optimum": [0.0, 0.25, 0.5, 0.75, 1.0],
+    "candidate_radial_smoothing_passes": [0, 1, 2],
+    "selection": "leave one entire development condition out; minimize the equally weighted mean held-condition q_y NRMSE",
+    "final_refit": "refit weights on all development conditions using the selected shrinkage and smoothing",
+    "legacy_target_used_for_weight_selection": false,
+    "DC_mode_is_not_hard_coded": true,
+    "weight_range": [0.0, 1.0]
+  },
+  "control_contract": {
+    "required_arms": [
+      "Raw_B1",
+      "MV9_Mamba_vision_only",
+      "SITR_QY_spectral_fusion",
+      "development_parametric_condition_only",
+      "cross_condition_permuted_Raw_B1_fusion",
+      "Gaussian_B1",
+      "TSVD_B1",
+      "paired_Raw_B10"
+    ],
+    "condition_only_model": "ridge regression of the development condition-mean field on [1, log10(Kn), U/100, log10(Kn)*U/100] with ridge 0.01; it never sees indexed B1",
+    "permutation_control": "cyclically exchange Raw_B1 q_y between distinct legacy conditions while retaining the locked vision prediction and condition identity",
+    "same_condition_mean_oracle_required_in_any_future_in_condition_confirmation": true,
+    "fresh_unseen_condition_required_for_cross_condition_claim": true,
+    "claim_rule": "an observation-driven reconstruction claim requires fusion to beat condition-only, vision-only, TSVD, and its cross-condition permutation control"
+  },
+  "exact_diagnostic_contract": {
+    "decomposition": "candidate-target=(a-1)*(target-mean(target))+(mean(candidate)-mean(target))+orthogonal_residual",
+    "reported_terms": ["amplitude_MSE", "offset_MSE", "orthogonal_residual_MSE", "total_MSE", "closure_error"],
+    "normalization": "all terms use the same pooled target RMS used by q_y NRMSE",
+    "affine_fit_is_oracle_diagnostic_only": true,
+    "post_hoc_affine_recalibration_may_not_be_used_as_a_deployable_arm": true
+  },
+  "analysis_contract": {
+    "primary_condition": "kn0p1_u400",
+    "representative_seed": 94302,
+    "representative_block": 0,
+    "maximum_primary_mean_qy_ratio_to_Raw_B10": 1.0,
+    "maximum_individual_primary_seed_qy_ratio_to_Raw_B10": 1.1,
+    "maximum_each_condition_mean_qy_ratio_to_Raw_B10": 1.0,
+    "fusion_must_beat_vision_only": true,
+    "fusion_must_beat_TSVD_B1": true,
+    "fusion_must_beat_condition_only": true,
+    "permuted_control_minimum_degradation_fraction": 0.01,
+    "authorization_rule": "all gates must pass before separately locking new DSMC seeds; legacy success alone is never confirmation",
+    "failure_rule": "return the information audit and exact error budget without tuning on legacy labels"
+  },
+  "source_contract": {
+    "required_MV9_decision": "MV9_feasibility_does_not_support_one_block_kinetic_moment_claim",
+    "required_MV14_decision": "MV14_hybrid_legacy_diagnostic_does_not_support_fresh_seed_confirmation",
+    "mv9_module_sha256": "e4eb5e55907f77f2c819860031f95122aecf75888ce7dae8dceeddeb0f41f93f",
+    "mv9_protocol_sha256": "47b5c7e4b59aa0ce9db0c3a2ab07e002b8148cc9f338905a826cb8d99b3bd3ec",
+    "mv14_module_sha256": "cf08ba1ab8c3efd5b23a1092c2d232e586b86182a8cb9f87ddcc4ea6c3a90446",
+    "mv14_protocol_sha256": "e704857142fecd1aee5bd51c3aa82167f607de8fd4d36baf6ffd49841a3a6c33"
+  },
+  "return_contract": {
+    "compact_archive_written_to_Unity_project_root": true,
+    "raw_dataset_and_model_weights_excluded": true,
+    "recursive_SHA256_verification_required": true,
+    "PNG_and_PDF_figures_required": true,
+    "maximum_archive_MiB": 450
+  }
+}
