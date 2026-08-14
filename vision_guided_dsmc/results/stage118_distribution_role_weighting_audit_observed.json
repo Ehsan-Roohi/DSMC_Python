@@ -1,0 +1,30 @@
+{
+  "stage": 118,
+  "record_type": "completed_distribution_role_weighting_audit",
+  "source_head": "bf7f626f984390f64146c709bf2a453103aa0ec1",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31781982668,
+  "workflow_job_id": 94709528690,
+  "artifact_id": 9220901709,
+  "artifact_size_bytes": 2958,
+  "artifact_sha256": "812a82293d519639b43a3eaf419b14809fbe89e1bd41c81b05f4f7530a242a2d",
+  "summary_sha256": "6ee1207ecf95ee3d945e63163ff826415bc14b81c3fef688a361a99a81b96a37",
+  "distribution_role_weighted_profiles_sha256": "9710dea5a44e9c0e93c32a92b68b5953534da15a530fe71cccb73f4c36f41a64",
+  "tests": {"passed": 4, "failed": 0},
+  "decision": "stage118_energy_role_weighting_incomplete_stage119_exact_directional_moment_kernel_audit",
+  "aggregate": {
+    "minimum_role_weighted_profile_cosine": 0.9054225813118523,
+    "minimum_role_weighted_overlap": 0.787413806323513,
+    "maximum_role_weighted_total_variation": 0.2125861936764871,
+    "minimum_cosine_gain_from_role_weighting": 0.2018805111509866,
+    "minimum_tv_reduction_fraction_from_role_weighting": 0.4048868292840217
+  },
+  "key_metrics": {
+    "near_1_4": {"profile_cosine": 0.9146899154090916, "overlap_coefficient": 0.7977657678962568, "total_variation_distance": 0.2022342321037432, "cosine_gain_from_role_weighting": 0.21627853904669636, "tv_reduction_fraction_from_role_weighting": 0.44354150624203664, "transition_boundaries": [1, 5]},
+    "mid_5_14": {"profile_cosine": 0.9077619350437246, "overlap_coefficient": 0.7906693728066373, "total_variation_distance": 0.2093306271933628, "cosine_gain_from_role_weighting": 0.20296670640674974, "tv_reduction_fraction_from_role_weighting": 0.4075679707830202, "transition_boundaries": [1, 5]},
+    "inner_15_28": {"profile_cosine": 0.9054225813118523, "overlap_coefficient": 0.787413806323513, "total_variation_distance": 0.2125861936764871, "cosine_gain_from_role_weighting": 0.2018805111509866, "tv_reduction_fraction_from_role_weighting": 0.4048868292840217, "transition_boundaries": [1, 5]}
+  },
+  "scientific_conclusion": "The fixed reduced-distribution energy-role weighting materially reduces the Stage-117 phi/psi radial mismatch but does not remove it. Multiplying phi by c_perp^2 while leaving psi unweighted raises profile cosine by 0.202-0.216 and reduces total-variation distance by 40.5-44.4%, yet the minimum cosine is only 0.9054 and minimum overlap is only 0.7874, below the preregistered common-alignment guards of 0.95 and 0.90. Therefore the reduced-distribution energy roles are relevant but insufficient to explain the radial split. The justified next fixed audit is the exact x-directed moment kernel, retaining pointwise directional velocity rather than radial-node mean speed.",
+  "design_guard": "The Stage-118 powers 2 for phi and 0 for psi were fixed by the reduced-distribution energy moment and were not fitted. No model, wall, reconstruction, source, transport, floor, normalization, velocity-grid, or failed MUSCL parameter was retuned. Stage 90 remains nonconverged, Stage 28 remains a failed MUSCL endpoint, and no stability, endpoint, heat-flux-improvement, benchmark, or validation claim is advanced."
+}
