@@ -1,0 +1,108 @@
+{
+  "stage": "MV15C_Mohammadzadeh_fresh_B3_confirmation",
+  "status": "locked_before_any_MV15C_fresh_trajectory_or_outcome",
+  "locked_utc": "2026-08-14T13:50:00Z",
+  "scientific_question": "Does the prospectively frozen MV15B B3 DCIR-QY rule beat paired Raw B10 for wall-normal heat flux on new random trajectories at the failed corner and on a completely new condition?",
+  "scientific_role": {
+    "classification": "prospectively_locked_fresh_DSMC_confirmation",
+    "legacy_MV15B_is_development_history_only": true,
+    "no_MV15C_parameter_selection_after_fresh_data": true,
+    "neural_network_retraining": false,
+    "continuum_heat_flux_closure": false,
+    "new_DSMC_trajectories": true
+  },
+  "fresh_conditions": [
+    {
+      "id": "kn0p1_u400",
+      "role": "fresh_primary_replication",
+      "knudsen": 0.1,
+      "lid_speed_m_per_s": 400.0,
+      "seeds": [151501, 151502, 151503, 151504]
+    },
+    {
+      "id": "kn0p08_u350",
+      "role": "genuinely_new_condition",
+      "knudsen": 0.08,
+      "lid_speed_m_per_s": 350.0,
+      "seeds": [151511, 151512, 151513, 151514]
+    }
+  ],
+  "reference_contract": {
+    "trajectory_count": 8,
+    "seeds_per_condition": 4,
+    "inherit_exact_MV3_grid_particles_steps_timestep_and_collision_engine": true,
+    "nonoverlapping_additive_blocks_per_seed": 10,
+    "mechanical_and_macroscopic_stationarity_required": true,
+    "single_seed_heat_flux_stationarity_is_not_a_preselection_gate": true,
+    "heat_flux_convergence_is_assessed_by_cross_seed_and_budget_controls": true
+  },
+  "frozen_B3_contract": {
+    "method": "DCIR-QY",
+    "input_block_indices": [0, 1, 2],
+    "input_budget": 3,
+    "paired_raw_comparator_budget": 10,
+    "target": "leave-one-fresh-seed-out mean of the other three exact additive Raw B10 fields",
+    "input_seed_is_excluded_from_its_target": true,
+    "mode_reliability_threshold": 0.97,
+    "trusted_mode_strength": 0.25,
+    "expected_trusted_non_DC_mode_count": 117,
+    "expected_maximum_non_DC_weight": 0.24998640147193427,
+    "DC_weight": 1.0,
+    "weight_map_source": "exact b3_selected_weight_map locked before legacy labels in MV15B",
+    "Mamba_ensemble_source": "three immutable MV9 mambairv2_tiny_adapted checkpoints",
+    "TSVD_rank_source": "MV9 development-validation selection",
+    "fresh_fields_forbidden_for_weight_threshold_strength_or_model_selection": true
+  },
+  "prediction_lock_contract": {
+    "only_B3_blocks_0_1_2_enter_D-CIR_prediction": true,
+    "Raw_B10_is_locked_as_comparator_not_used_by_prediction": true,
+    "fresh_cross_seed_targets_are_constructed_only_after_prediction_manifest_verification": true,
+    "all_predictions_and_controls_recursively_SHA256_locked": true
+  },
+  "required_controls": [
+    "Raw_B3",
+    "MV9_Mamba_B3",
+    "DC_only_B3",
+    "MV15C_frozen_DCIR_QY_B3",
+    "TSVD_B3",
+    "cross_condition_permuted_Raw_B3",
+    "paired_exact_Raw_B10"
+  ],
+  "acceptance_gates": {
+    "maximum_each_condition_mean_ratio_to_Raw_B10": 1.0,
+    "maximum_each_seed_ratio_to_Raw_B10": 1.1,
+    "selected_beats_Mamba_B3_in_each_condition": true,
+    "selected_beats_TSVD_B3_in_each_condition": true,
+    "selected_beats_Raw_B3_in_each_condition": true,
+    "minimum_permutation_degradation_fraction": 0.01,
+    "maximum_DC_absolute_error": 1e-10,
+    "all_eight_fresh_trajectories_required": true,
+    "both_primary_replication_and_new_condition_must_pass": true,
+    "failure_is_reported_without_retuning": true
+  },
+  "required_MV15B_outcome": {
+    "decision": "MV15B_legacy_diagnostic_authorizes_separately_locked_fresh_seed_and_condition_confirmation",
+    "recommended_budget": 3,
+    "primary_condition": "kn0p1_u400",
+    "B3_primary_ratio_to_Raw_B10": 0.9506406033135484,
+    "B3_all_gates_pass": true,
+    "B3_threshold": 0.97,
+    "B3_strength": 0.25,
+    "B3_trusted_non_DC_modes": 117
+  },
+  "source_contract": {
+    "mv3_protocol_sha256": "18f6abe1504abc4134e45c08624fd6c0ad2a4bdf0f9d30147409352bdce97564",
+    "mv9_module_sha256": "e4eb5e55907f77f2c819860031f95122aecf75888ce7dae8dceeddeb0f41f93f",
+    "mv14_module_sha256": "cf08ba1ab8c3efd5b23a1092c2d232e586b86182a8cb9f87ddcc4ea6c3a90446",
+    "mv15a_module_sha256": "f06afeb0adf722c6d3785580a4d700285a43b663b5888d518921350f67956b24",
+    "mv15b_module_sha256": "11905432db941863ca6c6ba70afdc59aa02a1b9c1cc38d0012177cb44ff4a4ee",
+    "mv15b_protocol_sha256": "ca236ab01af5cff66c9b598d2db36542502515560b63ca34132d70a87bf592e6"
+  },
+  "return_contract": {
+    "compact_archive_written_to_Unity_project_root": true,
+    "raw_DSMC_checkpoints_model_weights_and_locked_predictions_excluded": true,
+    "JSON_CSV_PNG_and_vector_PDF_required": true,
+    "recursive_SHA256_verification_required": true,
+    "maximum_archive_MiB": 450
+  }
+}
