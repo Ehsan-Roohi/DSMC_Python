@@ -20,6 +20,7 @@ PRESETS = {
     "smoke": {"nx": 12, "ppc": 4, "warmup": 20, "sample": 30, "sample_stride": 2},
     "student": {"nx": 50, "ppc": 12, "warmup": 4000, "sample": 8000, "sample_stride": 5},
     "production": {"nx": 200, "ppc": 32, "warmup": 14000, "sample": 26000, "sample_stride": 10},
+    "hq": {"nx": 200, "ppc": 128, "warmup": 40000, "sample": 160000, "sample_stride": 10},
 }
 
 
@@ -125,6 +126,7 @@ run                  {sample}
             "smoke": "syntax-smoke",
             "student": "classroom-learning",
             "production": "production-validation-pending",
+            "hq": "high-statistics-validation-pending",
         }[level],
     }
     (output / "case_metadata.json").write_text(
