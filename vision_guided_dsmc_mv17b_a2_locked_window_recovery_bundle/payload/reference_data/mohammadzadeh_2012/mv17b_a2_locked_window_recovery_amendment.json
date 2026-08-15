@@ -1,0 +1,53 @@
+{
+  "stage": "MV17B_A2_Mohammadzadeh_locked_window_recovery",
+  "status": "locked_after_A1_mechanical_failure_before_any_MV17B_prediction_or_target_construction",
+  "locked_design_date": "2026-08-15",
+  "scientific_classification": "outcome_blind_same_seed_termination_guard_repair_preserving_the_original_MV17B_preregistration",
+  "A1_root_cause": "IRUN_4_is_invalid_in_DS2V_the_menu_reprompts_for_1_2_or_3_and_then_stdin_EOF_occurs_at_source_line_1663",
+  "recovery_contract": {
+    "original_campaign_reused": true,
+    "complete_trajectories_rerun": false,
+    "incomplete_array_indices": [1, 2, 3, 4, 9, 10, 11],
+    "incomplete_case_ids": [
+      "pair_01_reference",
+      "pair_02_observation",
+      "pair_02_reference",
+      "pair_03_observation",
+      "pair_05_reference",
+      "pair_06_observation",
+      "pair_06_reference"
+    ],
+    "seeds_unchanged": true,
+    "fresh_IRUN_remains_3": true,
+    "DS2VD_deck_unchanged": true,
+    "only_source_change": "DO_WHILE_TIME_LT_TLIM_extended_with_OR_NOUT_LT_116",
+    "physical_parameters_changed": false,
+    "collision_model_changed": false,
+    "sampling_schedule_changed": false,
+    "overlapping_moment_blocks_must_be_byte_identical": true,
+    "original_files_are_not_overwritten": true,
+    "missing_blocks_are_installed_only_after_overlap_verification": true
+  },
+  "unchanged_scientific_contract": {
+    "pair_count": 6,
+    "trajectory_count": 12,
+    "observation_B3_nout": [100, 108, 116],
+    "observation_Raw_B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "independent_reference_B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "unused_guard_nout": [106, 107, 114, 115],
+    "required_last_nout": 116,
+    "frozen_model_unchanged": true,
+    "fresh_parameter_selection": false,
+    "neural_retraining": false,
+    "endpoint_or_gate_change": false,
+    "seed_replacement": false
+  },
+  "interpretation": {
+    "A1_failure_is_preserved_as_provenance": true,
+    "recovery_does_not_access_qy_values": true,
+    "recovery_does_not_access_model_predictions": true,
+    "recovery_does_not_construct_reference_targets": true,
+    "failed_overlap_check_invalidates_recovery": true,
+    "original_tU_over_D_30_warning_preserved": true
+  }
+}
