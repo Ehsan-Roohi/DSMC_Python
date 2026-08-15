@@ -48,7 +48,47 @@ export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}"
 "${PYTHON_BIN}" -m vgdsmc.mohammadzadeh_mv16b_jcp_evidence_audit verify
 
 EXPORTS="ALL,MV16B_PROJECT_ROOT=${PROJECT_ROOT},MV16B_PAYLOAD_ROOT=${PAYLOAD_ROOT},MV16B_OUTPUT_ROOT=${OUTPUT_ROOT},MV16B_PYTHON=${PYTHON_BIN},MV16B_MV15C_ROOT=${MV15C_A1_OUTPUT_ROOT},MV16B_MV16A_ROOT=${MV16A_OUTPUT_ROOT},MV16B_CAMPAIGN_ROOT=${MV11_CAMPAIGN_ROOT},MV16B_BATCH_SIZE=${MV16B_BATCH_SIZE:-4}"
-AUDIT_JOB="$(sbatch --parsable --dependency="afterok:${MV16A_PREDICT_JOB_ID}" \
+
+# Slurm may reject a dependency on an old job that has already left the active
+# controller, even though its recursively locked prediction artifacts remain
+# valid.  Prefer the artifacts.  Use afterok only while the parent is active;
+# fail closed for a terminal failure or for an unresolvable missing parent.
+DEPENDENCY_ARGS=()
+PARENT_MODE="locked_artifacts_already_present"
+if [[ -s "${MV16A_OUTPUT_ROOT}/prediction_manifest.json" && -s "${MV16A_OUTPUT_ROOT}/locked_cylinder_predictions.npz" ]]; then
+  PARENT_MODE="locked_artifacts_already_present_no_slurm_dependency"
+else
+  ACTIVE_STATE="$(squeue -h -j "${MV16A_PREDICT_JOB_ID}" -o '%T' 2>/dev/null | head -1 || true)"
+  ACCOUNTING_STATE="$(sacct -n -X -j "${MV16A_PREDICT_JOB_ID}" --format=State 2>/dev/null | awk 'NF{print $1; exit}' || true)"
+  case "${ACTIVE_STATE}" in
+    PENDING|RUNNING|CONFIGURING|COMPLETING|SUSPENDED)
+      DEPENDENCY_ARGS=(--dependency="afterok:${MV16A_PREDICT_JOB_ID}")
+      PARENT_MODE="active_parent_afterok"
+      ;;
+    "")
+      case "${ACCOUNTING_STATE%%+*}" in
+        COMPLETED)
+          echo "MV16B_SUBMIT_ERROR: MV16A prediction is COMPLETED but its locked artifacts are missing from ${MV16A_OUTPUT_ROOT}" >&2
+          exit 5
+          ;;
+        FAILED|CANCELLED|TIMEOUT|OUT_OF_MEMORY|NODE_FAIL|PREEMPTED|BOOT_FAIL|DEADLINE)
+          echo "MV16B_SUBMIT_ERROR: MV16A prediction ended as ${ACCOUNTING_STATE}; inspect its log before MV16B" >&2
+          exit 6
+          ;;
+        *)
+          echo "MV16B_SUBMIT_ERROR: MV16A prediction artifacts are absent and parent job ${MV16A_PREDICT_JOB_ID} cannot be resolved (sacct=${ACCOUNTING_STATE:-UNKNOWN})" >&2
+          exit 7
+          ;;
+      esac
+      ;;
+    *)
+      echo "MV16B_SUBMIT_ERROR: unsupported active MV16A state ${ACTIVE_STATE}" >&2
+      exit 8
+      ;;
+  esac
+fi
+
+AUDIT_JOB="$(sbatch --parsable "${DEPENDENCY_ARGS[@]}" \
   --export="${EXPORTS}" \
   --output="${PROJECT_ROOT}/logs/moh_mv16b_audit_%j.slurm.out" \
   --error="${PROJECT_ROOT}/logs/moh_mv16b_audit_%j.slurm.err" \
@@ -69,10 +109,10 @@ MV16B_MV15C_ROOT=${MV15C_A1_OUTPUT_ROOT}
 MV16B_MV16A_ROOT=${MV16A_OUTPUT_ROOT}
 MV16B_CAMPAIGN_ROOT=${MV11_CAMPAIGN_ROOT}
 MV16B_PARENT_MV16A_PREDICT_JOB_ID=${MV16A_PREDICT_JOB_ID}
+MV16B_PARENT_MODE=${PARENT_MODE}
 MV16B_AUDIT_JOB_ID=${AUDIT_JOB}
 MV16B_POST_JOB_ID=${POST_JOB}
 MV16B_JOB_IDS=${AUDIT_JOB},${POST_JOB}
 EOF
 mv "${TEMPORARY}" "${POINTER}"
-echo "MV16B_JCP_EVIDENCE_SUBMITTED output=${OUTPUT_ROOT} audit=${AUDIT_JOB} post=${POST_JOB} dependency=afterok:${MV16A_PREDICT_JOB_ID} dsmc_rerun=NO training=NO"
-
+echo "MV16B_JCP_EVIDENCE_SUBMITTED output=${OUTPUT_ROOT} audit=${AUDIT_JOB} post=${POST_JOB} parent_mode=${PARENT_MODE} parent_job=${MV16A_PREDICT_JOB_ID} dsmc_rerun=NO training=NO"
