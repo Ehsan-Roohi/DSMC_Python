@@ -1,0 +1,94 @@
+{
+  "stage": "MV16B_Mohammadzadeh_JCP_evidence_audit",
+  "status": "locked_analysis_only_after_MV15C_A1_and_MV16A",
+  "locked_utc": "2026-08-15T17:00:00Z",
+  "scientific_classification": "retrospective_post_confirmation_attribution_and_mask_aware_cross_geometry_evidence_audit_not_new_preregistered_confirmation",
+  "purpose": "Resolve the remaining attribution, reference-noise, stationarity, spectral-localisation, and geometry-mask questions without launching DSMC or training.",
+  "global_guards": {
+    "DSMC_rerun": false,
+    "neural_training": false,
+    "cavity_or_cylinder_outcome_based_parameter_selection": false,
+    "frozen_MV15B_weight_map_changed": false,
+    "frozen_Mamba_checkpoints_changed": false,
+    "negative_outcomes_reported_without_retuning": true
+  },
+  "cavity_contract": {
+    "conditions": [
+      "kn0p08_u350",
+      "kn0p1_u400"
+    ],
+    "seeds_per_condition": 4,
+    "input": "locked MV15C-A1 B3 predictions and all ten source blocks",
+    "target": "leave-one-seed-out mean of the other three Raw-B10 fields",
+    "fixed_attribution_arms": [
+      "Mamba prior only",
+      "frozen selected DCIR-QY",
+      "development-condition surface prior only",
+      "development-condition surface prior plus the identical frozen DCIR map",
+      "pure continuous DCT Wiener B3",
+      "Mamba plus continuous Wiener residual"
+    ],
+    "development_prior": "per-pixel least-squares surface in log10(Kn), U/100, and their interaction, using MV9 validation labels only",
+    "continuous_Wiener_gain": "S/(S+N/3) from the target-free MV15B development spectra; DC fixed to one",
+    "reference_sensitivity": [
+      "peer blocks 0-4",
+      "peer blocks 5-9"
+    ],
+    "uncertainty": [
+      "paired per-seed log ratios",
+      "exact n=4 bootstrap interval",
+      "exact sign test",
+      "DerSimonian-Laird two-condition sensitivity"
+    ],
+    "reference_noise_formula": "sqrt(max((r^2-1/4)/(3/4),0)) under the explicitly stated equal-independent-variance approximation",
+    "spatial_audits": [
+      "top y/L quarter",
+      "low/mid/high 2-D DCT bands"
+    ],
+    "fresh_labels_used_for_arm_selection": false
+  },
+  "cylinder_contract": {
+    "seeds": [
+      20260813,
+      32452843,
+      49979687,
+      67867967
+    ],
+    "source": "existing MV11 Bird/DS2V cylinder additive moments and locked MV16A predictions",
+    "B3_nout": [
+      100,
+      108,
+      116
+    ],
+    "B10_nout": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      109,
+      110,
+      111,
+      112,
+      113
+    ],
+    "operator": "evaluate frozen nonzero DCT modes at native DS2V fluid-cell centres, solve area-weighted least squares, apply frozen gains, and enforce the exact area-weighted DC",
+    "solid_cells_in_operator": 0,
+    "maximum_allowed_weighted_design_condition_number": 10000000000.0,
+    "minimum_peer_linear_interpolation_coverage": 0.95,
+    "primary_endpoints": [
+      "area-weighted global q_y NRMSE",
+      "area-weighted near-wall normal kinetic heat flux q_n NRMSE"
+    ],
+    "near_wall_band": "0 <= r-R <= 0.05D",
+    "q_n_definition": "q_x x/r + q_y y/r reconstructed from cell kinetic moments; this is not a direct wall-collision heat-flux tally",
+    "multiple_endpoint_reporting": "Holm adjustment for the two endpoint sign-test p-values",
+    "formal_small_n_superiority_claim": false,
+    "small_n_reason": "For four independent seeds, the minimum attainable one-sided exact sign-test p-value is 1/16=0.0625.",
+    "original_MV11_tU_over_D_30_warning_preserved": true,
+    "new_DSMC": false,
+    "new_training": false,
+    "cylinder_tuning": false
+  },
+  "publication_guard": "A positive result supports effect-size and mechanism discussion for a JCP manuscript. Cavity MV15C-A1 remains the fresh q_y evidence; cylinder MV16B is explicitly retrospective because the existing trajectories and the tU/D=30 shortfall were known. Report confidence intervals and limitations, not a p<0.05 confirmation claim."
+}
