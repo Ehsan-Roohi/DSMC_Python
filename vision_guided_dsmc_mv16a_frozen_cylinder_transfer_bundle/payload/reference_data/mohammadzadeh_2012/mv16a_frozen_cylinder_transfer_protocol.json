@@ -1,0 +1,93 @@
+{
+  "stage": "MV16A_Mohammadzadeh_frozen_cylinder_transfer",
+  "status": "locked_retrospective_transfer_before_cylinder_model_predictions",
+  "locked_utc": "2026-08-15T03:30:00Z",
+  "scientific_classification": "retrospective_stationarity_amended_frozen_cross_geometry_transfer_audit_not_unamended_MV11_confirmation",
+  "purpose": "Test whether the successful cavity-selected MV15C-A1 B3 DCIR-QY estimator transfers without training, tuning, clipping, or DSMC reruns to the independent Bird/DS2V Mach-10 cylinder geometry.",
+  "cylinder_sources": {
+    "campaign": "MV11_DS2V_CYLINDER_20260813_170355",
+    "seeds": [20260813, 32452843, 49979687, 67867967],
+    "gas": "argon",
+    "solver": "Bird DS2V nearest-neighbour VHS elastic",
+    "knudsen": 0.1,
+    "freestream_speed_m_per_s": 2634.1,
+    "freestream_temperature_K": 200.0,
+    "freestream_number_density_m3": 4.247e20,
+    "cylinder_diameter_m": 0.3048,
+    "wall_temperature_K": 500.0,
+    "domain_m": [-0.2, 0.65, 0.0, 0.4]
+  },
+  "MV11_completion_amendment": {
+    "original_target_tU_over_D": 30.0,
+    "observed_terminal_tU_over_D_range": [11.278249417306451, 11.589293348329505],
+    "original_completion_gate_pass": false,
+    "solver_or_slurm_failure": false,
+    "all_four_jobs_completed_with_usable_additive_blocks": true,
+    "late_window_basis": "Raw scalar block diagnostics only; no cylinder neural prediction existed when this protocol was locked.",
+    "late_NOUT_100_plus_fitted_qy_RMS_change_percent_range": [-0.08, 0.84],
+    "late_cross_seed_qy_RMS_coefficient_of_variation_percent": 0.142,
+    "report_original_tU_over_D_30_warning_in_every_result": true,
+    "do_not_label_as_unamended_preregistered_MV11_confirmation": true
+  },
+  "late_block_split": {
+    "common_available_nout": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116],
+    "B3_nout": [100, 108, 116],
+    "B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "unused_QC_nout": [106, 107, 114, 115],
+    "sets_are_disjoint": true,
+    "B3_and_B10_mean_nout": [108.0, 107.0],
+    "all_additive_moments_summed_before_single_centralisation": true,
+    "same_split_for_every_seed": true
+  },
+  "frozen_estimator_contract": {
+    "successful_source": "MV15C_A1_fresh_q_y_supports_frozen_B3_DCIR_QY_with_original_temperature_QC_warning",
+    "MambaIRv2_checkpoints_unchanged": true,
+    "MV15B_B3_DCT_weight_map_unchanged": true,
+    "TSVD_rank_unchanged": true,
+    "no_neural_retraining": true,
+    "no_cylinder_fine_tuning": true,
+    "no_cylinder_hyperparameter_or_arm_selection": true,
+    "failure_reported_without_retuning": true
+  },
+  "geometry_adapter_contract": {
+    "target_shape": "exact frozen MV15B B3 DCT weight-map shape",
+    "interpolation": "SciPy linear scattered interpolation with nearest fill only where linear support is absent",
+    "minimum_linear_coverage_over_fluid_pixels": 0.9,
+    "solid_mask": "x^2+y^2 < (D/2)^2",
+    "solid_output_channels": 0.0,
+    "solid_auxiliary_channels": [0.0, 0.0, 0.0, 2.5],
+    "field_normalisation": {
+      "stress": "n_inf k_B T_inf",
+      "heat_flux": "n_inf k_B T_inf sqrt(k_B T_inf / m_Ar)",
+      "velocity": "U_inf",
+      "temperature": "T_inf"
+    },
+    "literal_condition_channels": ["log10(Kn)", "U_inf_m_per_s/100"],
+    "speed_channel_outside_cavity_training_support": true,
+    "condition_clipping_reinterpretation_or_cylinder_selection": false
+  },
+  "prediction_target_separation": {
+    "B3_predictions_recursively_hashed_before_B10_target_construction": true,
+    "Raw_B10_used_by_prediction": false,
+    "target": "leave-one-seed-out mean of the other three disjoint Raw-B10 cylinder fields",
+    "single_condition_cross_seed_permutation_is_fixed_cyclic_roll": true
+  },
+  "metrics_and_gates": {
+    "primary_endpoint": "fluid-mask q_y NRMSE ratio of frozen DCIR-QY B3 to Raw B10",
+    "reuse_exact_MV15C_thresholds": true,
+    "selected_must_beat_Raw_B3_Mamba_B3_and_TSVD_B3": true,
+    "each_seed_cap_inherited_from_MV15C": true,
+    "permuted_observation_must_degrade_by_MV15C_margin": true,
+    "DCT_DC_must_be_preserved_to_MV15C_tolerance": true,
+    "all_four_seeds_required": true
+  },
+  "reporting": {
+    "six_panel_physical_q_y_contours_for_each_seed": true,
+    "panel_order": ["Reference", "Raw DSMC B3", "MambaIRv2 B3", "DCIR-QY B3", "TSVD/POD B3", "Raw DSMC B10"],
+    "shared_field_colour_scale_across_all_seeds": true,
+    "shared_error_colour_scale_across_all_seeds": true,
+    "field_and_error_cmap": "RdBu_r",
+    "compact_SHA256_verified_Unity_archive": true
+  },
+  "publication_guard": "A positive MV16A outcome is evidence of frozen cross-geometry transfer under a transparently amended late-stationarity window. It is not an unamended MV11 tU/D=30 confirmation. A negative result must be reported without retuning on these four observed seeds."
+}
