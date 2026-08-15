@@ -104,6 +104,8 @@ def test_runner_uses_locked_window_and_fresh_IRUN3() -> None:
     assert "MIN_NOUT=116" in runner and "MAX_NOUT=116" in runner
     assert "RANDOM_SEED.IN" in runner
     assert "restart_reused\": False" in runner
+    assert "exit 22" in runner
+    assert 'exit "${SOLVER_RC:-22}"' not in runner
 
 
 def main() -> None:
@@ -115,4 +117,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
