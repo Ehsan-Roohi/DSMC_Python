@@ -1,0 +1,57 @@
+{
+  "stage": 124,
+  "record_type": "completed_within_band_cancellation_audit",
+  "source_head": "8430bf16cb423b6f615eb08dd87867cc1307a9c6",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31898392223,
+  "workflow_job_id": 95045137550,
+  "artifact_id": 9253134830,
+  "artifact_size_bytes": 294083,
+  "artifact_sha256": "49da2c8c9b19ceec1eae9b1b0781e51b6c7679f7a448578d33af3e51dadbf09f",
+  "summary_sha256": "2ba40389d7851127fdc823741284fef6d7c07e9857f378fac8f1d45da1245660",
+  "within_band_cancellation_sha256": "272b3def41e2fa97a929712bcd264b8ca283e296af1cb99ebf414f5ca2164e1f",
+  "tests": {"passed": 6, "failed": 0},
+  "decision": "stage124_strong_within_band_cancellation_with_radial_node_remainder_stage125_dominant_node_spatial_sign_audit",
+  "aggregate": {
+    "minimum_band_cancellation_fraction": 0.6640720402187066,
+    "maximum_band_uncancelled_fraction": 0.3359279597812934,
+    "maximum_node_uncancelled_fraction": 0.9368939344160607,
+    "maximum_parent_profile_closure_rel_l2": 1.5519828091252025e-15,
+    "maximum_cell_mass_closure_relative": 4.840169927125005e-16
+  },
+  "key_metrics": {
+    "near_1_4": {
+      "cell_count": 448,
+      "cancellation_fraction": 0.7210349980776234,
+      "uncancelled_fraction": 0.2789650019223766,
+      "maximum_node_uncancelled_fraction": 0.6370053288836793,
+      "dominant_uncancelled_radial_node": 8,
+      "dominant_node_net_residual_share": 0.19045953850591285,
+      "passing_cell_residual_share": 0.7963827940684753,
+      "failing_cell_residual_share": 0.20361720593152458
+    },
+    "mid_5_14": {
+      "cell_count": 1120,
+      "cancellation_fraction": 0.677816530302827,
+      "uncancelled_fraction": 0.32218346969717304,
+      "maximum_node_uncancelled_fraction": 0.5153461506894204,
+      "dominant_uncancelled_radial_node": 1,
+      "dominant_node_net_residual_share": 0.1887332829444639,
+      "passing_cell_residual_share": 0.6014011436806714,
+      "failing_cell_residual_share": 0.39859885631932856
+    },
+    "inner_15_28": {
+      "cell_count": 1568,
+      "cancellation_fraction": 0.6640720402187066,
+      "uncancelled_fraction": 0.3359279597812935,
+      "maximum_node_uncancelled_fraction": 0.9368939344160607,
+      "dominant_uncancelled_radial_node": 9,
+      "dominant_node_net_residual_share": 0.16673397731164138,
+      "passing_cell_residual_share": 0.675747512423739,
+      "failing_cell_residual_share": 0.32425248757626113
+    }
+  },
+  "scientific_conclusion": "Most Stage-123 cellwise template-shape residual magnitude cancels when cells are aggregated within every fixed wall-distance band, but at least one radial node retains a large same-sign remainder. The stable Stage-122 band ratio is therefore substantially aggregation/cancellation-driven rather than a universal cellwise mechanism, while the persistent radial-node remainder justifies one fixed spatial-sign audit. This is an artifact decomposition only and does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}
