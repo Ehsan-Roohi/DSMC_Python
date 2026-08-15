@@ -1,0 +1,95 @@
+{
+  "stage": "MV17A_Mohammadzadeh_cylinder_native_polar_crossfit",
+  "status": "locked_retrospective_cylinder_native_double_crossfit",
+  "locked_design_date": "2026-08-15",
+  "scientific_classification": "retrospective_geometry_specific_double_crossfit_development_audit_not_fresh_confirmation",
+  "motivation": "The cavity-frozen MV16B map failed zero-shot cylinder transfer. MV17A implements the predeclared second path: geometry-native development using existing cylinder seeds before any new DSMC confirmation.",
+  "cylinder_native_contract": {
+    "seeds": [
+      20260813,
+      32452843,
+      49979687,
+      67867967
+    ],
+    "native_source": "MV16B cylinder_native_fields_seed_*.npz",
+    "cylinder_center_m": [
+      0.1524,
+      0.0
+    ],
+    "cylinder_radius_m": 0.1524,
+    "domain_m": [
+      -0.2,
+      0.65,
+      0.0,
+      0.4
+    ],
+    "polar_shape": [
+      128,
+      96
+    ],
+    "components": [
+      "q_n",
+      "q_t"
+    ],
+    "transform": "cylinder-centred polar normal/tangential coordinates with rectangular-ray-normalised radius",
+    "transfer_bins": [
+      4,
+      4
+    ],
+    "transfer": "strongly_regularised_2x2_binned_DCT_residual_Wiener_map",
+    "ridge_fraction_of_half_trace": 1.0,
+    "singular_values_clipped_to_unit_interval": true,
+    "DC_transfer_is_identity": true,
+    "cartesian_area_weighted_DC_restored_to_Raw_B3": true,
+    "near_wall_thickness_in_diameters": 0.05,
+    "phase_scramble_seed": 17012026
+  },
+  "crossfit_contract": {
+    "scheme": "strict_ordered_2_train_plus_1_observation_plus_1_reference",
+    "ordered_fold_count": 12,
+    "training_seed_count_per_fold": 2,
+    "observation_seed_count_per_fold": 1,
+    "independent_reference_seed_count_per_fold": 1,
+    "observation_and_reference_are_disjoint_from_training": true,
+    "reference_is_Raw_B10_of_the_disjoint_reference_seed": true,
+    "heldout_reference_used_for_parameter_selection": false,
+    "cavity_labels_or_cavity_weight_map_used": false,
+    "fresh_DSMC_used": false
+  },
+  "primary_endpoints": {
+    "global_q_y": "native-cell area-weighted NRMSE",
+    "near_wall_q_n": "correct cylinder-centred normal heat flux on cells within 0.05D of the wall",
+    "baseline": "independent Raw DSMC B=10 observation seed evaluated against the same disjoint B10 reference seed"
+  },
+  "negative_controls": {
+    "peer_prior_only": "two-training-seed Raw B10 mean without observation residual",
+    "phase_scrambled_observation": "fixed-sign DCT phase scramble of the B3 residual with DC preserved",
+    "legacy_cavity_zero_shot": "MV16B mask-aware cavity-frozen transfer retained only as a failed comparator"
+  },
+  "authorization_gates": {
+    "all_12_role_disjoint_folds_present": true,
+    "correct_cylinder_center_and_near_wall_mask_verified": true,
+    "area_weighted_cartesian_DC_preserved": true,
+    "mean_global_q_y_ratio_to_independent_Raw_B10_below_1": true,
+    "mean_near_wall_q_n_ratio_to_independent_Raw_B10_below_1": true,
+    "every_observation_seed_ratio_below_1_for_both_primary_endpoints": true,
+    "selected_better_than_peer_prior_for_both_primary_endpoints": true,
+    "phase_scramble_worse_by_at_least_1_percent_for_both_primary_endpoints": true,
+    "original_tU_over_D_30_warning_preserved": true
+  },
+  "interpretation_lock": {
+    "successful_result_authorizes": "freeze_the_cylinder_native_method_and_submit_at_least_five_new_independent_seed_confirmations",
+    "successful_result_does_not_authorize": [
+      "claim_of_zero_shot_cross_geometry_transfer",
+      "claim_of_new_preregistered_confirmation",
+      "claim_of_p_less_than_0p05_superiority_from_four_independent_observation_seeds"
+    ],
+    "failed_result_requires": "stop_or_redesign_before_any_new_DSMC_confirmation"
+  },
+  "known_limitations": [
+    "The original MV11 cylinder trajectories stopped near tU/D=11.5 rather than the requested tU/D=30.",
+    "Only four independent observation seeds exist; the minimum one-sided exact sign-test p-value is 0.0625.",
+    "The geometry-specific peer prior uses existing cylinder B10 development trajectories and is not zero-shot transfer.",
+    "MV16B near-wall q_n used the coordinate origin instead of the actual cylinder centre; MV17A corrects that metric and does not reuse the erroneous mask."
+  ]
+}
