@@ -1,0 +1,97 @@
+{
+  "stage": "MV17B_Mohammadzadeh_fresh_cylinder_native_confirmation",
+  "status": "locked_before_fresh_cylinder_DSMC",
+  "locked_design_date": "2026-08-15",
+  "scientific_classification": "prospective_fresh_seed_cylinder_confirmation_of_the_frozen_MV17A_geometry_native_estimator",
+  "motivation": "MV17A passed every retrospective cylinder-native cross-fit gate on four historical seeds, but four independent observations cannot attain a one-sided exact sign-test p-value below 0.05. MV17B freezes the final estimator on development data and evaluates it on wholly new, disjoint observation/reference DS2V trajectories.",
+  "development_lock": {
+    "required_MV17A_decision": "MV17A_retrospective_cylinder_native_crossfit_supports_freezing_for_fresh_confirmation",
+    "development_seeds": [20260813, 32452843, 49979687, 67867967],
+    "final_prior": "arithmetic mean of all four development Raw-B10 polar DCT coefficient fields",
+    "final_transfer_training_pairs": "all 12 ordered pairs i_not_equal_j from the four development seeds",
+    "transfer_input": "Raw-B3_i minus Raw-B10_j",
+    "transfer_target": "Raw-B10_i minus Raw-B10_j",
+    "polar_shape": [128, 96],
+    "transfer_bins": [4, 4],
+    "ridge_fraction_of_half_trace": 1.0,
+    "singular_values_clipped_to_unit_interval": true,
+    "DC_transfer_is_identity": true,
+    "cartesian_area_weighted_DC_restored_to_Raw_B3": true,
+    "fresh_data_parameter_selection": false,
+    "neural_training": false
+  },
+  "fresh_pair_contract": {
+    "pair_count": 6,
+    "trajectories_are_unique_and_pairwise_disjoint": true,
+    "pairs": [
+      {"pair_id": "pair_01", "observation_seed": 171701, "reference_seed": 171702},
+      {"pair_id": "pair_02", "observation_seed": 171703, "reference_seed": 171704},
+      {"pair_id": "pair_03", "observation_seed": 171705, "reference_seed": 171706},
+      {"pair_id": "pair_04", "observation_seed": 171707, "reference_seed": 171708},
+      {"pair_id": "pair_05", "observation_seed": 171709, "reference_seed": 171710},
+      {"pair_id": "pair_06", "observation_seed": 171711, "reference_seed": 171712}
+    ],
+    "observation_B3_nout": [100, 108, 116],
+    "observation_Raw_B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "independent_reference_B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "unused_guard_nout": [106, 107, 114, 115],
+    "required_last_nout": 116,
+    "target": "Raw-B10 from the paired independent reference trajectory",
+    "baseline": "Raw-B10 from the observation trajectory evaluated against the same independent target",
+    "candidate": "frozen MV17B estimator applied only to Raw-B3 from the observation trajectory",
+    "reference_trajectory_never_enters_prediction": true
+  },
+  "geometry_contract": {
+    "gas": "monatomic_argon",
+    "nominal_Mach": 10.0,
+    "Kn": 0.1,
+    "freestream_speed_m_per_s": 2634.1,
+    "freestream_temperature_K": 200.0,
+    "wall_temperature_K": 500.0,
+    "cylinder_center_m": [0.1524, 0.0],
+    "cylinder_radius_m": 0.1524,
+    "near_wall_thickness_in_diameters": 0.05,
+    "native_cell_area_weighting": true
+  },
+  "co_primary_endpoints": {
+    "global_q_y": "native-cell area-weighted NRMSE against the paired independent Raw-B10 reference",
+    "near_wall_q_n": "cylinder-centred normal heat-flux NRMSE within 0.05D of the wall",
+    "error_ratio": "frozen-selected NRMSE divided by observation Raw-B10 NRMSE"
+  },
+  "confirmation_gates": {
+    "all_12_fresh_trajectories_reach_locked_NOUT116": true,
+    "all_source_and_model_hashes_verify": true,
+    "no_fresh_parameter_selection_or_retraining": true,
+    "area_weighted_cartesian_DC_preserved": true,
+    "mean_error_ratio_below_1_for_both_endpoints": true,
+    "every_one_of_six_pair_ratios_below_1_for_both_endpoints": true,
+    "one_sided_exact_sign_test_Holm_adjusted_p_below_0p05_for_both_endpoints": true,
+    "minimum_attainable_unadjusted_one_sided_p": 0.015625,
+    "minimum_attainable_two_endpoint_Holm_adjusted_p": 0.03125
+  },
+  "secondary_diagnostics_not_required_for_primary_confirmation": {
+    "frozen_peer_prior_only": true,
+    "fixed_phase_scrambled_observation_residual": true,
+    "selected_beats_prior_mean": true,
+    "phase_scramble_degrades_mean": true
+  },
+  "interpretation_lock": {
+    "successful_result_authorizes": [
+      "fresh_seed_confirmation_that_the_frozen_cylinder_native_B3_estimator_beats_Raw_B10_for_global_q_y",
+      "fresh_seed_confirmation_that_the_frozen_cylinder_native_B3_estimator_beats_Raw_B10_for_near_wall_q_n",
+      "a_two_geometry_cavity_plus_cylinder_evidence_claim_with_geometry_specific_frozen_estimators"
+    ],
+    "successful_result_does_not_authorize": [
+      "universal_zero_shot_cross_geometry_transfer",
+      "full_stationarity_at_tU_over_D_30",
+      "wall_heat_flux_tally_validation",
+      "parameter_tuning_on_MV17B_outcomes"
+    ],
+    "failed_result_requires": "report_the_fresh_failure_without_retuning_or_seed_replacement"
+  },
+  "known_limitations": [
+    "The locked Bird/DS2V source is fresh-run-only and the prior campaign naturally ended near tU/D=11.5; MV17B therefore confirms the same predeclared late finite-time window rather than claiming tU/D=30 stationarity.",
+    "The near-wall endpoint is a cell-centred kinetic heat-flux moment, not a direct wall-collision heat-flux tally.",
+    "The final cylinder-native estimator is geometry-specific and was developed on four historical cylinder seeds."
+  ]
+}
