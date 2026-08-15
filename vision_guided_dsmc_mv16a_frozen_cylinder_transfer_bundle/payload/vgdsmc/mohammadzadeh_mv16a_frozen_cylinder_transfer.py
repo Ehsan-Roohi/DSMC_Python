@@ -10,9 +10,11 @@ outcome-blind block split is locked before any cylinder neural prediction:
 
 Additive moments are summed before centralisation.  The unstructured cylinder
 cells are deterministically rasterised to the exact frozen MV15B weight-map
-shape.  The literal MV9 conditioning semantics are retained (log10 Kn and
-physical speed / 100); consequently the large Mach-10 speed is explicitly
-reported as out of the cavity training range, never silently clipped.
+shape.  MV9's functional conditioning form is retained (log10 Kn and a
+characteristic speed / 100), while the geometry interface explicitly replaces
+the cavity lid speed by cylinder freestream speed.  This predeclared semantic
+substitution is audited; the large Mach-10 value is outside the cavity training
+range and is never silently clipped or selected from cylinder outcomes.
 
 The Mamba checkpoints, TSVD rank, and DCIR-QY weight map are inherited from the
 successful MV15C-A1 result and remain immutable.  Targets are leave-one-seed-
@@ -385,10 +387,11 @@ def rasterize_fields(
         "minimum_linear_fluid_coverage": min(coverages),
         "fluid_pixel_count": int(np.count_nonzero(fluid)),
         "solid_pixel_count": int(np.count_nonzero(~fluid)),
-        "literal_log10_Kn_channel": float(np.log10(KNUDSEN)),
-        "literal_speed_over_100_channel": U_INF / 100.0,
+        "log10_Kn_channel": float(np.log10(KNUDSEN)),
+        "predeclared_freestream_speed_over_100_channel": U_INF / 100.0,
+        "condition_semantic_substitution": "cavity_U_lid_to_cylinder_U_inf",
         "speed_condition_is_outside_cavity_training_support": True,
-        "condition_clipping_or_reinterpretation": False,
+        "condition_clipping_or_outcome_based_selection": False,
     }
 
 
@@ -559,11 +562,13 @@ def run_prediction(output_root: Path, *, batch_size: int) -> dict[str, Any]:
         "Raw_B10_used_by_prediction": False,
         "parameter_selection_on_cylinder": False,
         "neural_retraining": False,
-        "literal_condition_semantics": {
+        "predeclared_condition_adapter": {
             "log10_Kn": float(np.log10(KNUDSEN)),
             "speed_m_per_s_over_100": U_INF / 100.0,
+            "semantic_substitution": "cavity_U_lid_to_cylinder_U_inf",
             "speed_outside_cavity_training_support": True,
             "clipped": False,
+            "selected_from_cylinder_outcomes": False,
         },
         "frozen_weight_map_sha256": hashlib.sha256(weight.tobytes()).hexdigest(),
         "frozen_tsvd_rank": rank,
@@ -817,7 +822,8 @@ def run_post(output_root: Path) -> dict[str, Any]:
         "B3_nout": list(B3_NOUT),
         "B10_nout": list(B10_NOUT),
         "unused_QC_nout": list(QC_NOUT),
-        "literal_speed_condition_outside_cavity_training_support": True,
+        "predeclared_U_lid_to_U_inf_condition_substitution": True,
+        "speed_condition_outside_cavity_training_support": True,
         "cylinder_outcomes_used_for_tuning": False,
         "neural_retraining": False,
         "DSMC_rerun": False,
