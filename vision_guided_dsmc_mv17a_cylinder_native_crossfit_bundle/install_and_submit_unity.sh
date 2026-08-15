@@ -45,6 +45,7 @@ if ! "${PYTHON_BIN}" -c 'import matplotlib,numpy,scipy' >/dev/null 2>&1; then
 fi
 
 cd "${TARGET_ROOT}"
+export PYTHONPATH="${TARGET_ROOT}:${PYTHONPATH:-}"
 "${PYTHON_BIN}" -m py_compile vgdsmc/mohammadzadeh_mv17a_cylinder_native_crossfit.py
 MPLCONFIGDIR="${TMPDIR:-/tmp}/mv17a-install-mpl" \
   "${PYTHON_BIN}" "${PAYLOAD_TARGET}/tests/test_mohammadzadeh_mv17a_cylinder_native_crossfit.py"
