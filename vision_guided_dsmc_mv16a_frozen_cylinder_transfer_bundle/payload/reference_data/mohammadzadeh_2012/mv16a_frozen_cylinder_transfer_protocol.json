@@ -62,9 +62,10 @@
       "velocity": "U_inf",
       "temperature": "T_inf"
     },
-    "literal_condition_channels": ["log10(Kn)", "U_inf_m_per_s/100"],
+    "condition_functional_form": ["log10(Kn)", "characteristic_speed_m_per_s/100"],
+    "predeclared_semantic_substitution": "cavity U_lid is replaced by cylinder U_inf",
     "speed_channel_outside_cavity_training_support": true,
-    "condition_clipping_reinterpretation_or_cylinder_selection": false
+    "condition_clipping_or_outcome_based_cylinder_selection": false
   },
   "prediction_target_separation": {
     "B3_predictions_recursively_hashed_before_B10_target_construction": true,
