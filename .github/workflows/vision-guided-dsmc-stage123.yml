@@ -1,3 +1,4 @@
+# Fixed-design artifact diagnostic; no solver or parameter retuning.
 name: Vision-guided DSMC Stage 123
 on:
   push:
