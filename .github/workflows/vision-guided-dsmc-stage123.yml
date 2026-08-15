@@ -1,0 +1,54 @@
+name: Vision-guided DSMC Stage 123
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage123_*'
+      - 'vision_guided_dsmc/tests/test_stage123_*'
+      - 'vision_guided_dsmc/results/stage122_common_kernel_distribution_ratio_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage123.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  cellwise-ratio-persistence-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage123_cellwise_ratio_persistence_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67
+          github-token: ${{ github.token }}
+          run-id: 30991124477
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage111-axis-conditioned-asymmetry-audit
+          path: /tmp/stage111
+          github-token: ${{ github.token }}
+          run-id: 31590035358
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage122-common-kernel-distribution-ratio-audit
+          path: /tmp/stage122
+          github-token: ${{ github.token }}
+          run-id: 31865788577
+      - run: >-
+          python -m vgdsmc.stage123_cellwise_ratio_persistence_audit
+          --stage67-dir /tmp/stage67
+          --stage111-dir /tmp/stage111
+          --stage122-dir /tmp/stage122
+          --stage122-record results/stage122_common_kernel_distribution_ratio_audit_observed.json
+          --output-dir /tmp/stage123
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage123-cellwise-ratio-persistence-audit
+          path: /tmp/stage123
+          retention-days: 30
