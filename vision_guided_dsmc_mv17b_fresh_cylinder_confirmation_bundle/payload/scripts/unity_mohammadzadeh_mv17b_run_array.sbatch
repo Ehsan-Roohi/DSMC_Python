@@ -158,5 +158,9 @@ if (( LAST_NOUT >= MIN_NOUT )); then
   exit 0
 fi
 STATUS=SOLVER_EXITED_BEFORE_LOCKED_WINDOW
-exit "${SOLVER_RC:-22}"
-
+if (( SOLVER_RC != 0 )); then
+  exit "${SOLVER_RC}"
+fi
+# A normal solver exit before the locked acquisition window is still a failed
+# trajectory.  Never let solver return code zero mark this task COMPLETED.
+exit 22
