@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CaseToolTests(unittest.TestCase):
-    def test_smoke_deck_has_expected_physics(self) -> None:
+    def generate(self, level: str) -> tuple[str, dict[str, object]]:
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "case"
             subprocess.run(
@@ -20,7 +20,7 @@ class CaseToolTests(unittest.TestCase):
                     sys.executable,
                     str(ROOT / "scripts" / "generate_case.py"),
                     "--level",
-                    "smoke",
+                    level,
                     "--output",
                     str(output),
                 ],
@@ -30,11 +30,28 @@ class CaseToolTests(unittest.TestCase):
             )
             deck = (output / "in.cavity").read_text(encoding="utf-8")
             metadata = json.loads((output / "case_metadata.json").read_text(encoding="utf-8"))
-            self.assertIn("boundary             s s p", deck)
-            self.assertIn("translate 100", deck)
-            self.assertIn("collide              vss gas argon.vss", deck)
-            self.assertAlmostEqual(metadata["kn"], 0.1)
-            self.assertLess(metadata["dt_over_collision_time"], 0.1)
+        return deck, metadata
+
+    def test_smoke_deck_has_expected_physics(self) -> None:
+        deck, metadata = self.generate("smoke")
+        self.assertIn("boundary             s s p", deck)
+        self.assertIn("translate 100", deck)
+        self.assertIn("collide              vss gas argon.vss", deck)
+        self.assertAlmostEqual(metadata["kn"], 0.1)
+        self.assertLess(metadata["dt_over_collision_time"], 0.1)
+
+    def test_hq_preset_increases_independent_statistics(self) -> None:
+        deck, metadata = self.generate("hq")
+        self.assertEqual(metadata["nx"], 200)
+        self.assertEqual(metadata["ny"], 200)
+        self.assertEqual(metadata["particles_per_cell"], 128)
+        self.assertEqual(metadata["nparticles"], 5_120_000)
+        self.assertEqual(metadata["warmup_steps"], 40_000)
+        self.assertEqual(metadata["sample_steps"], 160_000)
+        self.assertEqual(metadata["sample_stride"], 10)
+        self.assertIn("run                  40000", deck)
+        self.assertIn("dump                 fields grid all 160000", deck)
+        self.assertIn("run                  160000", deck)
 
 
 if __name__ == "__main__":
