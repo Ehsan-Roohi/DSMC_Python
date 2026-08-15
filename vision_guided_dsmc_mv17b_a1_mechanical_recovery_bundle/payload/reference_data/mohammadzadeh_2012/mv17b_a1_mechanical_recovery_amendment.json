@@ -1,0 +1,48 @@
+{
+  "stage": "MV17B_A1_Mohammadzadeh_mechanical_recovery",
+  "status": "locked_before_recovery_and_before_any_MV17B_prediction_or_target_construction",
+  "locked_design_date": "2026-08-15",
+  "scientific_classification": "outcome_blind_same_seed_acquisition_repair_preserving_the_original_MV17B_preregistration",
+  "root_cause": "Bird_DS2V_returned_successfully_before_the_locked_NOUT116_for_seven_trajectories_and_the_original_runner_propagated_solver_exit_code_zero",
+  "recovery_contract": {
+    "original_campaign_reused": true,
+    "complete_trajectories_rerun": false,
+    "incomplete_array_indices": [1, 2, 3, 4, 9, 10, 11],
+    "incomplete_case_ids": [
+      "pair_01_reference",
+      "pair_02_observation",
+      "pair_02_reference",
+      "pair_03_observation",
+      "pair_05_reference",
+      "pair_06_observation",
+      "pair_06_reference"
+    ],
+    "seeds_unchanged": true,
+    "same_executable_and_DS2VD_deck": true,
+    "only_runtime_change": "fresh_IRUN_3_to_fresh_IRUN_4",
+    "overlapping_moment_blocks_must_be_byte_identical": true,
+    "original_files_are_not_overwritten": true,
+    "missing_blocks_are_installed_only_after_overlap_verification": true
+  },
+  "unchanged_scientific_contract": {
+    "pair_count": 6,
+    "trajectory_count": 12,
+    "observation_B3_nout": [100, 108, 116],
+    "observation_Raw_B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "independent_reference_B10_nout": [101, 102, 103, 104, 105, 109, 110, 111, 112, 113],
+    "unused_guard_nout": [106, 107, 114, 115],
+    "required_last_nout": 116,
+    "frozen_model_unchanged": true,
+    "fresh_parameter_selection": false,
+    "neural_retraining": false,
+    "endpoint_or_gate_change": false,
+    "seed_replacement": false
+  },
+  "interpretation": {
+    "recovery_does_not_access_qy_values": true,
+    "recovery_does_not_access_model_predictions": true,
+    "recovery_does_not_construct_reference_targets": true,
+    "failed_overlap_check_invalidates_recovery": true,
+    "original_tU_over_D_30_warning_preserved": true
+  }
+}
