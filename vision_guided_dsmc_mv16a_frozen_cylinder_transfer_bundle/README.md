@@ -29,10 +29,11 @@ transfer audit, never an unamended MV11 confirmation.
 
 MV11 cells are unstructured. They are deterministically interpolated onto the
 exact frozen MV15B DCT-weight shape, with an analytic cylinder mask and a
-minimum 90% linear-interpolation coverage gate. The original condition-channel
-semantics are retained literally: `log10(Kn)` and physical speed divided by
-100. The Mach-10 speed is explicitly outside the cavity training range; it is
-not clipped or reinterpreted after seeing cylinder outcomes.
+minimum 90% linear-interpolation coverage gate. The original functional
+conditioning form is retained: `log10(Kn)` and characteristic speed divided by
+100. The geometry interface makes one explicit, predeclared semantic
+substitution, `U_lid -> U_inf`. The Mach-10 value is outside the cavity training
+range and is neither clipped nor selected after seeing cylinder outcomes.
 
 ## Returned result
 
