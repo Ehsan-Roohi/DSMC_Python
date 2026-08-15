@@ -70,10 +70,39 @@ def load_object(path: Path) -> dict[str, Any]:
     return value
 
 
+def jsonable(value: Any) -> Any:
+    """Convert NumPy/path values to strict JSON-compatible Python values."""
+    if isinstance(value, dict):
+        return {str(key): jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [jsonable(item) for item in value]
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, (np.bool_, bool)):
+        return bool(value)
+    if isinstance(value, (np.integer, int)):
+        return int(value)
+    if isinstance(value, (np.floating, float)):
+        number = float(value)
+        return number if np.isfinite(number) else None
+    if isinstance(value, np.ndarray):
+        return jsonable(value.tolist())
+    return value
+
+
 def write_atomic(path: Path, value: dict[str, Any]) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    temporary.write_text(
+        json.dumps(jsonable(value), indent=2, sort_keys=True, allow_nan=False) + "\n"
+    )
     temporary.replace(path)
+
+
+def explicit_true(value: Any) -> bool:
+    """Accept JSON true and the legacy integer 1, but no other truthy value."""
+    return value is True or (
+        isinstance(value, int) and not isinstance(value, bool) and value == 1
+    )
 
 
 def verify_r13_source(result_dir: Path) -> tuple[np.ndarray, dict[str, Any]]:
@@ -172,6 +201,7 @@ class Controller:
         self.output_dir = args.output_dir.resolve()
         self.winner_dir = args.winner_dir.resolve()
         self.r13_result = args.r13_result.resolve()
+        self.resume_base = args.resume_base.resolve() if args.resume_base else None
         self.refine_nodes = args.refine_nodes
         self.reconcile_timeout = args.reconcile_timeout
         self.continuation_timeout = args.continuation_timeout
@@ -261,6 +291,54 @@ class Controller:
         write_atomic(self.output_dir / "r13_seed_manifest.json", manifest)
         return seed, seed_lid
 
+    def load_accepted_resume(self) -> tuple[Path, float] | None:
+        """Recover a strictly accepted stage-1 state from an earlier v5 run."""
+        if self.resume_base is None:
+            return None
+        result = (
+            self.resume_base
+            / self.route
+            / "stage_001_r13_seed_reconciliation"
+            / "result"
+        )
+        accepted, evidence = self.accepted_result(
+            result, self.spec.initial_nodes, TARGET_KN
+        )
+        if not accepted:
+            raise ValueError(
+                f"requested resume state is not strictly accepted: {evidence}"
+            )
+        state_path = result / "last_accepted_state.npz"
+        with np.load(state_path, allow_pickle=False) as archive:
+            lid = float(np.asarray(archive["lid_velocity"]).item())
+            beta = float(np.asarray(archive["beta"]).item())
+            kn = float(np.asarray(archive["kn_input"]).item())
+        checks = {
+            "lid_finite_positive": np.isfinite(lid) and lid > 0.0,
+            "beta": math.isclose(
+                beta, self.spec.initial_beta, rel_tol=0.0, abs_tol=1.0e-14
+            ),
+            "kn": math.isclose(kn, TARGET_KN, rel_tol=0.0, abs_tol=1.0e-14),
+        }
+        if not all(checks.values()):
+            raise ValueError(f"resume metadata mismatch: {checks}")
+        record = {
+            "stage": 0,
+            "label": "recovered_accepted_v5_reconciliation",
+            "accepted": True,
+            "state": str(state_path),
+            "state_sha256": digest(state_path),
+            "lid_velocity": lid,
+            "nodes": self.spec.initial_nodes,
+            "beta": beta,
+            "source_run": str(self.resume_base),
+            "checks": checks,
+            "evidence": evidence,
+        }
+        self.records.append(record)
+        self.save("running", resumed_from=str(self.resume_base))
+        return state_path, lid
+
     def accepted_result(self, result: Path, nodes: int, kn: float) -> tuple[bool, dict[str, Any]]:
         summary_path = result / "run_summary.json"
         state_path = result / "last_accepted_state.npz"
@@ -270,7 +348,11 @@ class Controller:
             return False, evidence
         summary = load_object(summary_path)
         attempts = summary.get("attempts", [])
-        accepted = [item for item in attempts if isinstance(item, dict) and item.get("accepted") is True]
+        accepted = [
+            item
+            for item in attempts
+            if isinstance(item, dict) and explicit_true(item.get("accepted"))
+        ]
         last = accepted[-1] if accepted else {}
         raw_gate = float(last.get("raw_acceptance_gate", math.inf))
         case = summary.get("case", {})
@@ -383,27 +465,31 @@ class Controller:
         self.records.append(record)
         write_atomic(status_path, record)
         self.save("running")
-        print(json.dumps(record, sort_keys=True), flush=True)
+        print(json.dumps(jsonable(record), sort_keys=True, allow_nan=False), flush=True)
         return result / "last_accepted_state.npz" if accepted else None
 
     def run(self) -> int:
         self.save("starting")
-        seed, seed_lid = self.build_seed()
-        state = self.run_stage(
-            label="r13_seed_reconciliation",
-            nodes=self.spec.initial_nodes,
-            beta=self.spec.initial_beta,
-            initial_state=seed,
-            timeout=self.reconcile_timeout,
-            reconcile=True,
-            target_lid=seed_lid,
-            initial_step=0.0025,
-        )
-        if state is None:
-            if load_object(self.summary_path).get("status") == "stopped_by_other_winner":
-                return 0
-            self.save("r13_seed_reconciliation_rejected")
-            return 2
+        resumed = self.load_accepted_resume()
+        if resumed is None:
+            seed, seed_lid = self.build_seed()
+            state = self.run_stage(
+                label="r13_seed_reconciliation",
+                nodes=self.spec.initial_nodes,
+                beta=self.spec.initial_beta,
+                initial_state=seed,
+                timeout=self.reconcile_timeout,
+                reconcile=True,
+                target_lid=seed_lid,
+                initial_step=0.0025,
+            )
+            if state is None:
+                if load_object(self.summary_path).get("status") == "stopped_by_other_winner":
+                    return 0
+                self.save("r13_seed_reconciliation_rejected")
+                return 2
+        else:
+            state, seed_lid = resumed
         state = self.run_stage(
             label="lid_to_physical_target",
             nodes=self.spec.initial_nodes,
@@ -483,6 +569,11 @@ def main() -> int:
     parser.add_argument("--route", choices=tuple(ROUTES), required=True)
     parser.add_argument("--repo-root", type=Path, required=True)
     parser.add_argument("--r13-result", type=Path, required=True)
+    parser.add_argument(
+        "--resume-base",
+        type=Path,
+        help="earlier v5 run containing a strictly accepted stage-1 state",
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--winner-dir", type=Path, required=True)
     parser.add_argument("--refine-nodes", type=parse_nodes, default=(16, 20, 24, 28, 32, 36, 40))
