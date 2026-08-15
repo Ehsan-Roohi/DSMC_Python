@@ -143,7 +143,8 @@ def test_rasterisation_is_deterministic_and_masks_cylinder() -> None:
     assert np.all(first[:4, ~mask1] == 0.0)
     assert audit1 == audit2
     assert audit1["minimum_linear_fluid_coverage"] > 0.90
-    assert audit1["condition_clipping_or_reinterpretation"] is False
+    assert audit1["condition_semantic_substitution"] == "cavity_U_lid_to_cylinder_U_inf"
+    assert audit1["condition_clipping_or_outcome_based_selection"] is False
 
 
 def test_leave_one_seed_out_never_uses_own_value() -> None:
