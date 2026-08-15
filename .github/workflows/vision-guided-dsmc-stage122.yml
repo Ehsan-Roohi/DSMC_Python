@@ -1,3 +1,4 @@
+# Fixed-design artifact-only continuation; no solver retuning.
 name: Vision-guided DSMC Stage 122
 on:
   push:
