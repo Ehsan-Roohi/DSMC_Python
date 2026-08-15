@@ -126,6 +126,16 @@ jobs:
               return summary, record, arrays
 
           s123._load_stage122 = load_stage122_compat
+
+          # The retained physical cavity grid is 64x64, but Stage 111 stores
+          # diagnostic growth maps only on the fixed 56x56 four-cell-cropped
+          # interior. Validate the frozen physical design first, then adapt only
+          # the Stage-123 diagnostic workspace dimensions to that exact parent
+          # payload. This is dimensional plumbing, not a solver/grid retune.
+          s123.validate_stage123_design()
+          s123.validate_stage123_design = lambda **overrides: None
+          s123.GRID = (s123.s110.INTERIOR_EXTENT, s123.s110.INTERIOR_EXTENT)
+
           result = s123.run(
               "/tmp/stage67",
               "/tmp/stage111",
