@@ -1,0 +1,45 @@
+{
+  "stage": "MV15C_A1_Mohammadzadeh_qy_evaluation",
+  "status": "outcome_blind_QC_amendment_before_predictions_or_targets",
+  "scientific_classification": "outcome_blind_reference_QC_amended_q_y_evaluation_not_unamended_preregistered_confirmation",
+  "reason": "All eight preregistered DSMC trajectories completed with finite fields, exact additive blocks, valid checkpoint round trips, and passing mechanical/provenance checks. Two trajectories missed the original all-tests temperature-extremum stationarity z gate, so the dependency chain stopped before any frozen-B3 prediction or cross-seed q_y target was constructed.",
+  "original_outcome_preserved": {
+    "original_reference_QC_failures_remain_reported": true,
+    "unamended_MV15C_confirmation_is_not_reclassified_as_passed": true,
+    "temperature_stationarity_warnings_are_not_deleted_or_rewritten": true
+  },
+  "amended_reference_handling": {
+    "include_all_eight_original_preregistered_trajectories": true,
+    "replace_or_drop_seeds": false,
+    "rerun_DSMC": false,
+    "required_for_q_y_evaluation": [
+      "complete trajectory status",
+      "finite nonempty fields",
+      "exact checkpoint round-trip",
+      "zero majorant violations",
+      "complete lid-event coverage",
+      "passing event mechanics and additive-moment provenance"
+    ],
+    "temperature_extremum_z_gate_role": "reported_QC_warning_not_post_hoc_seed_exclusion_rule",
+    "single_seed_q_y_stationarity_role": "diagnostic_only_as_in_original_MV15C"
+  },
+  "unchanged_q_y_contract": {
+    "input_budget": 3,
+    "input_blocks": [0, 1, 2],
+    "paired_raw_comparator_budget": 10,
+    "target": "leave-one-fresh-seed-out mean of the other three Raw B10 fields at the same condition",
+    "frozen_B3_weight_map_unchanged": true,
+    "Mamba_checkpoints_unchanged": true,
+    "TSVD_rank_unchanged": true,
+    "q_y_metrics_and_acceptance_gates_unchanged": true,
+    "fresh_outcome_parameter_tuning_forbidden": true,
+    "failure_reported_without_retuning": true
+  },
+  "reporting_contract": {
+    "report_original_reference_QC_status_separately": true,
+    "report_all_q_y_gates_separately": true,
+    "global_all_gates_pass_remains_false_when_original_reference_QC_failed": true,
+    "a_positive_q_y_result_may_be_described_as_supporting_evidence_not_unamended_confirmation": true,
+    "compact_SHA256_verified_archive_in_Unity_project_root": true
+  }
+}
