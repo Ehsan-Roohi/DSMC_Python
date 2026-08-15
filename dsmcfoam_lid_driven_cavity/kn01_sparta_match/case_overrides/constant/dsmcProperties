@@ -1,0 +1,33 @@
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dsmcProperties;
+}
+
+nEquivalentParticles    0.7900290850925;
+
+WallInteractionModel    MaxwellianThermal;
+
+BinaryCollisionModel    VariableHardSphere;
+VariableHardSphereCoeffs
+{
+    Tref                273;
+}
+
+InflowBoundaryModel     none;
+
+typeIdList              (Ar);
+
+moleculeProperties
+{
+    Ar
+    {
+        mass                        6.63e-26;
+        diameter                    4.17e-10;
+        internalDegreesOfFreedom    0;
+        omega                       0.81;
+    }
+}
+
