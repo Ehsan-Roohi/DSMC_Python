@@ -46,8 +46,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agen
 
 The command uses a dedicated checkout at
 `/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK/DSMC_Python_sparta_kn01_hq`, runs
-the unit tests, builds the pinned MPI SPARTA executable, submits a three-member
-CPU array, and submits a collector after the array.
+the unit tests, builds the pinned MPI SPARTA executable, executes a short
+`thermal/grid` smoke case, submits a three-member CPU array only after all of
+those checks pass, and submits a collector after the array.
 
 Monitor all jobs with:
 
