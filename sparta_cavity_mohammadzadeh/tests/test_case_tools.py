@@ -40,6 +40,21 @@ class CaseToolTests(unittest.TestCase):
         self.assertAlmostEqual(metadata["kn"], 0.1)
         self.assertLess(metadata["dt_over_collision_time"], 0.1)
 
+    def test_temperature_is_com_subtracted_thermal_temperature(self) -> None:
+        deck, metadata = self.generate("smoke")
+        self.assertIn("compute              flow grid all gas nrho u v w\n", deck)
+        self.assertNotIn("compute              flow grid all gas nrho u v w temp", deck)
+        self.assertIn("compute              thermal thermal/grid all gas temp", deck)
+        self.assertIn("c_flow[*] c_thermal[*] ave running", deck)
+        self.assertEqual(
+            metadata["temperature_observable"],
+            "thermal/grid COM-subtracted translational temperature",
+        )
+        self.assertEqual(
+            metadata["dump_columns"],
+            ["nrho", "u", "v", "w", "thermal_temperature"],
+        )
+
     def test_hq_preset_increases_independent_statistics(self) -> None:
         deck, metadata = self.generate("hq")
         self.assertEqual(metadata["nx"], 200)
