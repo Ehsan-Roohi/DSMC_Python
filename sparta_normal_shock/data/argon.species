@@ -1,0 +1,4 @@
+# Monatomic argon; keep identical in the SPARTA and dsmcFoam ports.
+# ID  molwt(amu)  mass(kg)  rotdof  rotrel  vibdof  vibrel  vibtemp(K)  weight  charge
+Ar    40.00       6.63e-26  0       0.0     0       0.0     0.0         1.0     0.0
+
