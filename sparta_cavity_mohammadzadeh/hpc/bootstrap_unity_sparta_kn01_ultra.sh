@@ -22,11 +22,16 @@ if [[ -d "${REPO_DIR}/.git" ]]; then
     echo "The dedicated SPARTA checkout has tracked changes; refusing to update it: ${REPO_DIR}" >&2
     exit 3
   fi
-  git -C "${REPO_DIR}" fetch origin "${BRANCH}"
+  # An existing --single-branch checkout may not have a fetch refspec for this
+  # branch.  Fetch it explicitly into the corresponding remote-tracking ref.
+  git -C "${REPO_DIR}" fetch origin \
+    "+refs/heads/${BRANCH}:refs/remotes/origin/${BRANCH}"
   if git -C "${REPO_DIR}" show-ref --verify --quiet "refs/heads/${BRANCH}"; then
     git -C "${REPO_DIR}" switch "${BRANCH}"
   else
-    git -C "${REPO_DIR}" switch --create "${BRANCH}" --track "origin/${BRANCH}"
+    # The remote branch may be outside this clone's single-branch fetch
+    # configuration, so create directly from the fetched ref without --track.
+    git -C "${REPO_DIR}" switch --create "${BRANCH}" "refs/remotes/origin/${BRANCH}"
   fi
   git -C "${REPO_DIR}" pull --ff-only origin "${BRANCH}"
 elif [[ -e "${REPO_DIR}" ]]; then
