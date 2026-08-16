@@ -1,0 +1,90 @@
+{
+  "stage": 129,
+  "status": "completed",
+  "audit_name": "transition_strength",
+  "conclusion": "The sign-continuous node-9 wall-normal switch is not a weak or diffuse zero crossing: the pre- and post-crossing lobe means are materially separated from zero on both walls, the local slope is finite and same-signed in the two opposite-wall profiles, and the transition occupies a narrow fraction of the fixed 28-depth interval. The result is a positive fixed-design localization/strength result only. It does not establish a causal instability mechanism, limiter culpability, solver recovery, heat-flux improvement, benchmark accuracy, or validation.",
+  "interpretation": "The Stage-128 continuity witness survives a fixed transition-strength test. Because both opposite walls reproduce a comparably strong, narrow, same-signed crossing, an angular follow-up is now justified at the same radial node and spatial depths. No physical or failed numerical parameter is retuned.",
+  "parent_records": {
+    "stage128": "results/stage128_radial_node_continuity_audit_observed.json",
+    "stage127": "results/stage127_wall_normal_side_switch_audit_observed.json"
+  },
+  "parent_checksums": {
+    "stage128": "95c5c2c5d027497568c48af28284817c6fec1b88e38ba1b7fcaf6d75d6443a5",
+    "stage127": "55d4774eda32eaee1bb08495f6e160bad6faf87c41c0594f010815389fc4bb05"
+  },
+  "source": {
+    "stage123_artifact_id": 9255065144,
+    "stage123_maps_sha256": "1bd8032103921e9e4eff66bafdbd20f039b90ee36fd9d39c77cd1162584912aa"
+  },
+  "witness": {
+    "radial_node": 9,
+    "max_parent_crossing_offset_cells": 0.6781403383489402,
+    "workflow_transition_branch": "angular_follow_up_if_bilateral_strength_passes_else_record_negative"
+  },
+  "guards": {
+    "min_pre_crossing_normalized_lobe": 0.15,
+    "min_post_crossing_normalized_lobe": 0.15,
+    "max_transition_width_cells": 6.0,
+    "min_transition_slope_fraction": 0.05,
+    "min_cross_wall_slope_cosine": 0.95
+  },
+  "walls": {
+    "wall_low": {
+      "crossing_depth_cells": 14.038798755078262,
+      "pre_lobe_mean": 2.761692115918602e-05,
+      "post_lobe_mean": -1.662680263955512e-05,
+      "pre_normalized_lobe": 0.5616405022325308,
+      "post_normalized_lobe": 0.3382026771691501,
+      "local_slope": -2.661178990492994e-05,
+      "normalized_slope": 0.5412019733930608,
+      "transition_width_cells": 1.2137558404562543,
+      "transition_width_fraction": 0.04334842287343766,
+      "sign_before": 1,
+      "sign_after": -1,
+      "strong_transition": true
+    },
+    "wall_high": {
+      "crossing_depth_cells": 15.552722005910437,
+      "pre_lobe_mean": 3.0709081320831074e-05,
+      "post_lobe_mean": -1.5781993709467917e-05,
+      "pre_normalized_lobe": 0.5709750366491855,
+      "post_normalized_lobe": 0.29347857291666324,
+      "local_slope": -2.9261625137061545e-05,
+      "normalized_slope": 0.5440568077153707,
+      "transition_width_cells": 1.2053052547474363,
+      "transition_width_fraction": 0.04304661624097987,
+      "sign_before": 1,
+      "sign_after": -1,
+      "strong_transition": true
+    }
+  },
+  "bilateral": {
+    "cross_wall_slope_cosine": 1.0,
+    "cross_wall_strength_relative_difference": 0.11908181501511793,
+    "cross_wall_transition_width_difference_cells": 0.00845058570881807,
+    "min_pre_normalized_lobe": 0.5616405022325308,
+    "min_post_normalized_lobe": 0.29347857291666324,
+    "min_normalized_slope": 0.5412019733930608,
+    "max_transition_width_cells": 1.2137558404562543,
+    "strong_bilateral_transition": true
+  },
+  "routing": {
+    "next_stage_justified": true,
+    "next_stage": 130,
+    "next_stage_name": "fixed_sector_continuity_audit",
+    "design": "Keep radial node 9, the two Stage-129 crossing depths, and all Stage-67/90 solver settings fixed. Resolve the Stage-115 adjacent sectors 5 and 6 separately at the crossing-adjacent depths on both walls, then test whether the sign reversal is carried coherently by one sector or by their pair. Do not change the limiter, wall treatment, transport/source terms, floors, velocity grid, or any physical parameter.",
+    "prohibited": [
+      "no solver parameter retuning",
+      "no physical-parameter fitting",
+      "no wall-model retuning",
+      "no Knudsen extension",
+      "no MUSCL rehabilitation claim",
+      "no benchmark-validation claim"
+    ]
+  },
+  "regression": {
+    "test_file": "tests/test_stage129_transition_strength_audit.py",
+    "tests_passed": 17,
+    "tests_failed": 0
+  }
+}
