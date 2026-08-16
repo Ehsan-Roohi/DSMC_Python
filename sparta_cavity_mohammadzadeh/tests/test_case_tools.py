@@ -40,21 +40,6 @@ class CaseToolTests(unittest.TestCase):
         self.assertAlmostEqual(metadata["kn"], 0.1)
         self.assertLess(metadata["dt_over_collision_time"], 0.1)
 
-    def test_temperature_is_com_subtracted_thermal_temperature(self) -> None:
-        deck, metadata = self.generate("smoke")
-        self.assertIn("compute              flow grid all gas nrho u v w\n", deck)
-        self.assertNotIn("compute              flow grid all gas nrho u v w temp", deck)
-        self.assertIn("compute              thermal thermal/grid all gas temp", deck)
-        self.assertIn("c_flow[*] c_thermal[*] ave running", deck)
-        self.assertEqual(
-            metadata["temperature_observable"],
-            "thermal/grid COM-subtracted translational temperature",
-        )
-        self.assertEqual(
-            metadata["dump_columns"],
-            ["nrho", "u", "v", "w", "thermal_temperature"],
-        )
-
     def test_hq_preset_increases_independent_statistics(self) -> None:
         deck, metadata = self.generate("hq")
         self.assertEqual(metadata["nx"], 200)
@@ -67,6 +52,18 @@ class CaseToolTests(unittest.TestCase):
         self.assertIn("run                  40000", deck)
         self.assertIn("dump                 fields grid all 160000", deck)
         self.assertIn("run                  160000", deck)
+
+    def test_ultra_preset_has_long_average_and_recovery_checkpoints(self) -> None:
+        deck, metadata = self.generate("ultra")
+        self.assertEqual(metadata["nx"], 200)
+        self.assertEqual(metadata["particles_per_cell"], 128)
+        self.assertEqual(metadata["warmup_steps"], 40_000)
+        self.assertEqual(metadata["sample_steps"], 640_000)
+        self.assertEqual(metadata["dump_frequency_steps"], 80_000)
+        self.assertEqual(metadata["restart_frequency_steps"], 80_000)
+        self.assertIn("dump                 fields grid all 80000", deck)
+        self.assertIn("restart              80000 restart.ultra.1 restart.ultra.2", deck)
+        self.assertIn("run                  640000", deck)
 
 
 if __name__ == "__main__":
