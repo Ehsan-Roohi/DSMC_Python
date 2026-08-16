@@ -1,0 +1,141 @@
+name: Vision-guided DSMC Stage 130
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage130_fixed_sector_continuity_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage130_fixed_sector_continuity_audit.py'
+      - 'vision_guided_dsmc/results/stage129_transition_strength_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage130.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  fixed-sector-continuity-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 130 fixed-design guards
+        run: |
+          pytest -q tests/test_stage130_fixed_sector_continuity_audit.py
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 111 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage111-axis-conditioned-asymmetry-audit
+          path: /tmp/stage111_axis_conditioned_asymmetry_audit
+          run-id: 31590035358
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 124 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage124-within-band-cancellation-audit
+          path: /tmp/stage124_within_band_cancellation_audit
+          run-id: 31898392223
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 129 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage129-transition-strength-audit
+          path: /tmp/stage129_transition_strength_audit
+          run-id: 31954505181
+          github-token: ${{ github.token }}
+      - name: Verify frozen parent payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage67_frozen_full_distribution_residual_decomposition/summary.json': 'e04043a1913b2fa9ae57fe1561aa26c70627830d648e91204093c8f1fb57b3d1',
+              '/tmp/stage67_frozen_full_distribution_residual_decomposition/converged_full_distributions.npz': 'd4002a2765137ba517abec2d0483a3e5adcf13f415c53259018556bd14d612d1',
+              '/tmp/stage111_axis_conditioned_asymmetry_audit/summary.json': '93cff62b97e29e7ad5600b7b0c26b5b39bd3f71517e70c15447c95be239f5a77',
+              '/tmp/stage111_axis_conditioned_asymmetry_audit/axis_conditioned_asymmetry_maps.npz': '78b8173d81eaf2523791201690d6464295b8aa65413d9ccb3eb2c2215ac85407',
+              '/tmp/stage124_within_band_cancellation_audit/summary.json': '2ba40389d7851127fdc823741284fef6d7c07e9857f378fac8f1d45da1245660',
+              '/tmp/stage124_within_band_cancellation_audit/within_band_cancellation.npz': '272b3def41e2fa97a929712bcd264b8ca283e296af1cb99ebf414f5ca2164e1f',
+              '/tmp/stage129_transition_strength_audit/summary.json': '20ac64af784f26355f24e130eecfbf528b9223ea530a8f2794d76c1a10b7eaf8',
+              '/tmp/stage129_transition_strength_audit/transition_strength.npz': '94919a8e7059351dbc2e8bca534a678f0a4ffbbbcefbe26bd31e9e20fa721d27',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 130 fixed sector-continuity audit
+        run: |
+          python -m vgdsmc.stage130_fixed_sector_continuity_audit \
+            --stage67-dir /tmp/stage67_frozen_full_distribution_residual_decomposition \
+            --stage111-dir /tmp/stage111_axis_conditioned_asymmetry_audit \
+            --stage124-dir /tmp/stage124_within_band_cancellation_audit \
+            --stage124-record results/stage124_within_band_cancellation_audit_observed.json \
+            --stage129-dir /tmp/stage129_transition_strength_audit \
+            --stage129-record results/stage129_transition_strength_audit_observed.json \
+            --output-dir /tmp/stage130_fixed_sector_continuity_audit
+      - name: Verify Stage 130 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage130_fixed_sector_continuity_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 130
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['aggregate']['maximum_parent_closure'] <= 1.0e-12
+          allowed = {
+              'stage130_common_single_sector_carrier_stage131_fixed_sector_spatial_profile_audit',
+              'stage130_coherent_pair_carrier_stage131_pair_interaction_cancellation_audit',
+              'stage130_wall_specific_sector_carriage_stage131_cross_wall_sector_interaction_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root / 'fixed_sector_continuity.npz') as data:
+              assert data['sector_residual_node9'].shape == (56, 56, 2)
+              assert data['parent_residual_node9'].shape == (56, 56)
+              assert data['wall0_sector_contributions'].shape == (28, 2)
+              assert data['wall1_sector_contributions'].shape == (28, 2)
+              assert data['sector_transition_deltas'].shape == (2, 2)
+              assert np.isfinite(data['sector_residual_node9']).all()
+              assert np.isfinite(data['sector_transition_deltas']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage130-fixed-sector-continuity-audit
+          path: /tmp/stage130_fixed_sector_continuity_audit
+          retention-days: 30
