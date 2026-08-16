@@ -3,6 +3,19 @@
 This workflow reduces Monte Carlo noise by collecting more raw statistics. It
 does not smooth, filter, or alter the reported SPARTA fields.
 
+The fifth field in every new grid dump is the translational thermal temperature
+from SPARTA's `compute thermal/grid` command.  It subtracts the cell's
+center-of-mass velocity before converting random kinetic energy to temperature.
+Do not use `compute grid ... temp` for this moving-lid case: that diagnostic
+includes bulk streaming kinetic energy and therefore overstates temperature,
+especially next to the moving wall.
+
+The original HQ job 62962579 used the non-thermal diagnostic.  Reconstructing
+its thermal temperature as
+`T_thermal = T_grid - m*(u^2+v^2+w^2)/(3*kB)` reduces the full-field temperature
+RMSE against the dsmcFoam HQ ensemble from 0.975 K to 0.156 K.  The rerun below
+records the correct diagnostic directly.
+
 ## Statistical configuration
 
 | Setting | Earlier production | HQ rerun |
