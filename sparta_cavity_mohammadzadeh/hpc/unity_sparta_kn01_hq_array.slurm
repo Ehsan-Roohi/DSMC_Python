@@ -74,6 +74,7 @@ expected = {
     "warmup_steps": 40000,
     "sample_steps": 160000,
     "sample_stride": 10,
+    "temperature_observable": "thermal/grid COM-subtracted translational temperature",
 }
 bad = {key: (metadata.get(key), value) for key, value in expected.items() if metadata.get(key) != value}
 if bad:
