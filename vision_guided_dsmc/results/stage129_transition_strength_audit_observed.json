@@ -1,90 +1,61 @@
 {
   "stage": 129,
-  "status": "completed",
-  "audit_name": "transition_strength",
-  "conclusion": "The sign-continuous node-9 wall-normal switch is not a weak or diffuse zero crossing: the pre- and post-crossing lobe means are materially separated from zero on both walls, the local slope is finite and same-signed in the two opposite-wall profiles, and the transition occupies a narrow fraction of the fixed 28-depth interval. The result is a positive fixed-design localization/strength result only. It does not establish a causal instability mechanism, limiter culpability, solver recovery, heat-flux improvement, benchmark accuracy, or validation.",
-  "interpretation": "The Stage-128 continuity witness survives a fixed transition-strength test. Because both opposite walls reproduce a comparably strong, narrow, same-signed crossing, an angular follow-up is now justified at the same radial node and spatial depths. No physical or failed numerical parameter is retuned.",
-  "parent_records": {
-    "stage128": "results/stage128_radial_node_continuity_audit_observed.json",
-    "stage127": "results/stage127_wall_normal_side_switch_audit_observed.json"
+  "record_type": "completed_transition_strength_audit",
+  "source_head": "ac413512364842acd5e145283691ea764f8048c3",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31954505181,
+  "workflow_job_id": 95182938788,
+  "artifact_id": 9268079819,
+  "artifact_size_bytes": 3309,
+  "artifact_sha256": "39b87f20ba1333b7d08641b7b147521e2bb83169907a79d7c39c2ae15293cce0",
+  "summary_sha256": "20ac64af784f26355f24e130eecfbf528b9223ea530a8f2794d76c1a10b7eaf8",
+  "transition_strength_sha256": "94919a8e7059351dbc2e8bca534a678f0a4ffbbbcefbe26bd31e9e20fa721d27",
+  "tests": {"passed": 17, "failed": 0},
+  "decision": "stage129_material_sign_continuous_transition_stage130_fixed_sector_continuity_audit",
+  "aggregate": {
+    "cross_wall_transition_width_difference_cells": 0.5318902686013747,
+    "material_strength_wall_count": 2,
+    "maximum_inner_band_asymmetry_median": -0.6161494470562061,
+    "maximum_parent_profile_closure_rel_l2": 0.0,
+    "maximum_transition_width_25_to_75_cells": 5.140528758191229,
+    "minimum_crossing_support_ratio": 0.8097334419451004,
+    "minimum_mid_band_asymmetry_median": 0.5826334656567767
   },
-  "parent_checksums": {
-    "stage128": "95c5c2c5d027497568c48af28284817c6fec1b88e38ba1b7fcaf6d75d6443a5",
-    "stage127": "55d4774eda32eaee1bb08495f6e160bad6faf87c41c0594f010815389fc4bb05"
-  },
-  "source": {
-    "stage123_artifact_id": 9255065144,
-    "stage123_maps_sha256": "1bd8032103921e9e4eff66bafdbd20f039b90ee36fd9d39c77cd1162584912aa"
-  },
-  "witness": {
-    "radial_node": 9,
-    "max_parent_crossing_offset_cells": 0.6781403383489402,
-    "workflow_transition_branch": "angular_follow_up_if_bilateral_strength_passes_else_record_negative"
-  },
-  "guards": {
-    "min_pre_crossing_normalized_lobe": 0.15,
-    "min_post_crossing_normalized_lobe": 0.15,
-    "max_transition_width_cells": 6.0,
-    "min_transition_slope_fraction": 0.05,
-    "min_cross_wall_slope_cosine": 0.95
-  },
-  "walls": {
-    "wall_low": {
-      "crossing_depth_cells": 14.038798755078262,
-      "pre_lobe_mean": 2.761692115918602e-05,
-      "post_lobe_mean": -1.662680263955512e-05,
-      "pre_normalized_lobe": 0.5616405022325308,
-      "post_normalized_lobe": 0.3382026771691501,
-      "local_slope": -2.661178990492994e-05,
-      "normalized_slope": 0.5412019733930608,
-      "transition_width_cells": 1.2137558404562543,
-      "transition_width_fraction": 0.04334842287343766,
-      "sign_before": 1,
-      "sign_after": -1,
-      "strong_transition": true
+  "key_metrics": {
+    "axis1_low": {
+      "crossing_depth_cells": 14.038803831792146,
+      "crossing_same_sign_support": 2.3792059393627763e-08,
+      "crossing_support_ratio": 0.8299655320145175,
+      "inner_band_asymmetry_median": -0.7930790547872983,
+      "material_strength_per_wall": true,
+      "median_side_to_side_contrast": 1.375712520444075,
+      "mid_band_asymmetry_median": 0.5826334656567767,
+      "reference_same_sign_support": 2.8666322245791286e-08,
+      "transition_width_25_to_75_cells": 4.608638489589854,
+      "transition_x25_cells": 17.106244047413973,
+      "transition_x75_cells": 12.49760555782412
     },
-    "wall_high": {
-      "crossing_depth_cells": 15.552722005910437,
-      "pre_lobe_mean": 3.0709081320831074e-05,
-      "post_lobe_mean": -1.5781993709467917e-05,
-      "pre_normalized_lobe": 0.5709750366491855,
-      "post_normalized_lobe": 0.29347857291666324,
-      "local_slope": -2.9261625137061545e-05,
-      "normalized_slope": 0.5440568077153707,
-      "transition_width_cells": 1.2053052547474363,
-      "transition_width_fraction": 0.04304661624097987,
-      "sign_before": 1,
-      "sign_after": -1,
-      "strong_transition": true
+    "axis1_high": {
+      "crossing_depth_cells": 15.552724000693987,
+      "crossing_same_sign_support": 2.2601416705194165e-08,
+      "crossing_support_ratio": 0.8097334419451004,
+      "inner_band_asymmetry_median": -0.6161494470562061,
+      "material_strength_per_wall": true,
+      "median_side_to_side_contrast": 1.3305994127854983,
+      "mid_band_asymmetry_median": 0.7144499657292922,
+      "reference_same_sign_support": 2.7912169035407744e-08,
+      "transition_width_25_to_75_cells": 5.140528758191229,
+      "transition_x25_cells": 18.192611973578362,
+      "transition_x75_cells": 13.052083215387134
     }
   },
-  "bilateral": {
-    "cross_wall_slope_cosine": 1.0,
-    "cross_wall_strength_relative_difference": 0.11908181501511793,
-    "cross_wall_transition_width_difference_cells": 0.00845058570881807,
-    "min_pre_normalized_lobe": 0.5616405022325308,
-    "min_post_normalized_lobe": 0.29347857291666324,
-    "min_normalized_slope": 0.5412019733930608,
-    "max_transition_width_cells": 1.2137558404562543,
-    "strong_bilateral_transition": true
-  },
+  "scientific_conclusion": "The sign-continuous radial-node-9 witness passes the preregistered material-transition-strength test on both opposite walls. The mid-band tangential asymmetry is at least 0.582633, the inner-band asymmetry is at most -0.616149, crossing support is at least 0.809733 of the fixed reference support, and the 25-to-75 transition width is at most 5.14053 cells. This is a positive fixed-design localization/strength result only; it does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
   "routing": {
     "next_stage_justified": true,
     "next_stage": 130,
     "next_stage_name": "fixed_sector_continuity_audit",
-    "design": "Keep radial node 9, the two Stage-129 crossing depths, and all Stage-67/90 solver settings fixed. Resolve the Stage-115 adjacent sectors 5 and 6 separately at the crossing-adjacent depths on both walls, then test whether the sign reversal is carried coherently by one sector or by their pair. Do not change the limiter, wall treatment, transport/source terms, floors, velocity grid, or any physical parameter.",
-    "prohibited": [
-      "no solver parameter retuning",
-      "no physical-parameter fitting",
-      "no wall-model retuning",
-      "no Knudsen extension",
-      "no MUSCL rehabilitation claim",
-      "no benchmark-validation claim"
-    ]
+    "design": "Keep radial node 9, the two Stage-129 crossing depths, and all Stage-67/90 solver settings fixed. Resolve the inherited adjacent sectors 5 and 6 separately at the crossing-adjacent depths on both walls, then test whether the sign reversal is carried coherently by one sector or by their pair. Do not change the limiter, wall treatment, transport/source terms, floors, velocity grid, or any physical parameter."
   },
-  "regression": {
-    "test_file": "tests/test_stage129_transition_strength_audit.py",
-    "tests_passed": 17,
-    "tests_failed": 0
-  }
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
 }
