@@ -109,8 +109,12 @@ stats_style          step cpu np nattempt ncoll nscoll
 run                  {warmup}
 
 reset_timestep       0
-compute              flow grid all gas nrho u v w temp
-fix                  flowavg ave/grid all {sample_stride} 1 {sample_stride} c_flow[*] ave running
+# Keep the historical five-column dump schema (nrho,u,v,w,T), but use the
+# center-of-mass-subtracted thermal temperature.  `compute grid ... temp`
+# includes bulk streaming kinetic energy and is not a thermodynamic temperature.
+compute              flow grid all gas nrho u v w
+compute              thermal thermal/grid all gas temp
+fix                  flowavg ave/grid all {sample_stride} 1 {sample_stride} c_flow[*] c_thermal[*] ave running
 dump                 fields grid all {dump_frequency} grid.final.* id xc yc f_flowavg[*]
 dump_modify          fields pad 8
 {restart_line}run                  {sample}
@@ -138,6 +142,8 @@ dump_modify          fields pad 8
         "dump_frequency_steps": dump_frequency,
         "restart_frequency_steps": restart_frequency,
         "seed": seed,
+        "temperature_observable": "thermal/grid COM-subtracted translational temperature",
+        "dump_columns": ["nrho", "u", "v", "w", "thermal_temperature"],
         **values,
         "evidence_level": {
             "smoke": "syntax-smoke",
