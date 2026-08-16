@@ -1,0 +1,95 @@
+{
+  "stage": 125,
+  "record_type": "completed_dominant_node_spatial_sign_audit",
+  "source_head": "58f09e06a40721d4de446ac91035a78514b43e54",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31911866789,
+  "workflow_job_id": 95078076620,
+  "artifact_id": 9256993363,
+  "artifact_size_bytes": 28082,
+  "artifact_sha256": "3528093dfe7687325f595a57b61e47e87648d389498f01a79fabcd0e18758994",
+  "summary_sha256": "f6ab22f038cdd9204ec84b4c9b02bc414001276895908d4202ac8dda24ee7e9b",
+  "dominant_node_spatial_sign_sha256": "ac982e826aa5a9748f02911021c397ae7426e9b92732da612b1ecfffe0ec2970",
+  "tests": {
+    "passed": 14,
+    "failed": 0
+  },
+  "decision": "stage125_persistent_same_sign_halfspace_localization_stage126_wall_side_asymmetry_audit",
+  "aggregate": {
+    "maximum_parent_array_closure_rel_l2": 0.0,
+    "minimum_dominant_halfspace_l1_fraction": 0.7932414166854308,
+    "minimum_largest_component_l1_fraction": 0.4133529839946712,
+    "minimum_net_sign_l1_fraction": 0.7576730753447103
+  },
+  "key_metrics": {
+    "inner_15_28": {
+      "dominant_halfspace": "axis0_low",
+      "dominant_halfspace_l1_fraction": 0.7932414166854308,
+      "dominant_radial_node": 9,
+      "effective_net_sign_support_fraction": 0.44287389575255515,
+      "halfspace_l1_fractions": {
+        "axis0_high": 0.2067585833145694,
+        "axis0_low": 0.7932414166854308,
+        "axis1_high": 0.4838536114718021,
+        "axis1_low": 0.516146388528198
+      },
+      "largest_net_sign_component_cell_count": 1433,
+      "largest_net_sign_component_l1_fraction": 0.9954919736434933,
+      "net_residual": 4.901176844908971e-07,
+      "net_sign": 1,
+      "net_sign_cell_fraction": 0.9311224489795918,
+      "net_sign_component_count": 4,
+      "net_sign_l1_fraction": 0.96844696720803,
+      "node_uncancelled_fraction": 0.9368939344160602,
+      "opposite_sign_l1_fraction": 0.031553032791969846,
+      "total_l1": 5.231303848672835e-07
+    },
+    "mid_5_14": {
+      "dominant_halfspace": "axis0_high",
+      "dominant_halfspace_l1_fraction": 0.9347222917280291,
+      "dominant_radial_node": 1,
+      "effective_net_sign_support_fraction": 0.19178803693752,
+      "halfspace_l1_fractions": {
+        "axis0_high": 0.9347222917280291,
+        "axis0_low": 0.06527770827197076,
+        "axis1_high": 0.5378882713928453,
+        "axis1_low": 0.4621117286071544
+      },
+      "largest_net_sign_component_cell_count": 269,
+      "largest_net_sign_component_l1_fraction": 0.5212366781693676,
+      "net_residual": -1.8308924668259978e-06,
+      "net_sign": -1,
+      "net_sign_cell_fraction": 0.5392857142857143,
+      "net_sign_component_count": 33,
+      "net_sign_l1_fraction": 0.7576730753447103,
+      "node_uncancelled_fraction": 0.5153461506894202,
+      "opposite_sign_l1_fraction": 0.2423269246552899,
+      "total_l1": 3.5527430725477714e-06
+    },
+    "near_1_4": {
+      "dominant_halfspace": "axis0_high",
+      "dominant_halfspace_l1_fraction": 0.8094882508234583,
+      "dominant_radial_node": 8,
+      "effective_net_sign_support_fraction": 0.293573164624724,
+      "halfspace_l1_fractions": {
+        "axis0_high": 0.8094882508234583,
+        "axis0_low": 0.1905117491765417,
+        "axis1_high": 0.5125728187590358,
+        "axis1_low": 0.4874271812409641
+      },
+      "largest_net_sign_component_cell_count": 74,
+      "largest_net_sign_component_l1_fraction": 0.4133529839946712,
+      "net_residual": 1.6709201635497762e-06,
+      "net_sign": 1,
+      "net_sign_cell_fraction": 0.7366071428571429,
+      "net_sign_component_count": 4,
+      "net_sign_l1_fraction": 0.8185026644418399,
+      "node_uncancelled_fraction": 0.6370053288836796,
+      "opposite_sign_l1_fraction": 0.18149733555816028,
+      "total_l1": 2.6230866333221754e-06
+    }
+  },
+  "scientific_conclusion": "At each Stage-124 band-dominant radial node, at least three quarters of the residual L1 magnitude carries the band-net sign, and that same-sign magnitude is itself concentrated in one fixed coordinate halfspace. The persistent radial-node remainder is therefore spatially side-localized rather than a uniform band-wide mechanism. A fixed wall-side/asymmetry audit is justified. This is artifact attribution only and does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}
