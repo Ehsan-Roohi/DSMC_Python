@@ -1,0 +1,41 @@
+# Fixed-design artifact diagnostic; no solver rerun or parameter retuning.
+name: Vision-guided DSMC Stage 127
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage127_*'
+      - 'vision_guided_dsmc/tests/test_stage127_*'
+      - 'vision_guided_dsmc/results/stage126_wall_side_asymmetry_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage127.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  wall-normal-side-switch-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage126_wall_side_asymmetry_audit.py tests/test_stage127_wall_normal_side_switch_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage126-wall-side-asymmetry-audit
+          path: /tmp/stage126
+          github-token: ${{ github.token }}
+          run-id: 31924459693
+      - run: |
+          python -m vgdsmc.stage127_wall_normal_side_switch_audit \
+            --stage126-dir /tmp/stage126 \
+            --stage126-record results/stage126_wall_side_asymmetry_audit_observed.json \
+            --output-dir /tmp/stage127
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage127-wall-normal-side-switch-audit
+          path: /tmp/stage127
+          retention-days: 30
