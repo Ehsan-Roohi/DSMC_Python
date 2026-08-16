@@ -57,5 +57,28 @@ if ! grep -q "^Usage: sparta" "${HELP_FILE}"; then
   echo "SPARTA executable did not produce a valid help banner (exit ${HELP_STATUS})." >&2
   exit 4
 fi
-echo "SPARTA tests and help banner verified."
+
+# Exercise the generated thermal/grid diagnostic before releasing the HQ array.
+# This catches input syntax or output-schema regressions in seconds rather than
+# after a multi-hour production member has started.
+SMOKE_DIR="${ROOT_DIR}/logs/sparta-thermal-smoke-${SLURM_JOB_ID}"
+mkdir "${SMOKE_DIR}"
+python3 "${ROOT_DIR}/scripts/generate_case.py" \
+  --level smoke \
+  --kn 0.1 \
+  --seed 20260803 \
+  --output "${SMOKE_DIR}" > "${SMOKE_DIR}/generator.out"
+(
+  cd "${SMOKE_DIR}"
+  "${SPARTA_BIN}" < in.cavity > screen.out 2> screen.err
+)
+SMOKE_DUMP="${SMOKE_DIR}/grid.final.00000030"
+if [[ ! -s "${SMOKE_DUMP}" ]] || \
+   ! grep -Fq 'f_flowavg[5]' "${SMOKE_DUMP}" || \
+   grep -Fq 'f_flowavg[6]' "${SMOKE_DUMP}"; then
+  echo "Thermal-temperature smoke test did not produce the required five-column dump." >&2
+  exit 5
+fi
+
+echo "SPARTA tests, help banner, and thermal-temperature smoke case verified."
 echo "READY: ${SPARTA_BIN}"
