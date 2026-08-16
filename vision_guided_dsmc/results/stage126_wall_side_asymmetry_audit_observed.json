@@ -1,0 +1,62 @@
+{
+  "stage": 126,
+  "record_type": "completed_wall_side_asymmetry_audit",
+  "source_head": "3d224b044fc4f6258cb70cea0193850310732992",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31924459693,
+  "workflow_job_id": 95109713428,
+  "artifact_id": 9260078422,
+  "artifact_size_bytes": 27633,
+  "artifact_sha256": "5bc2060341ffdafe8c8ee185a82b8c70a6cefec0158393cebe835281d01c952c",
+  "summary_sha256": "9230ca76842f7e470c1fd97fdff5b94a78e9f8b9c1ebeac639603a6a6d56c9fc",
+  "wall_side_asymmetry_sha256": "935db7028d35dd980aab7e7cb31af60d8287b7bfe7fb518646764b8ff28d6c46",
+  "tests": {
+    "passed": 17,
+    "failed": 0
+  },
+  "decision": "stage126_bilateral_wall_consistent_with_depth_side_reversal_stage127_wall_normal_side_switch_audit",
+  "aggregate": {
+    "maximum_parent_halfspace_fraction_abs_error": 0.0,
+    "minimum_wall_same_sign_l1_fraction": 0.4621117286071544,
+    "minimum_per_wall_tangential_dominance_fraction": 0.7470278374561036,
+    "cross_wall_same_side_band_count": 3,
+    "depth_tangential_side_reversal_count": 1,
+    "band_tangential_side_sequence": [
+      "axis0_high",
+      "axis0_high",
+      "axis0_low"
+    ]
+  },
+  "key_metrics": {
+    "near_1_4": {
+      "combined_dominant_tangential_side": "axis0_high",
+      "combined_dominant_tangential_side_fraction": 0.8094882508234583,
+      "axis1_low_dominant_tangential_side_fraction": 0.8127065581780798,
+      "axis1_high_dominant_tangential_side_fraction": 0.806427826187544,
+      "minimum_wall_same_sign_l1_fraction": 0.4874271812409641,
+      "dominant_radial_node": 8,
+      "net_sign": 1
+    },
+    "mid_5_14": {
+      "combined_dominant_tangential_side": "axis0_high",
+      "combined_dominant_tangential_side_fraction": 0.9347222917280291,
+      "axis1_low_dominant_tangential_side_fraction": 0.9254160363754417,
+      "axis1_high_dominant_tangential_side_fraction": 0.9427175018424048,
+      "minimum_wall_same_sign_l1_fraction": 0.4621117286071544,
+      "dominant_radial_node": 1,
+      "net_sign": -1
+    },
+    "inner_15_28": {
+      "combined_dominant_tangential_side": "axis0_low",
+      "combined_dominant_tangential_side_fraction": 0.7932414166854308,
+      "axis1_low_dominant_tangential_side_fraction": 0.8365636363233708,
+      "axis1_high_dominant_tangential_side_fraction": 0.7470278374561036,
+      "minimum_wall_same_sign_l1_fraction": 0.4838536114718021,
+      "dominant_radial_node": 9,
+      "net_sign": 1
+    }
+  },
+  "scientific_conclusion": "The Stage-125 tangential-side localization is bilateral across the two opposite wall-normal halves: both halves contribute materially and independently select axis0_high in the near and mid wall-distance bands, while both select axis0_low in the inner band. The minimum per-wall tangential dominance is 0.7470278374561036 and the minimum wall share of same-sign L1 support is 0.4621117286071544. This rules out a one-wall explanation for the observed band-level asymmetry and establishes one depth-dependent side reversal, but it does not establish a causal instability mechanism or solver validity. A fixed wall-normal side-switch localization audit is justified.",
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}
