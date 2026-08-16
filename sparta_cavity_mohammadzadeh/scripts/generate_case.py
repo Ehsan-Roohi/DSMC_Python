@@ -20,6 +20,7 @@ PRESETS = {
     "smoke": {"nx": 12, "ppc": 4, "warmup": 20, "sample": 30, "sample_stride": 2},
     "student": {"nx": 50, "ppc": 12, "warmup": 4000, "sample": 8000, "sample_stride": 5},
     "production": {"nx": 200, "ppc": 32, "warmup": 14000, "sample": 26000, "sample_stride": 10},
+    "hq": {"nx": 200, "ppc": 128, "warmup": 40000, "sample": 160000, "sample_stride": 10},
 }
 
 
@@ -93,8 +94,12 @@ stats_style          step cpu np nattempt ncoll nscoll
 run                  {warmup}
 
 reset_timestep       0
-compute              flow grid all gas nrho u v w temp
-fix                  flowavg ave/grid all {sample_stride} 1 {sample_stride} c_flow[*] ave running
+# Keep the historical five-column dump schema (nrho,u,v,w,T), but use the
+# center-of-mass-subtracted thermal temperature.  `compute grid ... temp`
+# includes bulk streaming kinetic energy and is not a thermodynamic temperature.
+compute              flow grid all gas nrho u v w
+compute              thermal thermal/grid all gas temp
+fix                  flowavg ave/grid all {sample_stride} 1 {sample_stride} c_flow[*] c_thermal[*] ave running
 dump                 fields grid all {sample} grid.final.* id xc yc f_flowavg[*]
 dump_modify          fields pad 8
 run                  {sample}
@@ -120,11 +125,14 @@ run                  {sample}
         "sample_steps": sample,
         "sample_stride": sample_stride,
         "seed": seed,
+        "temperature_observable": "thermal/grid COM-subtracted translational temperature",
+        "dump_columns": ["nrho", "u", "v", "w", "thermal_temperature"],
         **values,
         "evidence_level": {
             "smoke": "syntax-smoke",
             "student": "classroom-learning",
             "production": "production-validation-pending",
+            "hq": "high-statistics-validation-pending",
         }[level],
     }
     (output / "case_metadata.json").write_text(
