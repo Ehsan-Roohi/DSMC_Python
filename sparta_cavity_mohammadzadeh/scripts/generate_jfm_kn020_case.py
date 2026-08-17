@@ -66,11 +66,11 @@ def write_case(
     kn: float = 0.20,
     length: float = 1.0e-6,
     nx: int = 160,
-    ppc: int = 128,
+    ppc: int = 256,
     warmup_steps: int = 40_000,
-    sample_steps: int = 85_010,
+    sample_steps: int = 200_000,
     sample_stride: int = 10,
-    checkpoint_steps: int = 17_000,
+    checkpoint_steps: int = 40_000,
 ) -> dict[str, object]:
     if min(kn, length, nx, ppc, sample_steps, sample_stride) <= 0:
         raise ValueError("Kn, length, grid, PPC, sample steps, and stride must be positive")
@@ -189,11 +189,11 @@ def main() -> int:
     parser.add_argument("--kn", type=float, default=0.20)
     parser.add_argument("--length", type=float, default=1.0e-6)
     parser.add_argument("--nx", type=int, default=160)
-    parser.add_argument("--ppc", type=int, default=128)
+    parser.add_argument("--ppc", type=int, default=256)
     parser.add_argument("--warmup", type=int, default=40_000)
-    parser.add_argument("--sample", type=int, default=85_010)
+    parser.add_argument("--sample", type=int, default=200_000)
     parser.add_argument("--stride", type=int, default=10)
-    parser.add_argument("--checkpoint", type=int, default=17_000)
+    parser.add_argument("--checkpoint", type=int, default=40_000)
     args = parser.parse_args()
     metadata = write_case(
         args.output.resolve(),
