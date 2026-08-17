@@ -134,3 +134,5 @@ jobs:
           name: stage135-fixed-lobe-amplitude-origin-audit
           path: /tmp/stage135_fixed_lobe_amplitude_origin_audit
           retention-days: 30
+
+# Stage 135 workflow registration refresh.
