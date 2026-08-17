@@ -87,24 +87,32 @@ def ci95(samples: np.ndarray) -> np.ndarray:
     return T95[count] * np.std(samples, axis=0, ddof=1) / math.sqrt(count)
 
 
+def half_range(samples: np.ndarray) -> np.ndarray:
+    """Seed-to-seed repeatability band; primary diagnostic for a two-seed study."""
+    if samples.shape[0] < 2:
+        return np.full(samples.shape[1:], np.nan)
+    return 0.5 * (np.max(samples, axis=0) - np.min(samples, axis=0))
+
+
 def write_field_csv(
     path: Path,
     x: np.ndarray,
     y: np.ndarray,
     length: float,
     mean: np.ndarray,
+    spread: np.ndarray,
     ci: np.ndarray,
 ) -> None:
     header = ["x_over_L", "y_over_L"]
     for field in FIELDS:
-        header.extend((f"{field}_mean", f"{field}_ci95"))
+        header.extend((f"{field}_mean", f"{field}_half_range", f"{field}_ci95"))
     with path.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
         writer.writerow(header)
         for cell in range(mean.shape[0]):
             row: list[float] = [x[cell] / length, y[cell] / length]
             for column in range(mean.shape[1]):
-                row.extend((mean[cell, column], ci[cell, column]))
+                row.extend((mean[cell, column], spread[cell, column], ci[cell, column]))
             writer.writerow(row)
 
 
@@ -114,6 +122,7 @@ def write_centerlines(
     y: np.ndarray,
     length: float,
     mean: np.ndarray,
+    spread: np.ndarray,
     ci: np.ndarray,
 ) -> None:
     x_nd = x / length
@@ -126,7 +135,7 @@ def write_centerlines(
     )
     header = ["line", "s_over_L", "x_over_L", "y_over_L"]
     for field in FIELDS:
-        header.extend((f"{field}_mean", f"{field}_ci95"))
+        header.extend((f"{field}_mean", f"{field}_half_range", f"{field}_ci95"))
     with path.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.writer(stream)
         writer.writerow(header)
@@ -136,7 +145,7 @@ def write_centerlines(
             for cell in indices:
                 row: list[Any] = [label, coordinate[cell], x_nd[cell], y_nd[cell]]
                 for column in range(mean.shape[1]):
-                    row.extend((mean[cell, column], ci[cell, column]))
+                    row.extend((mean[cell, column], spread[cell, column], ci[cell, column]))
                 writer.writerow(row)
 
 
@@ -146,7 +155,7 @@ def make_quicklook(
     y: np.ndarray,
     length: float,
     mean: np.ndarray,
-    ci: np.ndarray,
+    spread: np.ndarray,
 ) -> str:
     try:
         import matplotlib
@@ -163,7 +172,7 @@ def make_quicklook(
     order = np.lexsort((x_nd, y_nd))
     shape = (len(ys), len(xs))
     grids = [mean[order, i].reshape(shape) for i in range(len(FIELDS))]
-    ci_grids = [ci[order, i].reshape(shape) for i in range(len(FIELDS))]
+    spread_grids = [spread[order, i].reshape(shape) for i in range(len(FIELDS))]
     _, u, v, _, temperature, qx, qy = grids
 
     fig, axes = plt.subplots(2, 2, figsize=(10.6, 8.2), constrained_layout=True)
@@ -186,15 +195,15 @@ def make_quicklook(
     axes[1, 0].plot(ys, qx[:, x_index], label=r"$q_x$")
     axes[1, 0].fill_between(
         ys,
-        qx[:, x_index] - ci_grids[5][:, x_index],
-        qx[:, x_index] + ci_grids[5][:, x_index],
+        qx[:, x_index] - spread_grids[5][:, x_index],
+        qx[:, x_index] + spread_grids[5][:, x_index],
         alpha=0.22,
     )
     axes[1, 0].plot(ys, qy[:, x_index], label=r"$q_y$")
     axes[1, 0].fill_between(
         ys,
-        qy[:, x_index] - ci_grids[6][:, x_index],
-        qy[:, x_index] + ci_grids[6][:, x_index],
+        qy[:, x_index] - spread_grids[6][:, x_index],
+        qy[:, x_index] + spread_grids[6][:, x_index],
         alpha=0.22,
     )
     axes[1, 0].set_title(r"Vertical centerline, $x/L\approx0.5$")
@@ -205,15 +214,15 @@ def make_quicklook(
     axes[1, 1].plot(xs, qx[y_index, :], label=r"$q_x$")
     axes[1, 1].fill_between(
         xs,
-        qx[y_index, :] - ci_grids[5][y_index, :],
-        qx[y_index, :] + ci_grids[5][y_index, :],
+        qx[y_index, :] - spread_grids[5][y_index, :],
+        qx[y_index, :] + spread_grids[5][y_index, :],
         alpha=0.22,
     )
     axes[1, 1].plot(xs, qy[y_index, :], label=r"$q_y$")
     axes[1, 1].fill_between(
         xs,
-        qy[y_index, :] - ci_grids[6][y_index, :],
-        qy[y_index, :] + ci_grids[6][y_index, :],
+        qy[y_index, :] - spread_grids[6][y_index, :],
+        qy[y_index, :] + spread_grids[6][y_index, :],
         alpha=0.22,
     )
     axes[1, 1].set_title(r"Horizontal centerline, $y/L\approx0.5$")
@@ -228,7 +237,7 @@ def make_quicklook(
             axis.set_ylabel(r"$y/L$")
         axis.grid(alpha=0.15)
 
-    fig.suptitle("SPARTA DSMC, Kn=0.20: 8-seed ensemble mean and 95% CI")
+    fig.suptitle("SPARTA DSMC, Kn=0.20: two-seed mean and seed half-range")
     fig.savefig(output / "kn020_dsmc_quicklook.png", dpi=240)
     fig.savefig(output / "kn020_dsmc_quicklook.pdf")
     plt.close(fig)
@@ -279,6 +288,7 @@ def process(results_root: Path, output: Path, expected_seeds: list[int]) -> dict
 
     samples = np.stack([member["fields"] for member in members], axis=0)
     mean = np.mean(samples, axis=0)
+    spread = half_range(samples)
     interval = ci95(samples)
     x = reference["x"]
     y = reference["y"]
@@ -288,8 +298,8 @@ def process(results_root: Path, output: Path, expected_seeds: list[int]) -> dict
     positive_density = bool(np.min(samples[:, :, 0]) > 0.0)
     positive_temperature = bool(np.min(samples[:, :, 4]) > 0.0)
 
-    write_field_csv(output / "ensemble_mean_fields.csv", x, y, length, mean, interval)
-    write_centerlines(output / "ensemble_centerlines.csv", x, y, length, mean, interval)
+    write_field_csv(output / "ensemble_mean_fields.csv", x, y, length, mean, spread, interval)
+    write_centerlines(output / "ensemble_centerlines.csv", x, y, length, mean, spread, interval)
     payload: dict[str, Any] = {
         "seed": np.asarray([member["metadata"]["seed"] for member in members], dtype=np.int64),
         "cell_id": reference["id"],
@@ -299,10 +309,11 @@ def process(results_root: Path, output: Path, expected_seeds: list[int]) -> dict
     for column, field in enumerate(FIELDS):
         payload[f"{field}_samples"] = samples[:, :, column]
         payload[f"{field}_mean"] = mean[:, column]
+        payload[f"{field}_half_range"] = spread[:, column]
         payload[f"{field}_ci95"] = interval[:, column]
     np.savez_compressed(output / "ensemble_fields.npz", **payload)
 
-    plot_note = make_quicklook(output, x, y, length, mean, interval)
+    plot_note = make_quicklook(output, x, y, length, mean, spread)
     complete = len(members) == len(expected_seeds)
     summary: dict[str, Any] = {
         "status": "complete" if complete and finite and positive_density and positive_temperature else "incomplete",
@@ -310,7 +321,11 @@ def process(results_root: Path, output: Path, expected_seeds: list[int]) -> dict
         "complete_seeds": [int(member["metadata"]["seed"]) for member in members],
         "member_errors": errors,
         "ensemble_size": len(members),
-        "confidence_interval": "two-sided 95% Student-t interval across independent seeds",
+        "uncertainty_policy": (
+            "Primary plot band is the two-seed half-range. A formal two-sided 95% "
+            "Student-t interval is also stored, but with one degree of freedom it is "
+            "not treated as a precise uncertainty estimate."
+        ),
         "kn": metadata["kn"],
         "kn_convention": metadata["kn_convention"],
         "grid": [metadata["nx"], metadata["ny"]],
@@ -326,7 +341,7 @@ def process(results_root: Path, output: Path, expected_seeds: list[int]) -> dict
         },
         "products": {
             "fields_npz": "ensemble_fields.npz",
-            "mean_and_ci_csv": "ensemble_mean_fields.csv",
+            "mean_half_range_and_ci_csv": "ensemble_mean_fields.csv",
             "centerlines_csv": "ensemble_centerlines.csv",
             "quicklook": plot_note,
         },
