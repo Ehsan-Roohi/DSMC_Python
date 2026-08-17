@@ -5,8 +5,8 @@
 #SBATCH --ntasks=16
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
-#SBATCH --time=12:00:00
-#SBATCH --array=0-7%4
+#SBATCH --time=24:00:00
+#SBATCH --array=0-1%2
 #SBATCH --output=logs/sp-k020-jfm-%A_%a.out
 #SBATCH --error=logs/sp-k020-jfm-%A_%a.err
 
@@ -22,8 +22,8 @@ ROOT_DIR="$(cd "${ROOT_DIR}" && pwd)"
 SPARTA_BIN="${SPARTA_BIN:-${ROOT_DIR}/third_party/sparta/src/spa_mpi}"
 OPENMPI_MODULE="${UNITY_OPENMPI_MODULE:-openmpi/5.0.3}"
 MPI_LAUNCHER="${UNITY_MPI_LAUNCHER:-mpirun}"
-SEEDS=(20260803 20260819 20260831 20260847 20260859 20260871 20260883 20260899)
-FINAL_DUMP_NAME="grid.final.00085010"
+SEEDS=(104729 130363)
+FINAL_DUMP_NAME="grid.final.00200000"
 
 if [[ -z "${SLURM_ARRAY_TASK_ID:-}" ]] || \
    (( SLURM_ARRAY_TASK_ID < 0 || SLURM_ARRAY_TASK_ID >= ${#SEEDS[@]} )); then
@@ -70,12 +70,12 @@ expected = {
     "kn_convention": "gu_lambda_over_L",
     "nx": 160,
     "ny": 160,
-    "particles_per_cell": 128,
+    "particles_per_cell": 256,
     "warmup_steps": 40000,
-    "sample_steps": 85010,
+    "sample_steps": 200000,
     "sample_stride": 10,
-    "accumulated_samples_per_cell": 8501,
-    "checkpoint_frequency_steps": 17000,
+    "accumulated_samples_per_cell": 20000,
+    "checkpoint_frequency_steps": 40000,
     "argon_mass_kg": 6.6335e-26,
 }
 bad = {key: (metadata.get(key), value) for key, value in expected.items() if metadata.get(key) != value}
@@ -88,7 +88,7 @@ PY
   printf 'array_job_id=%s\n' "${ARRAY_ID}"
   printf 'array_task_id=%s\n' "${SLURM_ARRAY_TASK_ID}"
   printf 'seed=%s\n' "${SEED}"
-  printf 'configuration=kn0.20_gu_N160_ppc128_warmup40000_samples8501_stride10\n'
+  printf 'configuration=kn0.20_gu_N160_ppc256_warmup40000_samples20000_stride10\n'
   printf 'hostname=%s\n' "$(hostname)"
   printf 'slurm_ntasks=%s\n' "${SLURM_NTASKS}"
   printf 'openmpi_module=%s\n' "${OPENMPI_MODULE}"
