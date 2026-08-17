@@ -9,10 +9,10 @@ ROOT_DIR="${REPO_DIR}/sparta_cavity_mohammadzadeh"
 CAMPAIGN="${JFM_CAMPAIGN:-/project/pi_roohie_umass_edu/CavityColdToHotIdentify/JFM_Five_Run_Campaign_20260802}"
 RESULTS_BASE="${CAMPAIGN}/results/run7_dsmc_kn020_sparta"
 OPENMPI_MODULE="${UNITY_OPENMPI_MODULE:-openmpi/5.0.3}"
-MAX_PARALLEL="${DSMC_KN020_MAX_PARALLEL:-4}"
+MAX_PARALLEL="${DSMC_KN020_MAX_PARALLEL:-2}"
 
-if ! [[ "${MAX_PARALLEL}" =~ ^[1-8]$ ]]; then
-  echo "DSMC_KN020_MAX_PARALLEL must be an integer from 1 through 8." >&2
+if ! [[ "${MAX_PARALLEL}" =~ ^[1-2]$ ]]; then
+  echo "DSMC_KN020_MAX_PARALLEL must be 1 or 2." >&2
   exit 2
 fi
 for command_name in git sbatch; do
@@ -56,7 +56,7 @@ ARRAY_SUBMISSION="$(
   sbatch --parsable \
     --dependency="afterok:${BUILD_JOB_ID}" \
     --kill-on-invalid-dep=yes \
-    --array="0-7%${MAX_PARALLEL}" \
+    --array="0-1%${MAX_PARALLEL}" \
     --export="ALL,SPARTA_CASE_ROOT=${ROOT_DIR},SPARTA_RESULTS_BASE=${RESULTS_BASE},UNITY_OPENMPI_MODULE=${OPENMPI_MODULE}" \
     hpc/unity_sparta_kn020_jfm_array.slurm
 )"
@@ -82,8 +82,8 @@ BUNDLE="${CAMPAIGN}/SPARTA_KN020_JFM_${ARRAY_JOB_ID}.tar.gz"
 
 echo
 echo "Submitted matched SPARTA DSMC Kn=0.20 ensemble."
-echo "Configuration: N160, 128 PPC, 40000 warmup, 8501 samples/cell, 8 seeds."
-echo "Parallel seeds: ${MAX_PARALLEL}/8"
+echo "Configuration: N160, 256 PPC, 40000 warmup, 20000 samples/cell, 2 seeds."
+echo "Parallel seeds: ${MAX_PARALLEL}/2"
 echo "Build/test job: ${BUILD_JOB_ID}"
 echo "Array job:      ${ARRAY_JOB_ID}"
 echo "Collector job:  ${COLLECT_JOB_ID}"
