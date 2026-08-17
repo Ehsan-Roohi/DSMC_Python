@@ -69,7 +69,8 @@ fi
 # seven-column averaging schema, and the exact VHS Kn convention before the
 # publication array is released.
 SMOKE_DIR="${ROOT_DIR}/logs/sp-k020-smoke-${SLURM_JOB_ID}"
-mkdir "${SMOKE_DIR}"
+# The generator owns creation of this path and deliberately refuses overwrite.
+# Do not pre-create SMOKE_DIR (the first campaign exposed this guard correctly).
 python3 "${ROOT_DIR}/scripts/generate_jfm_kn020_case.py" \
   --seed 20260803 --nx 12 --ppc 4 --warmup 20 --sample 30 --stride 2 \
   --checkpoint 0 --output "${SMOKE_DIR}" > "${SMOKE_DIR}/generator.out"
