@@ -23,7 +23,7 @@ POST_SPEC.loader.exec_module(POST)
 
 class JFMKn020CaseTests(unittest.TestCase):
     def test_vhs_mean_free_path_contract(self) -> None:
-        values = MODULE.physical_parameters(0.20, 1.0e-6, 160, 128, 300.0)
+        values = MODULE.physical_parameters(0.20, 1.0e-6, 160, 256, 300.0)
         n = values["number_density_m-3"]
         factor = (MODULE.TEMPERATURE_REF / 300.0) ** (MODULE.VISCOSITY_INDEX - 0.5)
         reconstructed = 1.0 / (
@@ -39,7 +39,9 @@ class JFMKn020CaseTests(unittest.TestCase):
             self.assertIn("thermal/grid all gas temp", deck)
             self.assertIn("eflux/grid all gas heatx heaty", deck)
             self.assertIn("c_flow[*] c_thermal[*] c_heat[*] ave running", deck)
-            self.assertEqual(metadata["accumulated_samples_per_cell"], 8501)
+            self.assertEqual(metadata["particles_per_cell"], 256)
+            self.assertEqual(metadata["sample_steps"], 200000)
+            self.assertEqual(metadata["accumulated_samples_per_cell"], 20000)
             self.assertEqual(metadata["dump_columns"], ["nrho", "u", "v", "w", "T", "qx", "qy"])
             self.assertEqual(metadata["argon_mass_kg"], 6.6335e-26)
             on_disk = json.loads((output / "case_metadata.json").read_text(encoding="utf-8"))
@@ -47,9 +49,9 @@ class JFMKn020CaseTests(unittest.TestCase):
 
     def test_dump_reader_and_student_t_interval(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            dump = Path(tmp) / "grid.final.00085010"
+            dump = Path(tmp) / "grid.final.00200000"
             dump.write_text(
-                "ITEM: TIMESTEP\n85010\n"
+                "ITEM: TIMESTEP\n200000\n"
                 "ITEM: NUMBER OF CELLS\n2\n"
                 "ITEM: CELLS id xc yc f_fieldavg[1] f_fieldavg[2] "
                 "f_fieldavg[3] f_fieldavg[4] f_fieldavg[5] f_fieldavg[6] f_fieldavg[7]\n"
@@ -64,6 +66,8 @@ class JFMKn020CaseTests(unittest.TestCase):
             interval = POST.ci95(samples)
             expected = POST.T95[8] * POST.np.std(samples, axis=0, ddof=1) / math.sqrt(8)
             self.assertTrue(POST.np.allclose(interval, expected))
+            spread = POST.half_range(samples[:2])
+            self.assertTrue(POST.np.allclose(spread, POST.np.asarray([1.0, 1.0])))
 
 
 if __name__ == "__main__":
