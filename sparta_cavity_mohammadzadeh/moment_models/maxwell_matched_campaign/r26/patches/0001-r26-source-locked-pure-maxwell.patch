@@ -1,0 +1,158 @@
+--- a/code/r26_cases.py
++++ b/code/r26_cases.py
+@@ -422,6 +422,47 @@
+     )
+ 
+ 
++def jfm_maxwell_cavity_case(
++    nodes: int,
++    *,
++    kn: float,
++    lid_speed_m_per_s: float = 100.0,
++    gas_constant_si: float = 208.0,
++    wall_temperature_K: float = 300.0,
++    grid_stretch_beta: float = 0.0,
++) -> CavityCase:
++    """Source-locked pure-Maxwell target for matched R26/DSMC comparisons.
++
++    The nonlinear bulk equations, closure coefficients and smooth-wall
++    conditions are the final Gu--Emerson JFM-2009 Maxwell-molecule model.
++    Maxwell molecules require ``mu/mu0 = theta``; consequently the viscosity
++    exponent is fixed to one and is intentionally not a caller parameter.
++    The wall accommodation is fixed to one to match fully diffuse DSMC walls.
++    """
++
++    kn_value = float(kn)
++    lid_star = lid_speed_m_per_s / np.sqrt(gas_constant_si * wall_temperature_K)
++    mu_eq = equilibrium_mu_star(kn_value, KnudsenConvention.GU_MEAN_FREE_PATH)
++    return CavityCase(
++        name=f"jfm-maxwell-Kn{kn_value:g}-U{lid_speed_m_per_s:g}-N{nodes}",
++        nodes=nodes,
++        kn=kn_value,
++        kn_convention=KnudsenConvention.GU_MEAN_FREE_PATH,
++        lid_velocity=float(lid_star),
++        wall_temperature=1.0,
++        accommodation=1.0,
++        viscosity=ViscosityModel.power_law(1.0),
++        scaling=collision_balanced_scaling(mu_eq),
++        grid_stretch_beta=float(grid_stretch_beta),
++        r26_closure_mode="jfm2009",
++        provenance=(
++            "Pure Maxwell-molecule matched target: Gu--Emerson JFM-2009 "
++            "nonlinear R26 equations and closure coefficients, mu/mu0=T/T0, "
++            "Gu equilibrium mean-free-path Kn, Tw=300 K, fully diffuse walls"
++        ),
++    )
++
++
+ __all__ = [
+     "CavityCase",
+     "KnudsenConvention",
+@@ -432,6 +473,7 @@
+     "equilibrium_mu_star",
+     "collision_balanced_scaling",
+     "gu_jfm_cavity_case",
++    "jfm_maxwell_cavity_case",
+     "jfm_observability_cavity_case",
+     "gu_asme2009_cavity_case",
+     "rana_first_case",
+--- a/analysis/run_jfm_observability_continuation.py
++++ b/analysis/run_jfm_observability_continuation.py
+@@ -3,10 +3,11 @@
+ 
+ The driver starts from analytic equilibrium unless an explicit accepted local
+ restart is supplied, records every rejected attempt, and never promotes a
+-small optimizer norm to model validation.  The manuscript target uses the Gu
+-equilibrium mean-free-path convention, argon VHS omega=0.81, Tw=300 K and a
+-100 m/s lid.  The legacy Rana/John and Gu-ASME modes are retained only for
+-regression comparisons and must be selected explicitly.
++small optimizer norm to model validation.  The source-locked ``jfm-maxwell``
++target uses the Gu equilibrium mean-free-path convention, Maxwell
++``mu/mu0=T/T0``, Tw=300 K, a 100 m/s lid and fully diffuse walls.  The
++historical VHS-transport hybrid, legacy Rana/John and Gu-ASME modes are
++retained only for regression comparisons and must be selected explicitly.
+ """
+ 
+ from __future__ import annotations
+@@ -28,6 +29,7 @@
+ from r26_cases import (
+     SQRT_2_OVER_PI,
+     gu_asme2009_cavity_case,
++    jfm_maxwell_cavity_case,
+     jfm_observability_cavity_case,
+     rana_john_case,
+ )
+@@ -225,16 +227,21 @@
+     parser.add_argument("--nodes", type=int, required=True)
+     parser.add_argument(
+         "--case-family",
+-        choices=("jfm-observability", "rana-john2010", "gu-asme2009"),
+-        default="jfm-observability",
++        choices=("jfm-maxwell", "jfm-observability", "rana-john2010", "gu-asme2009"),
++        default="jfm-maxwell",
+         help=(
+-            "JFM-2026-1451 DSMC target, Rana/John comparison, or direct "
+-            "source-locked Gu-ASME case"
++            "pure-Maxwell matched target, historical VHS-transport hybrid, "
++            "Rana/John comparison, or direct source-locked Gu-ASME case"
+         ),
+     )
+     parser.add_argument("--kn-rana", type=float)
+     parser.add_argument("--kn-gu", type=float)
+     parser.add_argument("--lid-speed-m-s", type=float)
+     parser.add_argument("--wall-temperature-k", type=float)
+-    parser.add_argument("--vhs-omega", type=float, default=0.81)
++    parser.add_argument(
++        "--vhs-omega",
++        type=float,
++        default=None,
++        help="historical jfm-observability mode only; forbidden for jfm-maxwell",
++    )
+     parser.add_argument("--beta", type=float, default=2.5)
+@@ -275,7 +282,26 @@
+     )
+     parser.add_argument("--output-dir", type=Path, required=True)
+     args = parser.parse_args()
+-    if args.case_family == "jfm-observability":
++    if args.case_family == "jfm-maxwell":
++        if args.kn_gu is None or args.kn_rana is not None:
++            parser.error("jfm-maxwell requires --kn-gu and forbids --kn-rana")
++        if args.closure_mode not in (None, "jfm2009"):
++            parser.error("jfm-maxwell requires final --closure-mode jfm2009")
++        if args.vhs_omega is not None:
++            parser.error("jfm-maxwell fixes mu/mu0=T/T0; do not pass --vhs-omega")
++        physical_lid = 100.0 if args.lid_speed_m_s is None else args.lid_speed_m_s
++        physical_wall_temperature = (
++            300.0 if args.wall_temperature_k is None else args.wall_temperature_k
++        )
++        base = jfm_maxwell_cavity_case(
++            args.nodes,
++            kn=args.kn_gu,
++            lid_speed_m_per_s=physical_lid,
++            wall_temperature_K=physical_wall_temperature,
++            grid_stretch_beta=args.beta,
++        )
++        equivalent_gu_kn = float(args.kn_gu)
++    elif args.case_family == "jfm-observability":
+         if args.kn_gu is None or args.kn_rana is not None:
+             parser.error("jfm-observability requires --kn-gu and forbids --kn-rana")
+         if args.closure_mode not in (None, "jfm2009"):
+@@ -289,6 +315,6 @@
+             kn=args.kn_gu,
+             lid_speed_m_per_s=physical_lid,
+             wall_temperature_K=physical_wall_temperature,
+-            viscosity_exponent=args.vhs_omega,
++            viscosity_exponent=(0.81 if args.vhs_omega is None else args.vhs_omega),
+             grid_stretch_beta=args.beta,
+         )
+@@ -504,4 +530,10 @@
+             "lid_speed_m_per_s": physical_lid,
+             "wall_temperature_K": physical_wall_temperature,
+             "viscosity_exponent": base.viscosity.exponent,
++            "molecular_model": (
++                "maxwell_molecules"
++                if args.case_family == "jfm-maxwell"
++                else "legacy_case_specific"
++            ),
++            "wall_accommodation": base.accommodation,
+             "lid_target": target_lid,
