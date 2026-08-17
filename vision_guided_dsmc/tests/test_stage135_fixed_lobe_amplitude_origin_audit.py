@@ -108,3 +108,5 @@ def test_classify_shift_closure_blocker():
     d = _block()
     p = _block()
     assert classify_lobe_origin(dominant=d, parent=p, shift_closure=2e-12) == SHIFT_CLOSURE_BLOCKER
+
+# Explicit launch-touch: no scientific guard or numerical parameter is changed.
