@@ -39,14 +39,14 @@ PRESETS = {
         "restart_frequency": 10000,
     },
     "production": {
-        "nx": 600,
+        "nx": 1200,
         "ppc": 64,
-        "half_span_lambda": 15.0,
-        "warmup": 40000,
-        "sample": 160000,
+        "half_span_lambda": 30.0,
+        "warmup": 80000,
+        "sample": 320000,
         "sample_stride": 10,
-        "dump_frequency": 40000,
-        "restart_frequency": 40000,
+        "dump_frequency": 80000,
+        "restart_frequency": 80000,
     },
 }
 
@@ -201,7 +201,8 @@ dump_modify          profile pad 8
     (output / "in.shock").write_text(deck, encoding="utf-8")
 
     metadata: dict[str, object] = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "protocol": "sparta_normal_shock_v2",
         "case_kind": "steady_shock_fixed_normal_shock",
         "solver": "SPARTA",
         "gas": "argon",

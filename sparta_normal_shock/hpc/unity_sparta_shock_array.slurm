@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=sp-shock-prod
+#SBATCH --job-name=sp2-shock-prod
 #SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=16
@@ -7,8 +7,8 @@
 #SBATCH --mem=64G
 #SBATCH --time=48:00:00
 #SBATCH --array=0-8%3
-#SBATCH --output=logs/sp-shock-prod-%A_%a.out
-#SBATCH --error=logs/sp-shock-prod-%A_%a.err
+#SBATCH --output=logs/sp2-shock-prod-%A_%a.out
+#SBATCH --error=logs/sp2-shock-prod-%A_%a.err
 
 set -euo pipefail
 
@@ -21,16 +21,18 @@ ROOT_DIR="$(cd "${ROOT_DIR}" && pwd)"
 SPARTA_BIN="${SPARTA_BIN:-${ROOT_DIR}/third_party/sparta/src/spa_mpi}"
 OPENMPI_MODULE="${UNITY_OPENMPI_MODULE:-openmpi/5.0.3}"
 MPI_LAUNCHER="${UNITY_MPI_LAUNCHER:-mpirun}"
+OPENMPI_PML="${UNITY_OPENMPI_PML:-ob1}"
 MACHS=(2.5 2.5 2.5 3.0 3.0 3.0 5.0 5.0 5.0)
 SEEDS=(20260803 20260819 20260831 20260803 20260819 20260831 20260803 20260819 20260831)
 MACH_LABELS=(M25 M25 M25 M30 M30 M30 M50 M50 M50)
-FINAL_DUMP_NAME="profile.final.00160000"
+FINAL_DUMP_NAME="profile.final.00320000"
 
 TASK_ID="${SLURM_ARRAY_TASK_ID:?This script must run as a Slurm array task}"
 (( TASK_ID >= 0 && TASK_ID < ${#MACHS[@]} )) || { echo "Invalid task index: ${TASK_ID}" >&2; exit 2; }
 module purge
 module load "${OPENMPI_MODULE}"
 module list
+export OMPI_MCA_pml="${OPENMPI_PML}"
 for command_name in "${MPI_LAUNCHER}" python3; do
   command -v "${command_name}" >/dev/null 2>&1 || { echo "Missing ${command_name}" >&2; exit 2; }
 done
@@ -57,14 +59,15 @@ import sys
 metadata = json.load(open(sys.argv[1], encoding="utf-8"))
 expected = {
     "level": "production",
-    "nx": 600,
+    "nx": 1200,
     "ny": 1,
+    "half_span_lambda": 30.0,
     "target_upstream_particles_per_cell": 64,
-    "warmup_steps": 40000,
-    "sample_steps": 160000,
+    "warmup_steps": 80000,
+    "sample_steps": 320000,
     "sample_stride": 10,
-    "dump_frequency_steps": 40000,
-    "restart_frequency_steps": 40000,
+    "dump_frequency_steps": 80000,
+    "restart_frequency_steps": 80000,
     "seed": int(sys.argv[3]),
 }
 bad = {key: (metadata.get(key), value) for key, value in expected.items() if metadata.get(key) != value}
@@ -80,10 +83,11 @@ PY
   printf 'array_task_id=%s\n' "${TASK_ID}"
   printf 'mach=%s\n' "${MACH}"
   printf 'seed=%s\n' "${SEED}"
-  printf 'configuration=steady_normal_shock_nx600_ppc64_warmup40000_average160000_stride10\n'
+  printf 'configuration=steady_normal_shock_v2_halfspan30_nx1200_ppc64_warmup80000_average320000_stride10\n'
   printf 'hostname=%s\n' "$(hostname)"
   printf 'slurm_ntasks=%s\n' "${SLURM_NTASKS}"
   printf 'openmpi_module=%s\n' "${OPENMPI_MODULE}"
+  printf 'openmpi_pml=%s\n' "${OPENMPI_PML}"
   printf 'sparta_binary=%s\n' "${SPARTA_BIN}"
   printf 'started_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 } > "${RUN_DIR}/unity_run_metadata.txt"
@@ -93,9 +97,11 @@ set +e
 "${MPI_LAUNCHER}" -n 2 "${SPARTA_BIN}" -help > mpi_preflight.out 2> mpi_preflight.err
 PREFLIGHT_STATUS=$?
 set -e
-grep -q '^Usage: sparta' mpi_preflight.out || {
+printf 'mpi_preflight_exit_status=%s\n' "${PREFLIGHT_STATUS}" >> unity_run_metadata.txt
+grep -q '^Usage: sparta' mpi_preflight.out mpi_preflight.err || {
   echo "MPI/SPARTA preflight failed (status ${PREFLIGHT_STATUS})." >&2
   tail -n 80 mpi_preflight.err >&2 || true
+  printf 'mpi_preflight=fail\nstatus=preflight_failed\n' >> unity_run_metadata.txt
   exit 7
 }
 printf 'mpi_preflight=pass\n' >> unity_run_metadata.txt
@@ -110,7 +116,12 @@ PHYSICS_GATE="$(python3 -c 'import json; print(str(json.load(open("validation_me
   printf 'finished_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   printf 'final_dump=%s\n' "${FINAL_DUMP_NAME}"
   printf 'physics_gate_pass=%s\n' "${PHYSICS_GATE}"
-  printf 'status=complete\n'
 } >> unity_run_metadata.txt
-echo "COMPLETE: ${RUN_DIR} physics_gate_pass=${PHYSICS_GATE}"
-
+if [[ "${PHYSICS_GATE}" == "true" ]]; then
+  printf 'status=complete\n' >> unity_run_metadata.txt
+  echo "VALIDATED COMPLETE: ${RUN_DIR} physics_gate_pass=true"
+else
+  printf 'status=physics_failed\n' >> unity_run_metadata.txt
+  echo "PHYSICS VALIDATION FAILED: ${RUN_DIR}; artifacts retained for diagnosis." >&2
+  exit 9
+fi

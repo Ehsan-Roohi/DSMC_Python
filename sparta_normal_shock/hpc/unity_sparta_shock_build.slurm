@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=sp-shock-build
+#SBATCH --job-name=sp2-shock-build
 #SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 #SBATCH --time=00:45:00
-#SBATCH --output=logs/sp-shock-build-%j.out
-#SBATCH --error=logs/sp-shock-build-%j.err
+#SBATCH --output=logs/sp2-shock-build-%j.out
+#SBATCH --error=logs/sp2-shock-build-%j.err
 
 set -euo pipefail
 
@@ -42,7 +42,7 @@ else
 fi
 [[ -x "${SPARTA_BIN}" ]] || { echo "Missing ${SPARTA_BIN}" >&2; exit 3; }
 
-HELP_FILE="${ROOT_DIR}/logs/sp-shock-build-${SLURM_JOB_ID}-help.txt"
+HELP_FILE="${ROOT_DIR}/logs/sp2-shock-build-${SLURM_JOB_ID}-help.txt"
 set +e
 "${SPARTA_BIN}" -help > "${HELP_FILE}" 2>&1
 HELP_STATUS=$?
@@ -57,7 +57,8 @@ bash "${ROOT_DIR}/scripts/run_smoke.sh" "${SPARTA_BIN}"
   printf 'status=READY\n'
   printf 'sparta_binary=%s\n' "${SPARTA_BIN}"
   printf 'sparta_source_commit=%s\n' "$(git -C "${ROOT_DIR}/third_party/sparta" rev-parse HEAD)"
+  printf 'sparta_help_exit_status=%s\n' "${HELP_STATUS}"
+  printf 'sparta_help_signature=pass\n'
   printf 'verified_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 } > "${ROOT_DIR}/logs/BUILD_READY_${SLURM_JOB_ID}.txt"
 echo "SPARTA tests and real M=3 normal-shock smoke case passed."
-

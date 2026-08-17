@@ -14,6 +14,13 @@ expected informational warning.  The transverse direction is periodic and
 the initial discontinuity is placed at the middle of the domain.  Production
 jobs cover Mach 2.5, 3, and 5 with three independent seeds per Mach number.
 
+Version 2 uses a common `x/lambda1 = [-30, 30]` domain with 1200 cells,
+preserving `dx/lambda1 = 0.05`.  Each production realization uses 64 upstream
+particles per cell, 80,000 warm-up steps, and a 320,000-step cumulative
+average sampled every 10 steps.  This longer domain is required because the
+Mach-5 thermal precursor contaminated the upstream plateau in the earlier
+`[-15, 15]` campaign.
+
 ## Observable contract
 
 Every run writes number density, stream velocity, translational temperature,
@@ -28,6 +35,30 @@ flux.  Post-processing reports
 
 Each realization is translated to its measured density midpoint before the
 ensemble is formed.  No spatial filter or smoothing operation is applied.
+The upstream and downstream validation windows remain in the original
+physical coordinate at `[-28, -24]` and `[24, 28]`; they are not translated
+with the shock.
+
+A realization is accepted only when all of the following pass:
+
+- every upstream/downstream `n`, `u`, and `T` Rankine-Hugoniot error is at
+  most 3%;
+- the maximum mass-, momentum-, and energy-flux error relative to the
+  upstream invariant is at most 0.5%;
+- the maximum relative plateau slope is at most 0.5% per `lambda1`;
+- the final cumulative average agrees with the preceding checkpoint in shock
+  position, thickness, far-field state, and aligned profiles of every stored
+  observable.  The profile limits are 2% RMS and 5% maximum relative change.
+
+The last two averages are nested and correlated, so this is deliberately
+reported as a **checkpoint-stability diagnostic**, not as an independent-
+sample convergence test.
+
+Ensembles require exactly three distinct, individually validated seeds.
+Pointwise 95% uncertainty uses the Student-t multiplier for two degrees of
+freedom (`t=4.3026527`), not the large-sample multiplier 1.96.  The confidence
+interval is evaluated after density-midpoint alignment and is not a
+simultaneous confidence band.
 
 ## Local verification
 
@@ -43,11 +74,17 @@ SPARTA source, runs the real smoke case, submits a 9-member production array,
 post-processes the completed members, and makes a compact return bundle.
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/sparta-normal-shock-book/sparta_normal_shock/hpc/bootstrap_unity_sparta_normal_shock.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/sparta-normal-shock-v2/sparta_normal_shock/hpc/bootstrap_unity_sparta_normal_shock.sh)
 ```
 
 The bootstrap prints job IDs and writes
-`/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK/LAST_SPARTA_NORMAL_SHOCK_JOBS.env`.
+`/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK/LAST_SPARTA_NORMAL_SHOCK_V2_JOBS.env`.
+
+The collector always creates a diagnostic bundle after the array finishes.
+If any realization fails a physics gate, that array task exits with status 9
+and the collector exits with status 6 after packaging the evidence.  Only a
+manifest containing `validated_member_count=9` is publication-ready; a tarball
+by itself is not proof of physical validation.
 
 ## Scientific scope
 
