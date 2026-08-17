@@ -25,7 +25,7 @@ ARRAY_ROOT="${RESULTS_BASE}/array_${ARRAY_JOB_ID}"
 ANALYSIS_DIR="${ARRAY_ROOT}/analysis"
 MANIFEST="${ARRAY_ROOT}/manifest.txt"
 BUNDLE="${BUNDLE_DIR}/SPARTA_KN020_JFM_${ARRAY_JOB_ID}.tar.gz"
-SEEDS=(20260803 20260819 20260831 20260847 20260859 20260871 20260883 20260899)
+SEEDS=(104729 130363)
 
 mkdir -p "${ARRAY_ROOT}" "${ANALYSIS_DIR}" "${ARRAY_ROOT}/scheduler_logs" "${BUNDLE_DIR}"
 
@@ -57,7 +57,7 @@ COMPLETE_COUNT=0
 {
   printf 'SPARTA DSMC JFM matched high-Kn return bundle\n'
   printf 'kn=0.20\nkn_convention=gu_lambda_over_L\n'
-  printf 'configuration=N160_ppc128_8seeds_warmup40000_samples_per_cell8501\n'
+  printf 'configuration=N160_ppc256_2seeds_warmup40000_samples_per_cell20000\n'
   printf 'build_job_id=%s\narray_job_id=%s\ncollector_job_id=%s\n' \
     "${BUILD_JOB_ID}" "${ARRAY_JOB_ID}" "${SLURM_JOB_ID}"
   printf 'code_commit=%s\n' "$(git -C "${ROOT_DIR}/.." rev-parse HEAD)"
@@ -89,6 +89,6 @@ echo "SHA256 FILE: ${BUNDLE}.sha256"
 echo "Complete seeds: ${COMPLETE_COUNT}/${#SEEDS[@]}"
 
 if (( POST_STATUS != 0 || COMPLETE_COUNT != ${#SEEDS[@]} )); then
-  echo "A diagnostic bundle was created, but the eight-seed ensemble is incomplete." >&2
+  echo "A diagnostic bundle was created, but the two-seed ensemble is incomplete." >&2
   exit 6
 fi
