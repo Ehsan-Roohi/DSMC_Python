@@ -1,0 +1,128 @@
+name: Vision-guided DSMC Stage 134
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage134_additive_baseline_origin_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage134_additive_baseline_origin_audit.py'
+      - 'vision_guided_dsmc/results/stage133_crossing_amplitude_scale_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage134.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  additive-baseline-origin-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 133-134 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage133_crossing_amplitude_scale_audit.py \
+            tests/test_stage134_additive_baseline_origin_audit.py
+      - name: Download exact completed Stage 132 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage132-crossing-phase-transition-width-audit
+          path: /tmp/stage132_crossing_phase_transition_width_audit
+          run-id: 32001930265
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 133 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage133-crossing-amplitude-scale-audit
+          path: /tmp/stage133_crossing_amplitude_scale_audit
+          run-id: 32019594478
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 132-133 payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage132_crossing_phase_transition_width_audit/summary.json': 'bbcfe2e0a60411891e81d0535d4e341346ebea3283ede3c8e7fb7f96fce70443',
+              '/tmp/stage132_crossing_phase_transition_width_audit/crossing_phase_transition_width.npz': '59c00c09bf0e8109946bf720f279bb151314c271f1fc67ae4b2378cb6abcc198',
+              '/tmp/stage133_crossing_amplitude_scale_audit/summary.json': '6746241f4fc9c89de9cf833327d8d4c4f3130e085285856e7bc995e3570d2e',
+              '/tmp/stage133_crossing_amplitude_scale_audit/crossing_amplitude_scale.npz': 'f66c67f3335b6a3267ce117d198a9f13049a1d8f0fa41682ac5fa68fa41b3f62',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 134 additive baseline origin audit
+        run: |
+          python -m vgdsmc.stage134_additive_baseline_origin_audit \
+            --stage132-dir /tmp/stage132_crossing_phase_transition_width_audit \
+            --stage133-dir /tmp/stage133_crossing_amplitude_scale_audit \
+            --stage133-record results/stage133_crossing_amplitude_scale_audit_observed.json \
+            --output-dir /tmp/stage134_additive_baseline_origin_audit
+      - name: Verify Stage 134 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage134_additive_baseline_origin_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 134
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['dominant_mirrored_sector'] == 6
+          assert cfg['plateau_depth_cells'] == 5.0
+          assert cfg['odd_dominance_min'] == 0.5
+          assert cfg['phase_shift_applied'] is False
+          assert cfg['width_refit_applied'] is False
+          assert cfg['amplitude_refit_applied'] is False
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['aggregate']['maximum_parent_closure'] <= 1.0e-12
+          allowed = {
+              'stage134_global_additive_baseline_stage135_baseline_support_audit',
+              'stage134_opposite_side_lobe_imbalance_stage135_fixed_lobe_amplitude_origin_audit',
+              'stage134_mixed_baseline_lobe_origin_stage135_crossing_residual_component_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root / 'additive_baseline_origin.npz') as data:
+              assert data['dominant_plateau_shifts'].shape == (2,)
+              assert data['parent_plateau_shifts'].shape == (2,)
+              assert data['dominant_even_odd'].shape == (2,)
+              assert data['parent_even_odd'].shape == (2,)
+              assert data['stage133_affine_offsets'].shape == (2,)
+              for key in data.files:
+                  assert np.isfinite(data[key]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage134-additive-baseline-origin-audit
+          path: /tmp/stage134_additive_baseline_origin_audit
+          retention-days: 30
