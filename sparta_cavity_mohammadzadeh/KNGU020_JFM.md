@@ -17,8 +17,12 @@ density, and `fnum` before launching SPARTA.
 On Unity, submit the complete build-array-collector chain with:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/agent/sparta-kn020-jfm/sparta_cavity_mohammadzadeh/hpc/bootstrap_unity_sparta_kngu020_jfm.sh)
+ROOT=/project/pi_roohie_umass_edu/DSMC_CAVITY_BOOK/DSMC_Python_sparta_kngu020_jfm; if [ -d "$ROOT/.git" ]; then git -C "$ROOT" fetch origin agent/sparta-kn020-jfm && git -C "$ROOT" switch agent/sparta-kn020-jfm && git -C "$ROOT" pull --ff-only origin agent/sparta-kn020-jfm; else git clone --depth 1 --branch agent/sparta-kn020-jfm --single-branch https://github.com/Ehsan-Roohi/DSMC_Python.git "$ROOT"; fi && bash "$ROOT/sparta_cavity_mohammadzadeh/hpc/bootstrap_unity_sparta_kngu020_jfm.sh"
 ```
+
+This form uses Git smart HTTP rather than `raw.githubusercontent.com`, avoiding
+the shared-IP Raw endpoint rate limit that can return HTTP 429 on compute login
+nodes.
 
 The workflow uses a separate checkout
 `DSMC_Python_sparta_kngu020_jfm`, stores raw results under
