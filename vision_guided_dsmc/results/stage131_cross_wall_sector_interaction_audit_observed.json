@@ -1,0 +1,48 @@
+{
+  "stage": 131,
+  "record_type": "completed_cross_wall_sector_interaction_audit",
+  "source_head": "73a9cbd2605f01e1e68e6f6a8145d6a264d9f05b",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31984973371,
+  "workflow_job_id": 95258262981,
+  "artifact_id": 9278022287,
+  "artifact_size_bytes": 4969,
+  "artifact_sha256": "29122d3cdbee0e7246f274582bd04a33976a3ce83b20be456e71d7f7d07062b8",
+  "summary_sha256": "67db62b54cc5e8de680f74d61604a2246ae5f4f6840b694644f8569a0d17b253",
+  "cross_wall_sector_interaction_sha256": "837d2373df50040208ed3b130da64caa868cfc1c614f8206310272e2a8354b85",
+  "tests": {"passed": 17, "failed": 0},
+  "decision": "stage131_mirror_sector_exchange_collapse_stage132_crossing_phase_transition_width_audit",
+  "aggregate": {
+    "inherited_stage130_maximum_parent_closure": 5.720506550380753e-16,
+    "maximum_stage130_additive_or_transition_absolute_closure": 5.720506550380753e-16
+  },
+  "key_metrics": {
+    "direct_profile_cosine": 0.2587579492518444,
+    "direct_transition_delta_cosine": 0.24346434369753822,
+    "minimum_mirrored_component_cosine": 0.996605128076057,
+    "mirror_gain_over_direct": 0.7377854699173831,
+    "mirrored_profile_cosine": 0.9965434191692275,
+    "mirrored_profile_positive_scale_wall1_to_wall0": 1.0281788953090336,
+    "mirrored_profile_relative_l2_residual": 0.08307354398667324,
+    "mirrored_sector5_component_cosine": 0.9966556511370915,
+    "mirrored_sector6_component_cosine": 0.996605128076057,
+    "mirrored_transition_delta_cosine": 0.9673815013662415,
+    "mirrored_transition_positive_scale_wall1_to_wall0": 1.6433544971907839,
+    "mirrored_transition_relative_l2_residual": 0.25332396415340747,
+    "overlap_sample_count": 26,
+    "parent_asymmetry_profile_cosine": 0.9972677471512799,
+    "parent_asymmetry_relative_l2_residual": 0.07387178413853798,
+    "parent_support_profile_cosine": 0.9942816882233084,
+    "relative_depth_min_cells": -13.038803831792146,
+    "relative_depth_max_cells": 11.961196168207854
+  },
+  "scientific_conclusion": "After wall-normal depth is expressed relative to each fixed Stage-129 crossing and sectors 5 and 6 are exchanged on one opposite wall, the Stage-130 node-9 sector profiles collapse to a common mirrored shape. The raw wall-specific dominant-sector identity is therefore largely a geometric opposite-wall label exchange rather than evidence for two unrelated angular mechanisms. A residual crossing-adjacent amplitude mismatch remains diagnostic only and does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "routing": {
+    "next_stage_justified": true,
+    "next_stage": 132,
+    "next_stage_name": "crossing_phase_transition_width_audit",
+    "design": "Keep the exact completed Stage-131 mirrored sectors-5+6 profiles and parent asymmetry profiles fixed. Quantify crossing phase and 25-75/10-90 transition widths in the common mirrored dominant sector and the parent profile after the already-fixed crossing alignment. Determine whether the remaining crossing-adjacent mismatch is a phase/width effect or an amplitude-scale effect. Do not rerun the solver or change any physical/numerical parameter."
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}
