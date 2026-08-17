@@ -1,0 +1,15 @@
+{
+  "record_type": "stage133_checksum_correction",
+  "stage": 133,
+  "workflow_run_id": 32019594478,
+  "workflow_job_id": 95356269923,
+  "artifact_id": 9291710769,
+  "artifact_sha256": "edb8311684b4fe889343a56df6cb6bbe539279ca84b91f24e5f49581ad5a3311",
+  "artifact_size_bytes": 3302,
+  "actual_summary_sha256": "6746241f4fc9c89de9cfbf833327d8d4c4f3130e085285856e7bc995e3570d2e",
+  "recorded_summary_sha256_with_typo": "6746241f4fc9c89de9cf833327d8d4c4f3130e085285856e7bc995e3570d2e",
+  "crossing_amplitude_scale_sha256": "f66c67f3335b6a3267ce117d198a9f13049a1d8f0fa41682ac5fa68fa41b3f62",
+  "evidence": "Stage 134 run 32041506870 attempt 2 downloaded the exact Stage 133 artifact and measured the summary.json SHA-256 before failing its provenance assertion. The artifact ZIP digest and payload NPZ digest remain unchanged.",
+  "scientific_effect": "None. This correction changes provenance metadata only; it does not alter any Stage 133 metric, decision, physical parameter, numerical parameter, or negative-result guard.",
+  "negative_result_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No failed physical or numerical parameter is retuned, and no cross-Knudsen MUSCL extension is authorized."
+}
