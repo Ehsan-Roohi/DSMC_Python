@@ -24,7 +24,9 @@ done
 
 mkdir -p "${BASE_DIR}" "${RESULTS_BASE}" "${CAMPAIGN}"
 if [[ -d "${REPO_DIR}/.git" ]]; then
-  if [[ -n "$(git -C "${REPO_DIR}" status --porcelain)" ]]; then
+  # Build logs and the pinned third-party executable are intentionally local.
+  # Refuse only tracked edits, so a completed/failed prior attempt can recover.
+  if [[ -n "$(git -C "${REPO_DIR}" status --porcelain --untracked-files=no)" ]]; then
     echo "The dedicated Kn=0.20 checkout has changes; refusing to update: ${REPO_DIR}" >&2
     exit 3
   fi
