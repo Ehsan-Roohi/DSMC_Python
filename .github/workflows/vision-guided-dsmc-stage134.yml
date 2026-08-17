@@ -53,7 +53,7 @@ jobs:
           expected = {
               '/tmp/stage132_crossing_phase_transition_width_audit/summary.json': 'bbcfe2e0a60411891e81d0535d4e341346ebea3283ede3c8e7fb7f96fce70443',
               '/tmp/stage132_crossing_phase_transition_width_audit/crossing_phase_transition_width.npz': '59c00c09bf0e8109946bf720f279bb151314c271f1fc67ae4b2378cb6abcc198',
-              '/tmp/stage133_crossing_amplitude_scale_audit/summary.json': '6746241f4fc9c89de9cf833327d8d4c4f3130e085285856e7bc995e3570d2e',
+              '/tmp/stage133_crossing_amplitude_scale_audit/summary.json': '6746241f4fc9c89de9cfbf833327d8d4c4f3130e085285856e7bc995e3570d2e',
               '/tmp/stage133_crossing_amplitude_scale_audit/crossing_amplitude_scale.npz': 'f66c67f3335b6a3267ce117d198a9f13049a1d8f0fa41682ac5fa68fa41b3f62',
           }
           for name, digest in expected.items():
