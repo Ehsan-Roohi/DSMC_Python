@@ -1,0 +1,133 @@
+{
+  "aggregate": {
+    "maximum_near_l1_share": 0.6637263746819247,
+    "maximum_parent_closure": 5.720506550380753e-16,
+    "minimum_effective_sample_count": 5.475930357761673,
+    "minimum_sign_coherence": 1.0,
+    "normalized_profile_cosine": 0.966835921213101,
+    "normalized_profile_tv_distance": 0.12623571679641168,
+    "parent_record_ok": true
+  },
+  "artifact_id": 9325758887,
+  "artifact_sha256": "176d1cb7e6b45ba7e780d1cd09254ee4c0aa27dab086eca1de92e2b891e5f0b0",
+  "artifact_size_bytes": 2687,
+  "decision": "stage136_distributed_common_right_lobe_support_stage137_right_lobe_decay_shape_audit",
+  "design": {
+    "affine_gain_min": 0.35,
+    "affine_residual_max": 0.15,
+    "amplitude_refit_applied": false,
+    "benchmark_or_validation_claim_permitted": false,
+    "boundary_slope": "zero",
+    "broad_effective_count_min": 4.5,
+    "cold_hot_ratio": 0.1,
+    "collision_source_retuning": false,
+    "common_profile_cosine_min": 0.95,
+    "core_half_width_cells": 4.0,
+    "core_sample_count": 8,
+    "correction_floor": 0.05,
+    "cross_knudsen_extension_permitted": false,
+    "diagnostic_steps": 25,
+    "dominant_mirrored_sector": 6,
+    "floor_retuning": false,
+    "global_baseline_fraction_min": 0.75,
+    "global_offset_relative_mismatch_max": 0.5,
+    "grid": [
+      64,
+      64
+    ],
+    "interior_grid": [
+      56,
+      56
+    ],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "limiter_retuning": false,
+    "lobe_l1_share_min": 0.7,
+    "near_localization_share_min": 0.75,
+    "near_sample_count": 3,
+    "normalization_retuning": false,
+    "odd_dominance_min": 0.5,
+    "offset_increment_min": 0.2,
+    "pair_sectors": [
+      5,
+      6
+    ],
+    "phase_shift_applied": false,
+    "physical_parameter_retuning": false,
+    "plateau_depth_cells": 5.0,
+    "radial_scale": 2.0,
+    "reconstruction_retuning": false,
+    "right_support_min_depth_cells": 5.0,
+    "rule": [
+      40,
+      96
+    ],
+    "scale_only_gain_min": 0.2,
+    "sign_coherence_min": 0.95,
+    "solver_endpoint_advanced": false,
+    "solver_rerun": false,
+    "source_relaxation": 1.0,
+    "source_relaxation_retuning": false,
+    "tolerance": 2e-05,
+    "transport_retuning": false,
+    "velocity_grid_retuning": false,
+    "wall_retuning": false,
+    "width_refit_applied": false,
+    "witness_node": 9
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced.",
+  "key_metrics": {
+    "dominant_sector": {
+      "effective_sample_count": 6.5049000089553415,
+      "endpoint_to_nearest_magnitude_ratio": 0.3994956055912982,
+      "far_l1_share": 0.3129252253263518,
+      "half_l1_depth_cells": 7.961196168207854,
+      "l1_mismatch": 0.41653216831457773,
+      "max_single_sample_share": 0.21408431538828399,
+      "near_l1_share": 0.537490657885513,
+      "nonincreasing_step_fraction": 0.8333333333333334,
+      "sample_count": 7,
+      "sign_coherence": 1.0,
+      "uniform_negative_sign": true,
+      "weighted_centroid_depth_cells": 8.43455381788095,
+      "weighted_spread_cells": 1.9430445068437308
+    },
+    "normalized_right_lobe_profile_cosine": 0.966835921213101,
+    "normalized_right_lobe_profile_tv_distance": 0.12623571679641168,
+    "parent_profile": {
+      "effective_sample_count": 5.475930357761673,
+      "endpoint_to_nearest_magnitude_ratio": 0.18282496379267654,
+      "far_l1_share": 0.22135037103365568,
+      "half_l1_depth_cells": 7.961196168207854,
+      "l1_mismatch": 0.3916152497333998,
+      "max_single_sample_share": 0.2661005260850376,
+      "near_l1_share": 0.6637263746819247,
+      "nonincreasing_step_fraction": 1.0,
+      "sample_count": 7,
+      "sign_coherence": 1.0,
+      "uniform_negative_sign": true,
+      "weighted_centroid_depth_cells": 7.927263095453074,
+      "weighted_spread_cells": 1.800771886831258
+    }
+  },
+  "record_type": "completed_right_lobe_depth_support_audit",
+  "right_lobe_depth_support_sha256": "f8829d07450f3832dc45a878943ac69415390e89208f9bb859e838fa9c160015",
+  "routing": {
+    "next_stage": 137,
+    "next_stage_justified": true,
+    "next_stage_name": "right_lobe_decay_shape_audit",
+    "reason": "Both retained right-lobe channels are distributed rather than crossing-localized: the larger near-three-sample share is 66.37263746819247%, the smaller effective sample count is 5.475930357761673, and the normalized depth-profile cosine is 0.966835921213101. The next justified artifact-only diagnostic is therefore to test whether the common distributed depth dependence is smooth attenuation or contains resolved shape structure."
+  },
+  "scientific_conclusion": "The Stage-135 right/negative lobe is not confined to the samples nearest the crossing. Both retained channels have broad effective depth support and their normalized right-lobe magnitude profiles are strongly aligned. The next justified artifact-only diagnostic is a fixed right-lobe decay-shape audit to determine whether the common depth dependence is smooth attenuation or contains resolved structure. This does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "source_head": "a498faa95cecf9712b8401f389e6776f02e4aa0f",
+  "stage": 136,
+  "summary_sha256": "eaf3706b2c7bca1678b0680dcf06daa076ccd36eeb91dccb9b8602bd8378b64c",
+  "tests": {
+    "failed": 0,
+    "passed": 32
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 95722525504,
+  "workflow_run_id": 32140741740,
+  "workflow_status": "completed"
+}
