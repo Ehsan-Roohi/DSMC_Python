@@ -121,3 +121,5 @@ jobs:
           name: stage136-right-lobe-depth-support-audit
           path: /tmp/stage136_right_lobe_depth_support_audit
           retention-days: 30
+
+# Explicit Stage 136 launch touch; no scientific guard or numerical parameter changed.
