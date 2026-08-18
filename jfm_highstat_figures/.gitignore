@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.matplotlib/
+run_output/
+slurm/
+LAST_SUBMISSION_*.env
