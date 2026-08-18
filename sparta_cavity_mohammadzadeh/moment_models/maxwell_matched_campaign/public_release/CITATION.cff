@@ -18,9 +18,8 @@ keywords:
   - anti-Fourier heat flux
 preferred-citation:
   type: article
-  title: "What does anti-Fourier heat-flux agreement validate? DSMC sensitivity and R13/R26 diagnostics in a rarefied cavity"
+  title: "Anti-Fourier heat flux does not certify the fourth-order closure state of a rarefied cavity"
   authors:
     - family-names: Roohi
       given-names: Ehsan
   year: 2026
-

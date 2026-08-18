@@ -1,8 +1,8 @@
 # Matched Maxwell-molecule cavity release
 
-This directory is the reproducibility release for **“What does anti-Fourier
-heat-flux agreement validate? DSMC sensitivity and R13/R26 diagnostics in a
-rarefied cavity.”**  It contains the redistributable source, run contracts,
+This directory is the reproducibility release for **“Anti-Fourier heat flux
+does not certify the fourth-order closure state of a rarefied cavity.”**  It
+contains the redistributable source, run contracts,
 validators, processed states and reduced tables used for the matched
 comparisons at `Kn_Gu = 0.05` and `0.20`.
 
