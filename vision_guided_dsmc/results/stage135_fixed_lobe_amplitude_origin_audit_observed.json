@@ -1,0 +1,81 @@
+{
+  "aggregate": {
+    "maximum_parent_closure": 5.720506550380753e-16,
+    "maximum_right_lobe_constant_shift_relative_l2_residual": 0.46660929545549706,
+    "maximum_stage134_lobe_shift_closure": 1.734723475976807e-16,
+    "minimum_right_lobe_l1_share": 0.73776234434935,
+    "minimum_right_lobe_sign_coherence": 1.0
+  },
+  "artifact_id": 9310452785,
+  "artifact_sha256": "ef3de56bb2496fe2fc75e816d350455ee6da4986f38189c53a09d2f2b570d5c1",
+  "artifact_size_bytes": 3320,
+  "decision": "stage135_right_negative_lobe_dominant_stage136_right_lobe_depth_support_audit",
+  "design": {
+    "amplitude_refit_applied": false,
+    "benchmark_or_validation_claim_permitted": false,
+    "boundary_slope": "zero",
+    "cold_hot_ratio": 0.1,
+    "correction_floor": 0.05,
+    "cross_knudsen_extension_permitted": false,
+    "dominant_mirrored_sector": 6,
+    "grid": [64, 64],
+    "interior_grid": [56, 56],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "lobe_l1_share_min": 0.70,
+    "pair_sectors": [5, 6],
+    "phase_shift_applied": false,
+    "physical_parameter_retuning": false,
+    "plateau_depth_cells": 5.0,
+    "radial_scale": 2.0,
+    "rule": [40, 96],
+    "sign_coherence_min": 0.95,
+    "solver_endpoint_advanced": false,
+    "solver_rerun": false,
+    "source_relaxation": 1.0,
+    "width_refit_applied": false,
+    "witness_node": 9
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced.",
+  "fixed_lobe_amplitude_origin_sha256": "3d8500ff85a4dbb5dd59d5ec5742ab49c35e2fb6b620b394d2fba46f0bf224b1",
+  "key_metrics": {
+    "dominant_sector": {
+      "left_constant_shift_relative_l2_residual": 0.8806661351589331,
+      "left_l1_share": 0.26223765565065005,
+      "left_mean_shift_wall0_minus_wall1": 0.00981446487005724,
+      "left_sign_coherence": 0.5965983093735711,
+      "right_constant_shift_relative_l2_residual": 0.26594843513214533,
+      "right_l1_mismatch": 0.41653216831457773,
+      "right_l1_share": 0.73776234434935,
+      "right_mean_shift_wall0_minus_wall1": -0.059504595473511106,
+      "right_sign_coherence": 1.0
+    },
+    "parent_profile": {
+      "left_constant_shift_relative_l2_residual": 0.9407446756878949,
+      "left_l1_share": 0.2531270989860034,
+      "left_mean_shift_wall0_minus_wall1": 0.006445243880612097,
+      "left_sign_coherence": 0.4370492001439152,
+      "right_constant_shift_relative_l2_residual": 0.46660929545549706,
+      "right_l1_mismatch": 0.3916152497333998,
+      "right_l1_share": 0.7468729010139966,
+      "right_mean_shift_wall0_minus_wall1": -0.05594503567619997,
+      "right_sign_coherence": 1.0
+    }
+  },
+  "record_type": "completed_fixed_lobe_amplitude_origin_audit",
+  "routing": {
+    "next_stage": 136,
+    "next_stage_justified": true,
+    "next_stage_name": "right_lobe_depth_support_audit",
+    "reason": "The right/negative lobe carries at least 73.776234434935% of the fixed tail mismatch in both retained channels with sign coherence 1.0, while a single constant shift leaves up to 46.660929545549706% relative L2 residual. The next justified artifact-only diagnostic is therefore to quantify whether that right-lobe remainder is crossing-localized or distributed with depth."
+  },
+  "scientific_conclusion": "The fixed Stage-132 cross-wall mismatch is carried predominantly by the right/negative lobe in both the dominant mirrored sector and the parent profile, with coherent sign across the entire fixed right-tail support. The right-lobe mismatch is not well represented by one depth-independent amplitude offset, so the next justified diagnostic is a right-lobe depth-support audit. This remains artifact attribution only and does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "source_head": "71442743df6128d7b457b6f7522ccb9a27dce56e",
+  "stage": 135,
+  "summary_sha256": "e959a53f3ecfee13073b32dfd530dc67d8930897a69cde8cdec33bf539197354",
+  "tests": {"failed": 0, "passed": 20},
+  "workflow_conclusion": "success",
+  "workflow_job_id": 95513279085,
+  "workflow_run_id": 32070772876,
+  "workflow_status": "completed"
+}
