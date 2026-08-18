@@ -1,4 +1,4 @@
-# Matched Maxwell-molecule cavity release
+# Maxwell-transport-class cavity release
 
 This directory is the reproducibility release for **“Anti-Fourier heat flux
 does not certify the fourth-order closure state of a rarefied cavity.”**  It

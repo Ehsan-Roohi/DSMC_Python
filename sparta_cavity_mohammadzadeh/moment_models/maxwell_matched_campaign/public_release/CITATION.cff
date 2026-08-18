@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software or data, please cite the associated article and this release."
-title: "Matched Maxwell-molecule DSMC, R13 and R26 cavity reproducibility release"
+title: "Maxwell-transport-class DSMC, R13 and R26 cavity reproducibility release"
 type: software
 authors:
   - family-names: Roohi
