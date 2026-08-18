@@ -1,0 +1,93 @@
+{
+  "aggregate": {
+    "channel_decay_rate_relative_difference": 0.7032040687520923,
+    "common_profile_relative_l2_residual": 0.03334377317352108,
+    "maximum_parent_profile_closure": 1.1102230246251565e-16,
+    "maximum_relative_l2_residual": 0.0785784412438649,
+    "minimum_log_linear_r2": 0.9254217861097459,
+    "minimum_nonincreasing_step_fraction": 0.8333333333333334,
+    "parent_record_ok": true
+  },
+  "artifact_id": 9338389400,
+  "artifact_sha256": "8c3264d8395f5adad390b3dbf35cb4cf70f421ad8c38ca63c1cb1363d3b9bf7d",
+  "artifact_size_bytes": 3247,
+  "decision": "stage137_smooth_channel_rate_split_stage138_channel_rate_origin_audit",
+  "design": {
+    "boundary_slope": "zero",
+    "cold_hot_ratio": 0.1,
+    "collision_source_retuning": false,
+    "common_rate_relative_difference_max": 0.25,
+    "correction_floor": 0.05,
+    "cross_knudsen_extension_permitted": false,
+    "diagnostic_decay_fit_used_for_solver": false,
+    "dominant_mirrored_sector": 6,
+    "floor_retuning": false,
+    "grid": [64, 64],
+    "interior_grid": [56, 56],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "limiter_retuning": false,
+    "log_linear_r2_min": 0.9,
+    "monotone_step_fraction_min": 0.8333333333333334,
+    "normalization_retuning": false,
+    "pair_sectors": [5, 6],
+    "physical_parameter_retuning": false,
+    "radial_scale": 2.0,
+    "reconstruction_retuning": false,
+    "relative_l2_residual_max": 0.1,
+    "rule": [40, 96],
+    "solver_endpoint_advanced": false,
+    "solver_rerun": false,
+    "source_relaxation": 1.0,
+    "source_relaxation_retuning": false,
+    "transport_retuning": false,
+    "velocity_grid_retuning": false,
+    "wall_retuning": false,
+    "witness_node": 9
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. The Stage-137 decay rates are diagnostic fits only and are not solver parameters. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced.",
+  "key_metrics": {
+    "channel_decay_rate_relative_difference": 0.7032040687520923,
+    "common_geometric_profile": {
+      "decay_rate_per_cell": 0.20900362019460525,
+      "log_linear_r2": 0.9898000702426246,
+      "nonincreasing_step_fraction": 1.0,
+      "relative_l2_residual": 0.03334377317352108
+    },
+    "dominant_sector": {
+      "decay_rate_per_cell": 0.1355175221422236,
+      "endpoint_to_nearest_magnitude_ratio": 0.3994956055912982,
+      "log_linear_r2": 0.9254217861097459,
+      "nonincreasing_step_fraction": 0.8333333333333334,
+      "relative_l2_residual": 0.0785784412438649
+    },
+    "normalized_parent_profile_cosine": 0.9668359212131011,
+    "parent_profile": {
+      "decay_rate_per_cell": 0.282489718246987,
+      "endpoint_to_nearest_magnitude_ratio": 0.18282496379267654,
+      "log_linear_r2": 0.987533041251598,
+      "nonincreasing_step_fraction": 1.0,
+      "relative_l2_residual": 0.06473064465386494
+    }
+  },
+  "record_type": "completed_right_lobe_decay_shape_audit",
+  "right_lobe_decay_shape_sha256": "05a8119eaf668aee355194428840596baacc79a79eb88446351bc2143ad5d3b6",
+  "routing": {
+    "next_stage": 138,
+    "next_stage_justified": true,
+    "next_stage_name": "channel_rate_origin_audit",
+    "reason": "Both right-lobe channels satisfy the preregistered smooth log-linear attenuation guards, but their fitted decay rates differ by 70.32040687520923%, above the fixed 25% common-rate tolerance. The next justified artifact-only diagnostic is therefore to determine whether the rate split comes from depth-varying signed channel mixing/cancellation rather than treating the two fitted rates as solver parameters."
+  },
+  "scientific_conclusion": "Both fixed Stage-136 right-lobe channels are individually consistent with smooth log-linear attenuation under the preregistered residual, R2, and monotonicity guards, but their diagnostic decay rates differ by more than the fixed common-rate tolerance. The next justified artifact-only diagnostic is therefore a channel-rate origin audit; no solver coefficient or physical parameter is changed. This does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "source_head": "9699d9096c60019a8faaffc2e7404a6a03628b17",
+  "stage": 137,
+  "summary_sha256": "1a655f9761d021def68996d4848508f7b035db82b584d11d3464eaa455a5a5f5",
+  "tests": {
+    "failed": 0,
+    "passed": 17
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 95724651080,
+  "workflow_run_id": 32141400728,
+  "workflow_status": "completed"
+}
