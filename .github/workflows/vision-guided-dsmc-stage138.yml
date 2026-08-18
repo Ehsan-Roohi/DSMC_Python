@@ -136,3 +136,5 @@ jobs:
           name: stage138-channel-rate-origin-audit
           path: /tmp/stage138_channel_rate_origin_audit
           retention-days: 30
+
+# Explicit Stage 138 launch touch; no scientific guard or numerical parameter changed.
