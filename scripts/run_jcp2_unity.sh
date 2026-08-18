@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP2_CODE_COMMIT=__JCP2_CORE_COMMIT__
+JCP2_CODE_COMMIT=189a098d09974b6c8afd905e87d33651d8c83de5
 JCP2_RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP2_CODE_COMMIT}"
 JCP2_ORIGINAL_REPO=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc
 JCP2_WORK=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/JCP2
@@ -123,4 +123,3 @@ echo "JCP2_PREDICTION_JOB_ID=${JCP2_PREDICTION_JOB_ID}"
 echo "JCP2_SCORE_JOB_ID=${JCP2_SCORE_JOB_ID}"
 echo "MONITOR=squeue -j ${JCP2_EVAL_JOB_ID},${JCP2_REFERENCE_JOB_ID},${JCP2_PREDICTION_JOB_ID},${JCP2_SCORE_JOB_ID}"
 echo "WHEN_COMPLETE_UPLOAD=${JCP2_WORK}/JCP2.zip ${JCP2_WORK}/JCP2.zip.sha256"
-
