@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+results/
+logs/
+slurm-*.out
+slurm-*.err

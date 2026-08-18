@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite the associated article and this release."
+title: "Matched Maxwell-molecule DSMC, R13 and R26 cavity reproducibility release"
+type: software
+authors:
+  - family-names: Roohi
+    given-names: Ehsan
+repository-code: "https://github.com/Ehsan-Roohi/DSMC_Python"
+version: 1.0.0
+date-released: 2026-08-18
+license: BSD-3-Clause
+keywords:
+  - DSMC
+  - SPARTA
+  - R13
+  - R26
+  - rarefied gas dynamics
+  - anti-Fourier heat flux
+preferred-citation:
+  type: article
+  title: "What does anti-Fourier heat-flux agreement validate? DSMC sensitivity and R13/R26 diagnostics in a rarefied cavity"
+  authors:
+    - family-names: Roohi
+      given-names: Ehsan
+  year: 2026
+
