@@ -26,6 +26,8 @@ R13/R26 solvers, reference fields, restart workflows, and numerical evidence
 for the active JFM article are protected.  Read
 [`JFM_R13_R26_PROTECTION.md`](JFM_R13_R26_PROTECTION.md).  Repository cleanup
 must not merge or rewrite those assets simply to reduce branch or PR counts.
+The complete open-PR inventory is indexed in
+[`OPEN_RESEARCH_PRS.md`](OPEN_RESEARCH_PRS.md).
 
 ## Reproducibility policy
 
