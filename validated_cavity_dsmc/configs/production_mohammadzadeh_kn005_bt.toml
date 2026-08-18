@@ -1,0 +1,17 @@
+[simulation]
+model = "sbt"
+backend = "gpu"
+kn = 0.005
+nx = 200
+ny = 200
+particles_per_cell = 32
+# SBT selects dt=7.640708219753597e-13 s, smaller than the NTC reference
+# dt=8.256788186937887e-13 s.  These counts preserve the NTC physical end
+# time, warmup duration, and approximately the same sampling interval.
+steps = 86451
+warmup_steps = 32419
+sample_stride = 11
+seed = 20260803
+probability_target = 0.20
+strict_probability = true
+output_dir = "results/production_kn005_sbt"

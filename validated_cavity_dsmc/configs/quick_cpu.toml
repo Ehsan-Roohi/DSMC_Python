@@ -1,0 +1,12 @@
+[simulation]
+model = "ntc-prescan"
+backend = "cpu"
+kn = 0.1
+nx = 16
+ny = 16
+particles_per_cell = 8
+steps = 500
+warmup_steps = 200
+sample_stride = 5
+seed = 20260803
+output_dir = "results/quick_cpu"

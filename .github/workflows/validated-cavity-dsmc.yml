@@ -1,0 +1,28 @@
+name: validated-cavity-dsmc
+
+on:
+  push:
+    paths:
+      - "validated_cavity_dsmc/**"
+      - ".github/workflows/validated-cavity-dsmc.yml"
+  pull_request:
+    paths:
+      - "validated_cavity_dsmc/**"
+      - ".github/workflows/validated-cavity-dsmc.yml"
+  workflow_dispatch:
+
+jobs:
+  cpu-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: validated_cavity_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e .
+      - run: python -m unittest discover -s tests -v
+      - run: dsmc-cavity --config configs/quick_cpu.toml --no-progress

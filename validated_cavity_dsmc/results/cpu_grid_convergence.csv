@@ -1,0 +1,3 @@
+model,backend,kn,nx,ny,particles_per_cell,steps,warmup_steps,sample_stride,samples,seed,resolved_dt_s,dx_over_lambda,runtime_seconds,probability_exceedances,slip_rmse,slip_max_abs,temperature_rmse_K,temperature_max_abs_K,slip_pass,temperature_pass,overall_pass
+ntc,cpu,0.1,24,24,24,16000,8000,2,4000,20260803,6.880656822448238e-12,0.41666666666666663,134.76210045600237,0,0.12126913294036341,0.17569293254252116,2.5363390639324725,4.945053761982081,false,false,false
+ntc,cpu,0.1,50,50,12,12000,6000,2,3000,20260803,3.3027152747751547e-12,0.2,205.1950122340022,0,0.05074190234343711,0.0650178608121364,1.7568501995679942,2.9951275662343164,true,true,true

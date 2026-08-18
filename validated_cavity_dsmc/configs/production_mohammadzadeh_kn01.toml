@@ -1,0 +1,12 @@
+[simulation]
+model = "ntc-prescan"
+backend = "gpu"
+kn = 0.1
+nx = 200
+ny = 200
+particles_per_cell = 32
+steps = 40000
+warmup_steps = 14000
+sample_stride = 10
+seed = 20260803
+output_dir = "results/production_kn01_ntc_prescan"

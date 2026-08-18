@@ -1,0 +1,11 @@
+{
+  "kn": 0.1,
+  "overall_pass": true,
+  "points": 9,
+  "slip_max_abs": 0.0650178608121364,
+  "slip_pass": true,
+  "slip_rmse": 0.05074190234343711,
+  "temperature_max_abs_K": 2.9951275662343164,
+  "temperature_pass": true,
+  "temperature_rmse_K": 1.7568501995679942
+}
