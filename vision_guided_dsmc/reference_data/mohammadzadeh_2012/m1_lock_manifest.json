@@ -1,0 +1,38 @@
+{
+  "lock_version": "M1-postrun-attestation-2026-08-03",
+  "scope": "immutable attestation of the exact M1 S1 inputs and source bundle already embedded in completed checkpoints",
+  "composite_hashes": {
+    "execution_protocol_sha256": "4261a0fdf2cc878740852b0d9a4f126e0d6081cef02e0dacd5c70c7c8a1f0fad",
+    "reference_bundle_sha256": "04057d35504d6f25c771578d231ac079902cc28ec6384ce0d1ad7b0f80c90c7d",
+    "seed_bank_sha256": "ebdf9bf2fc2bb3f6836e05f82d3e72be84a5bba1d3bcef667b341710d1c1e760",
+    "source_bundle_sha256": "95c39bf40bad08992e23de0acbf749f1a9334a1e1ee92c334af0dad73d98e277"
+  },
+  "files": {
+    "reference_data/mohammadzadeh_2012/m1_execution_protocol.json": "4261a0fdf2cc878740852b0d9a4f126e0d6081cef02e0dacd5c70c7c8a1f0fad",
+    "reference_data/mohammadzadeh_2012/m1_seed_bank.json": "ebdf9bf2fc2bb3f6836e05f82d3e72be84a5bba1d3bcef667b341710d1c1e760",
+    "reference_data/mohammadzadeh_2012/validation_protocol.json": "8728edadeeec6c106035afc16c8aacd3da0c2a1d54dd8329c5c6b75c7003d448",
+    "reference_data/mohammadzadeh_2012/benchmark_metadata.json": "f35814ffdb5c45503fdb2229018b8d7233bd8baa47328e64b4d66434a3a36b7e",
+    "reference_data/mohammadzadeh_2012/fig4_wall_slip_profiles.csv": "aed842f36ff6d43dfd4fdf821ee0e7189d0170933bfdcff07227b28e3d457589",
+    "reference_data/mohammadzadeh_2012/fig5_wall_temperature_profiles.csv": "c78dab5b9bbf57941856bbb22815b91ddf8d701ef358c8545cdd9233ef44c4f8",
+    "reference_data/mohammadzadeh_2012/fig9b_dsmc_qy_profile_y08.csv": "df423daea9ab4d454455d3fde6a9db4afae3c4a057045d976cd21db8ed02d338",
+    "reference_data/mohammadzadeh_2012/fig9b_dsmc_temperature_profile_x08.csv": "e4b6e3c94a03f9c39ebc08ba8a524c1118ef0a3304aa4b2bf2c5bcf3a3eb20ca",
+    "vgdsmc/mohammadzadeh_production.py": "c929d6b9014b9e86f327e1f15cbbb7433fc27fae7eec68722fb84ff0ce132209",
+    "vgdsmc/mohammadzadeh_statistics.py": "eaabefb27361ef98951854f8c291785a86fa131f3b2f34cd047c5e44d29ff76d",
+    "vgdsmc/mohammadzadeh_validation.py": "550386b7c583bc6dc863871102a60b853d74b0bbce3ee37425d345155ca7ebd0",
+    "vgdsmc/moment_sampling.py": "9b49745c0604c1d8acf4f625f386adb5c062ba79613efd3cae914941fada0b13",
+    "vgdsmc/ntc_checkpoint.py": "529a9ce59beccdd63721c6098b31f393d8d04ee6ffd0e6be48a63080f86aa201",
+    "vgdsmc/ntc_fast.py": "863724e432d21c9c82714574fea73574b5f2fb956333a049ac84da97f9794453",
+    "vgdsmc/ntc_solver.py": "59ad4027954b978651ab8b75036e5c24712179bc2dde3e547a272dbe218d9c14",
+    "vgdsmc/vhs_model.py": "46d9eeb7f52458d7935b616100d589da4e54b4ea4bbf70e60ce50e24be00a203",
+    "vgdsmc/wall_balance.py": "f16bda0ca7d4e6f06607f039269804fd5d536e351ddfc5ea52d269ee83c0b55c",
+    "vgdsmc/wall_sampling.py": "7fdf8a5f6082e8f833586598744355f796d7cb6b4244caacebcd2d832ad20f21"
+  },
+  "completed_artifacts": {
+    "ensemble_artifact_manifest_file_sha256": "76a0197e7f17b95f6c0530ad59a844d1e305c5c7bd3de12a8fedffce9e946c50",
+    "ensemble_manifest_sha256": "63167bfcec2ad085264c49e4dacaf5f82c80dfe6bc02c8560ca6acd5ec7137d3",
+    "seed_91101_manifest_sha256": "cb72885aaf0fcca4f2e3bd51fcc4e8850bcc7d59364a6558e25a2c0e84c8bacd",
+    "seed_91102_manifest_sha256": "51ea46e55f250c7d4587e960e29e8db9f8b449a51e07ce77214f68e31cf37316"
+  },
+  "decision": "hold_M1_S1_for_diagnosis",
+  "guard": "M1 files listed above are frozen; wall-streaming repair must use a new M1R module and protocol without overwriting M1 artifacts"
+}

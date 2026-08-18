@@ -1,0 +1,22 @@
+{
+  "bank_version": "M2-spatial-preregistered-2026-08-03",
+  "development": {
+    "R50_spatial": [
+      91601,
+      91602
+    ],
+    "R100_spatial": [
+      91701,
+      91702
+    ],
+    "R200_spatial": [
+      91801,
+      91802
+    ]
+  },
+  "rules": {
+    "all_seeds_are_disjoint_from_M1_M1R_and_reserved_confirmatory_banks": true,
+    "no_seed_replacement_after_any_M2_outcome": true,
+    "only_R50_is_initially_authorized": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "protocol_version": "M0-locked-2026-08-03",
+  "status": "locked_before_new_mohammadzadeh_solver_outcomes",
+  "primary_case": {
+    "knudsen": 0.05,
+    "lid_speed_m_per_s": 100.0,
+    "wall_temperature_K": 300.0,
+    "length_m": 1e-06,
+    "gas": "monatomic argon",
+    "collision_model": "VHS",
+    "collision_selection": "NTC",
+    "wall_model": "fully diffuse",
+    "grid": [200, 200],
+    "initial_particles_per_cell": 32,
+    "independent_confirmatory_seeds": 8
+  },
+  "declared_assumptions_missing_from_paper": {
+    "vhs_temperature_ref_K": 273.0,
+    "vhs_viscosity_exponent": 0.81,
+    "mean_free_path_policy": "VHS cross section evaluated at the Maxwellian mean relative speed; perform a separately labelled convention sensitivity",
+    "primary_output": "unsmoothed ensemble mean",
+    "paper_filter": "optional sensitivity only because the five-neighbour stencil is unspecified"
+  },
+  "minimum_run_policy": {
+    "development_grid": [100, 100],
+    "production_grid": [200, 200],
+    "minimum_steps": 200000,
+    "minimum_burn_in_steps": 80000,
+    "nominal_sample_stride": 20,
+    "minimum_nonoverlapping_time_blocks": 8,
+    "acceptance_requires_stationarity": true,
+    "note": "Step counts are lower bounds, not a substitute for stationarity and effective-sample-size checks."
+  },
+  "gates": {
+    "fig4_macroscopic_slip": {
+      "domain_x_over_l": [0.05, 0.95],
+      "nrmse_over_reference_rms_max": 0.10,
+      "maximum_absolute_error_max": 0.06
+    },
+    "fig4_microscopic_slip": {
+      "domain_x_over_l": [0.05, 0.95],
+      "nrmse_over_reference_rms_max": 0.10,
+      "maximum_absolute_error_max": 0.06
+    },
+    "fig5_macroscopic_lid_temperature": {
+      "domain_x_over_l": [0.05, 0.95],
+      "mae_K_max": 1.0,
+      "maximum_absolute_error_K_max": 2.0
+    },
+    "fig5_microscopic_lid_temperature": {
+      "domain_x_over_l": [0.05, 0.95],
+      "mae_K_max": 1.0,
+      "maximum_absolute_error_K_max": 2.0
+    },
+    "fig9_temperature_x08": {
+      "mae_K_max": 1.0
+    },
+    "fig9_qy_y08": {
+      "nrmse_over_reference_rms_max": 0.15,
+      "sign_agreement_min": 0.90,
+      "zero_crossing_error_x_over_l_max": 0.05
+    },
+    "fig6e_temperature_contour": {
+      "reference_min_K": 297.0,
+      "reference_max_K": 309.0,
+      "extreme_error_K_max": 1.5,
+      "cold_region": "upper-left",
+      "hot_region": "upper-right"
+    },
+    "uncertainty": {
+      "rse_T_rho_u_v_max": 0.01,
+      "rse_heat_flux_profile_max": 0.05
+    },
+    "numerical_convergence": {
+      "bulk_profile_change_max": 0.02,
+      "heat_flux_profile_change_max": 0.08
+    },
+    "collision_and_wall": {
+      "ntc_majorant_violations": 0,
+      "relative_net_wall_mass_flux_max": 0.001
+    }
+  },
+  "anti_circularity": {
+    "source_pdf_sha256": "9582052a1c9a7a6ab7df93decd8ccfa6d61c13788f9338f31bde1894ead0e93c",
+    "development_and_confirmatory_seeds_must_be_disjoint": true,
+    "no_post_outcome_changes": [
+      "Kn mapping",
+      "wall convention",
+      "smoothing",
+      "profile orientation",
+      "acceptance thresholds"
+    ]
+  }
+}

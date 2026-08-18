@@ -1,0 +1,15 @@
+{
+  "hashes": {
+    "protocol_sha256": "0267744c14d115ca3deb9c3f7e02b60b65bb47f940d0c92faacfd55caabc9d73",
+    "r100_basis_sha256": "4ba6420e12f34aaa7ba05540dcd7ac4f1f541cfd098be43f56d35dc18bda0c26",
+    "seed_bank_sha256": "8ecfe8afd145997df7c3f1a31c59c31cdc37bb39c0b6ca07b465078adcd8d1b4",
+    "source::vgdsmc/event_wall_streaming.py": "eefe0cabc4132a57afb87e89a679cd991a1c6e286de1d32fb4b435f552a8057d",
+    "source::vgdsmc/mohammadzadeh_production_m1r.py": "c552c340d168bad3ad09327dbeb56d002601a7822277aa82191dd696ed338091",
+    "source::vgdsmc/mohammadzadeh_qy_precision.py": "19d358ff24198e12a112f0fca8e0f26a9d2a96925d58129d6c835639e03010a5",
+    "source::vgdsmc/mohammadzadeh_spatial_refinement.py": "f4d56bd5d8dbfd23fbfa7edfd5efe7309bfc5f21ae4f59b16bdbb48856040e69",
+    "source::vgdsmc/ntc_fast.py": "863724e432d21c9c82714574fea73574b5f2fb956333a049ac84da97f9794453",
+    "validation_protocol_sha256": "8728edadeeec6c106035afc16c8aacd3da0c2a1d54dd8329c5c6b75c7003d448"
+  },
+  "stage": "QY100_precision",
+  "status": "locked_after_R100_and_before_any_M3_trajectory"
+}
