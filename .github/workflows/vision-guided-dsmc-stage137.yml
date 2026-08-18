@@ -130,3 +130,5 @@ jobs:
           name: stage137-right-lobe-decay-shape-audit
           path: /tmp/stage137_right_lobe_decay_shape_audit
           retention-days: 30
+
+# Explicit Stage 137 launch touch; no scientific guard or numerical parameter changed.
