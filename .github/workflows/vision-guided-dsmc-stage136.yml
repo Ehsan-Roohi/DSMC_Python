@@ -7,6 +7,12 @@ on:
       - 'vision_guided_dsmc/tests/test_stage136_right_lobe_depth_support_audit.py'
       - 'vision_guided_dsmc/results/stage135_fixed_lobe_amplitude_origin_audit_observed.json'
       - '.github/workflows/vision-guided-dsmc-stage136.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage136_right_lobe_depth_support_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage136_right_lobe_depth_support_audit.py'
+      - 'vision_guided_dsmc/results/stage135_fixed_lobe_amplitude_origin_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage136.yml'
   workflow_dispatch:
 
 permissions:
@@ -123,3 +129,4 @@ jobs:
           retention-days: 30
 
 # Explicit Stage 136 launch touch; no scientific guard or numerical parameter changed.
+# Pull-request observability was added so the exact fixed-design run can be audited by automation.
