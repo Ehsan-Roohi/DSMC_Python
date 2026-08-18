@@ -1,0 +1,229 @@
+
+$ python dsmc/scripts/validate_jfm_maxwell_kngu_case.py data/dsmc/kn005 --kn-gu 0.05 --require-final
+MAXWELL_KNGU_CASE_VALIDATION_PASS kn_gu=0.050000000000000003 final=data/dsmc/kn005/grid.final.00200000
+
+$ python dsmc/scripts/validate_jfm_maxwell_kngu_case.py data/dsmc/kn020 --kn-gu 0.20 --require-final
+MAXWELL_KNGU_CASE_VALIDATION_PASS kn_gu=0.20000000000000001 final=data/dsmc/kn020/grid.final.00200000
+
+$ python r13/tests/test_r13_equation_contract.py
+test_exact_diagonal_relaxation_coefficients (__main__.R13EquationContract.test_exact_diagonal_relaxation_coefficients) ... ok
+test_invalid_state_and_knudsen_inputs_fail_closed (__main__.R13EquationContract.test_invalid_state_and_knudsen_inputs_fail_closed) ... ok
+test_knudsen_conversion_round_trip (__main__.R13EquationContract.test_knudsen_conversion_round_trip) ... ok
+test_maxwell_prefactor_and_literal_branch_are_distinct (__main__.R13EquationContract.test_maxwell_prefactor_and_literal_branch_are_distinct) ... ok
+test_state_order_is_explicit (__main__.R13EquationContract.test_state_order_is_explicit) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.049s
+
+OK
+
+$ python r13/tests/validate_r13_maxwell_run.py data/r13/kn005_N60 --expected-kn-rana 0.039894228040143274 --expected-nodes 60
+R13_MAXWELL_VALIDATION_PASS
+
+$ python r13/tests/validate_r13_maxwell_run.py data/r13/kn020_N60 --expected-kn-rana 0.1595769121605731 --expected-nodes 60
+R13_MAXWELL_VALIDATION_PASS
+
+$ python run_tests.py
+unittest.case.FunctionTestCase (test_astr_component_mapping_is_explicit_and_exact)
+tests.test_r26_state.test_astr_component_mapping_is_explicit_and_exact ... ok
+unittest.case.FunctionTestCase (test_full_3d_stf_pack_unpack_rank2_rank3_rank4)
+tests.test_r26_state.test_full_3d_stf_pack_unpack_rank2_rank3_rank4 ... ok
+unittest.case.FunctionTestCase (test_planar_state_round_trip_and_z_trace_components)
+tests.test_r26_state.test_planar_state_round_trip_and_z_trace_components ... ok
+unittest.case.FunctionTestCase (test_state_order_is_the_audited_17_component_planar_order)
+tests.test_r26_state.test_state_order_is_the_audited_17_component_planar_order ... ok
+unittest.case.FunctionTestCase (test_asme_cavity_closure_mode_is_complete_and_source_locked)
+tests.test_r26_stretched_grid.test_asme_cavity_closure_mode_is_complete_and_source_locked ... ok
+unittest.case.FunctionTestCase (test_complete_closure_mode_propagates_through_every_grid_backend)
+tests.test_r26_stretched_grid.test_complete_closure_mode_propagates_through_every_grid_backend ... ok
+unittest.case.FunctionTestCase (test_independent_global_and_asymptotic_diagnostics_at_equilibrium)
+tests.test_r26_stretched_grid.test_independent_global_and_asymptotic_diagnostics_at_equilibrium ... ok
+unittest.case.FunctionTestCase (test_jfm_observability_case_matches_manuscript_nondimensionalization)
+tests.test_r26_stretched_grid.test_jfm_observability_case_matches_manuscript_nondimensionalization ... ok
+unittest.case.FunctionTestCase (test_nonuniform_wall_extrapolation_is_exact_for_affine_profiles)
+tests.test_r26_stretched_grid.test_nonuniform_wall_extrapolation_is_exact_for_affine_profiles ... ok
+unittest.case.FunctionTestCase (test_rana_john_case_keeps_rana_kn_convention_and_physical_lid_speed)
+tests.test_r26_stretched_grid.test_rana_john_case_keeps_rana_kn_convention_and_physical_lid_speed ... ok
+unittest.case.FunctionTestCase (test_restart_interpolation_uses_physical_stretched_coordinates)
+tests.test_r26_stretched_grid.test_restart_interpolation_uses_physical_stretched_coordinates ... ok
+unittest.case.FunctionTestCase (test_stretched_grid_equilibrium_and_linear_pressure_rhie_chow)
+tests.test_r26_stretched_grid.test_stretched_grid_equilibrium_and_linear_pressure_rhie_chow ... ok
+unittest.case.FunctionTestCase (test_tanh_grid_is_symmetric_monotone_and_uniform_at_zero_beta)
+tests.test_r26_stretched_grid.test_tanh_grid_is_symmetric_monotone_and_uniform_at_zero_beta ... ok
+unittest.case.FunctionTestCase (test_closures_are_rotation_and_reflection_covariant)
+tests.test_r26_tensor_closures.test_closures_are_rotation_and_reflection_covariant ... ok
+unittest.case.FunctionTestCase (test_equation25_m_grad_u_uses_derivative_then_velocity_indices)
+tests.test_r26_tensor_closures.test_equation25_m_grad_u_uses_derivative_then_velocity_indices ... ok
+unittest.case.FunctionTestCase (test_finite_difference_gradient_convention_on_linear_manufactured_state)
+tests.test_r26_tensor_closures.test_finite_difference_gradient_convention_on_linear_manufactured_state ... ok
+unittest.case.FunctionTestCase (test_nontrivial_grid_closures_are_full_3d_symmetric_and_trace_free)
+tests.test_r26_tensor_closures.test_nontrivial_grid_closures_are_full_3d_symmetric_and_trace_free ... ok
+unittest.case.FunctionTestCase (test_phi_velocity_gradient_indices_match_primary_component_loops)
+tests.test_r26_tensor_closures.test_phi_velocity_gradient_indices_match_primary_component_loops ... ok
+unittest.case.FunctionTestCase (test_planar_astr_mapping_produces_the_same_closure_as_direct_tensors)
+tests.test_r26_tensor_closures.test_planar_astr_mapping_produces_the_same_closure_as_direct_tensors ... ok
+unittest.case.FunctionTestCase (test_q_velocity_gradient_terms_in_psi_and_omega_match_component_loops)
+tests.test_r26_tensor_closures.test_q_velocity_gradient_terms_in_psi_and_omega_match_component_loops ... ok
+unittest.case.FunctionTestCase (test_sigma_velocity_scalar_in_psi_and_omega_uses_d_l_u_m)
+tests.test_r26_tensor_closures.test_sigma_velocity_scalar_in_psi_and_omega_uses_d_l_u_m ... ok
+unittest.case.FunctionTestCase (test_uniform_equilibrium_has_exactly_zero_high_order_closures)
+tests.test_r26_tensor_closures.test_uniform_equilibrium_has_exactly_zero_high_order_closures ... ok
+unittest.case.FunctionTestCase (test_v3_literal_equation25_contraction_is_frozen_by_a_unit_test)
+tests.test_r26_tensor_closures.test_v3_literal_equation25_contraction_is_frozen_by_a_unit_test ... ok
+unittest.case.FunctionTestCase (test_closure_grid_derivative_contractions_match_linear_manufactured_fields)
+tests.test_r26_bulk_equations.test_closure_grid_derivative_contractions_match_linear_manufactured_fields ... ok
+unittest.case.FunctionTestCase (test_equation10_delta_and_m_terms_are_outside_minus_two_fifths_bracket)
+tests.test_r26_bulk_equations.test_equation10_delta_and_m_terms_are_outside_minus_two_fifths_bracket ... ok
+unittest.case.FunctionTestCase (test_full_bulk_residual_is_rotation_and_reflection_covariant)
+tests.test_r26_bulk_equations.test_full_bulk_residual_is_rotation_and_reflection_covariant ... ok
+unittest.case.FunctionTestCase (test_grid_api_matches_explicit_derivative_pipeline_and_preserves_2D3V)
+tests.test_r26_bulk_equations.test_grid_api_matches_explicit_derivative_pipeline_and_preserves_2D3V ... ok
+unittest.case.FunctionTestCase (test_last_eight_planar_rows_are_R_m_Delta_balance_equations)
+tests.test_r26_bulk_equations.test_last_eight_planar_rows_are_R_m_Delta_balance_equations ... ok
+unittest.case.FunctionTestCase (test_randomized_M_S_N_match_independent_component_loop_oracle)
+tests.test_r26_bulk_equations.test_randomized_M_S_N_match_independent_component_loop_oracle ... ok
+unittest.case.FunctionTestCase (test_uniform_equilibrium_has_exactly_zero_point_residual)
+tests.test_r26_bulk_equations.test_uniform_equilibrium_has_exactly_zero_point_residual ... ok
+unittest.case.FunctionTestCase (test_explicit_corner_rows_are_two_normal_kinematic_and_isothermal)
+tests.test_r26_checkerboard.test_explicit_corner_rows_are_two_normal_kinematic_and_isothermal ... ok
+unittest.case.FunctionTestCase (test_o2_biased_matrices_are_quadratic_exact_and_reflected_pairs)
+tests.test_r26_checkerboard.test_o2_biased_matrices_are_quadratic_exact_and_reflected_pairs ... ok
+unittest.case.FunctionTestCase (test_o2_equilibrium_residual_is_exact_on_n5_and_n6)
+tests.test_r26_checkerboard.test_o2_equilibrium_residual_is_exact_on_n5_and_n6 ... ok
+unittest.case.FunctionTestCase (test_y_backward_has_exact_wall_only_lid_branch_and_is_rejected)
+tests.test_r26_checkerboard.test_y_backward_has_exact_wall_only_lid_branch_and_is_rejected ... ok
+unittest.case.FunctionTestCase (test_diffuse_alpha_one_half_range_terms_have_the_printed_signs)
+tests.test_r26_wall_conditions.test_diffuse_alpha_one_half_range_terms_have_the_printed_signs ... ok
+unittest.case.FunctionTestCase (test_effective_pressure_is_literal_equation_34)
+tests.test_r26_wall_conditions.test_effective_pressure_is_literal_equation_34 ... ok
+unittest.case.FunctionTestCase (test_equilibrium_stationary_diffuse_wall_is_exact_for_all_four_normals)
+tests.test_r26_wall_conditions.test_equilibrium_stationary_diffuse_wall_is_exact_for_all_four_normals ... ok
+unittest.case.FunctionTestCase (test_face_extrapolation_is_separate_and_uses_cell_centred_linear_formula)
+tests.test_r26_wall_conditions.test_face_extrapolation_is_separate_and_uses_cell_centred_linear_formula ... ok
+unittest.case.FunctionTestCase (test_local_solver_recovers_equilibrium_and_positive_palpha)
+tests.test_r26_wall_conditions.test_local_solver_recovers_equilibrium_and_positive_palpha ... ok
+unittest.case.FunctionTestCase (test_mild_manufactured_face_solve_satisfies_all_ten_coupled_equations)
+tests.test_r26_wall_conditions.test_mild_manufactured_face_solve_satisfies_all_ten_coupled_equations ... ok
+unittest.case.FunctionTestCase (test_nonpositive_effective_pressure_is_rejected_before_division)
+tests.test_r26_wall_conditions.test_nonpositive_effective_pressure_is_rejected_before_division ... ok
+unittest.case.FunctionTestCase (test_nonunit_gas_constant_preserves_bulk_theta_equals_RT_convention)
+tests.test_r26_wall_conditions.test_nonunit_gas_constant_preserves_bulk_theta_equals_RT_convention ... ok
+unittest.case.FunctionTestCase (test_reconstruction_round_trip_preserves_six_free_and_ten_unknown_values)
+tests.test_r26_wall_conditions.test_reconstruction_round_trip_preserves_six_free_and_ten_unknown_values ... ok
+unittest.case.FunctionTestCase (test_rotation_of_face_state_and_closures_preserves_all_wall_residuals)
+tests.test_r26_wall_conditions.test_rotation_of_face_state_and_closures_preserves_all_wall_residuals ... ok
+unittest.case.FunctionTestCase (test_square_wall_frames_apply_all_inward_normal_signs_to_free_moments)
+tests.test_r26_wall_conditions.test_square_wall_frames_apply_all_inward_normal_signs_to_free_moments ... ok
+unittest.case.FunctionTestCase (test_actual_bulk_closure_wall_integration_has_exact_equilibrium_residual)
+tests.test_r26_solver.test_actual_bulk_closure_wall_integration_has_exact_equilibrium_residual ... ok
+unittest.case.FunctionTestCase (test_augmented_objective_restores_continuity_and_appends_mass)
+tests.test_r26_solver.test_augmented_objective_restores_continuity_and_appends_mass ... ok
+unittest.case.FunctionTestCase (test_bilinear_corner_model_is_a_zero_mixed_second_difference)
+tests.test_r26_solver.test_bilinear_corner_model_is_a_zero_mixed_second_difference ... ok
+unittest.case.FunctionTestCase (test_colored_fd_sparsity_includes_radius_two_and_global_mass_row)
+tests.test_r26_solver.test_colored_fd_sparsity_includes_radius_two_and_global_mass_row ... ok
+unittest.case.FunctionTestCase (test_colored_newton_uses_absolute_fd_floor_for_small_moments)
+tests.test_r26_solver.test_colored_newton_uses_absolute_fd_floor_for_small_moments ... ok
+unittest.case.FunctionTestCase (test_equation_accounting_and_corners_are_explicitly_excluded)
+tests.test_r26_solver.test_equation_accounting_and_corners_are_explicitly_excluded ... ok
+unittest.case.FunctionTestCase (test_equilibrium_has_zero_full_bulk_wall_mass_and_corner_residual)
+tests.test_r26_solver.test_equilibrium_has_zero_full_bulk_wall_mass_and_corner_residual ... ok
+unittest.case.FunctionTestCase (test_full_objective_jvp_matches_exact_linear_mock_direction)
+tests.test_r26_solver.test_full_objective_jvp_matches_exact_linear_mock_direction ... ok
+unittest.case.FunctionTestCase (test_grid_restart_interpolation_preserves_positive_fields_and_mass)
+tests.test_r26_solver.test_grid_restart_interpolation_preserves_positive_fields_and_mass ... ok
+unittest.case.FunctionTestCase (test_jacobian_row_equilibration_is_componentwise_and_family_local)
+tests.test_r26_solver.test_jacobian_row_equilibration_is_componentwise_and_family_local ... ok
+unittest.case.FunctionTestCase (test_kn_conventions_and_viscosity_laws_are_not_silently_mixed)
+tests.test_r26_solver.test_kn_conventions_and_viscosity_laws_are_not_silently_mixed ... ok
+unittest.case.FunctionTestCase (test_log_transform_guarantees_positive_density_and_temperature)
+tests.test_r26_solver.test_log_transform_guarantees_positive_density_and_temperature ... ok
+unittest.case.FunctionTestCase (test_mass_border_replaces_one_row_and_reports_held_out_continuity)
+tests.test_r26_solver.test_mass_border_replaces_one_row_and_reports_held_out_continuity ... ok
+unittest.case.FunctionTestCase (test_raw_augmented_objective_uses_unscaled_rows_and_raw_mass)
+tests.test_r26_solver.test_raw_augmented_objective_uses_unscaled_rows_and_raw_mass ... ok
+unittest.case.FunctionTestCase (test_residual_has_no_hidden_history)
+tests.test_r26_solver.test_residual_has_no_hidden_history ... ok
+unittest.case.FunctionTestCase (test_adaptive_step_halves_rejections_and_grows_acceptances)
+tests.test_r26_raw_continuation.test_adaptive_step_halves_rejections_and_grows_acceptances ... ok
+unittest.case.FunctionTestCase (test_raw_gate_requires_all_physical_plus_mass_and_full_column_rank)
+tests.test_r26_raw_continuation.test_raw_gate_requires_all_physical_plus_mass_and_full_column_rank ... ok
+unittest.case.FunctionTestCase (test_scaled_only_small_residual_can_never_pass_raw_acceptance)
+tests.test_r26_raw_continuation.test_scaled_only_small_residual_can_never_pass_raw_acceptance ... ok
+unittest.case.FunctionTestCase (test_boundary_inclusive_compatible_vs_point_difference_shrinks_for_all_rows)
+tests.test_r26_fv_backend.test_boundary_inclusive_compatible_vs_point_difference_shrinks_for_all_rows ... ok
+unittest.case.FunctionTestCase (test_bulk_continuity_rows_telescope_to_zero_wall_flux)
+tests.test_r26_fv_backend.test_bulk_continuity_rows_telescope_to_zero_wall_flux ... ok
+unittest.case.FunctionTestCase (test_common_wall_bounded_tensor_fluxes_telescope_to_physical_walls)
+tests.test_r26_fv_backend.test_common_wall_bounded_tensor_fluxes_telescope_to_physical_walls ... ok
+unittest.case.FunctionTestCase (test_compatible_fv_equilibrium_is_exact_and_face_tensors_remain_stf)
+tests.test_r26_fv_backend.test_compatible_fv_equilibrium_is_exact_and_face_tensors_remain_stf ... ok
+unittest.case.FunctionTestCase (test_compatible_transport_detects_all_three_collocated_checkerboards)
+tests.test_r26_fv_backend.test_compatible_transport_detects_all_three_collocated_checkerboards ... ok
+unittest.case.FunctionTestCase (test_fv_finite_difference_step_has_a_floor_for_tiny_moments)
+tests.test_r26_fv_backend.test_fv_finite_difference_step_has_a_floor_for_tiny_moments ... ok
+unittest.case.FunctionTestCase (test_impermeable_wall_mass_divergence_has_exact_conservation_identity)
+tests.test_r26_fv_backend.test_impermeable_wall_mass_divergence_has_exact_conservation_identity ... ok
+unittest.case.FunctionTestCase (test_physical_wall_fluxes_are_the_raw_R26_coordinate_fluxes)
+tests.test_r26_fv_backend.test_physical_wall_fluxes_are_the_raw_R26_coordinate_fluxes ... ok
+unittest.case.FunctionTestCase (test_rhie_chow_correction_vanishes_for_a_linear_pressure_field)
+tests.test_r26_fv_backend.test_rhie_chow_correction_vanishes_for_a_linear_pressure_field ... ok
+unittest.case.FunctionTestCase (test_transport_replacement_does_not_change_body_force_or_nonmomentum_rows)
+tests.test_r26_fv_backend.test_transport_replacement_does_not_change_body_force_or_nonmomentum_rows ... ok
+unittest.case.FunctionTestCase (test_wall_bounded_continuity_converges_on_no_penetration_streamfunction)
+tests.test_r26_fv_backend.test_wall_bounded_continuity_converges_on_no_penetration_streamfunction ... ok
+unittest.case.FunctionTestCase (test_wall_bounded_weights_match_the_balance_geometry)
+tests.test_r26_fv_backend.test_wall_bounded_weights_match_the_balance_geometry ... ok
+unittest.case.FunctionTestCase (test_equilibrium_realizability_is_identity_and_mass_safe)
+tests.test_r26_diagnostics.test_equilibrium_realizability_is_identity_and_mass_safe ... ok
+unittest.case.FunctionTestCase (test_nonpositive_eq35_denominator_is_rejected)
+tests.test_r26_diagnostics.test_nonpositive_eq35_denominator_is_rejected ... ok
+unittest.case.FunctionTestCase (test_rana_global_metrics_use_wall_nodes_and_reduced_stress_factor)
+tests.test_r26_diagnostics.test_rana_global_metrics_use_wall_nodes_and_reduced_stress_factor ... ok
+unittest.case.FunctionTestCase (test_activity_fraction_is_explicit_and_validated)
+tests.test_r26_postprocess.test_activity_fraction_is_explicit_and_validated ... ok
+unittest.case.FunctionTestCase (test_affine_wall_state_interpolation_is_exact)
+tests.test_r26_postprocess.test_affine_wall_state_interpolation_is_exact ... ok
+unittest.case.FunctionTestCase (test_all_common_fields_and_line_profiles_are_compared)
+tests.test_r26_postprocess.test_all_common_fields_and_line_profiles_are_compared ... ok
+unittest.case.FunctionTestCase (test_anti_fourier_metric_definitions_on_manufactured_linear_fields)
+tests.test_r26_postprocess.test_anti_fourier_metric_definitions_on_manufactured_linear_fields ... ok
+unittest.case.FunctionTestCase (test_corner_masks_only_change_eligibility)
+tests.test_r26_postprocess.test_corner_masks_only_change_eligibility ... ok
+unittest.case.FunctionTestCase (test_rana_metrics_and_cross_model_centerline_semantics)
+tests.test_r26_postprocess.test_rana_metrics_and_cross_model_centerline_semantics ... ok
+unittest.case.FunctionTestCase (test_velocity_basis_conversion_uses_tensor_rank)
+tests.test_r26_postprocess.test_velocity_basis_conversion_uses_tensor_rank ... ok
+
+----------------------------------------------------------------------
+Ran 85 tests in 10.093s
+
+OK
+
+$ python r26/tests/test_maxwell_contract.py
+test_collision_relevant_sources_are_hash_matched (__main__.MaxwellContract.test_collision_relevant_sources_are_hash_matched) ... ok
+test_diffuse_wall_factor_is_one (__main__.MaxwellContract.test_diffuse_wall_factor_is_one) ... ok
+test_driver_rejects_vhs_override_in_maxwell_mode (__main__.MaxwellContract.test_driver_rejects_vhs_override_in_maxwell_mode) ... ok
+test_final_jfm2009_coefficients_are_unchanged (__main__.MaxwellContract.test_final_jfm2009_coefficients_are_unchanged) ... ok
+test_kn005_and_kn020_are_pure_maxwell (__main__.MaxwellContract.test_kn005_and_kn020_are_pure_maxwell) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.770s
+
+OK
+
+$ python r26/tests/validate_r26_maxwell_run.py data/r26/kn005_N40 --expected-kn 0.05 --expected-nodes 40
+{"kn_gu": 0.05, "nodes": 40, "state_file_sha256": "056008956310594039a675d2a13eff1862edd5d42db41f00005744fd68ea7fdf", "status": "R26_MAXWELL_VALIDATION_PASS"}
+
+$ python r26/tests/validate_r26_maxwell_run.py data/r26/kn020_N20 --expected-kn 0.20 --expected-nodes 20
+{"kn_gu": 0.2, "nodes": 20, "state_file_sha256": "34f0c8057bc9ccb5acc7a6e75beb68bfd69fdd46b3634731305d9509a2ef028b", "status": "R26_MAXWELL_VALIDATION_PASS"}
+
+$ python analysis/pure_maxwell/analyze_pure_maxwell.py
+PURE_MAXWELL_PRODUCTS_VALIDATION_PASS
+REDUCED_TABLE_VALIDATION_PASS
+PUBLIC_RELEASE_HYGIENE_PASS
+
+PUBLIC_RELEASE_VALIDATION_PASS
+
+$ bash -n dsmc/hpc/unity_sparta_maxwell_kngu005_020_jfm_single.slurm r26/hpc/*.slurm r26/hpc/*.sh
+BASH_SYNTAX_PASS

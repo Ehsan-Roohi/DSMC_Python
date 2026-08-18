@@ -1,0 +1,77 @@
+{
+  "conclusion": "The executed R26 bulk equations, JFM-2009 closure coefficients, and wall equations are Maxwell-molecule formulations. The previous manuscript-target case was not pure Maxwell because it supplied a power-law viscosity exponent of 0.81. The pure-Maxwell rerun must use exponent 1.0 while leaving jfm2009 closure coefficients and accommodation=1 unchanged.",
+  "hash_matched_execution_sources": {
+    "code/r26_bulk_equations.py": "9abe3943ce541e6c5243a61893c1428daea30cf8fae42ab3e90c140eb7ba6a06",
+    "code/r26_cases.py": "3bfa674f7def0581f902d7c97639df7079b46296f12b12170a5716d62f0840b7",
+    "code/r26_tensor_closures.py": "13037256b49de8ce0737136c56ab31fa5b1641545a79a65e77c761c25bcbbbea",
+    "code/r26_wall_conditions.py": "b3a7bf0bc4be58f3e0c42928c87f4b01802ae88d50055b58410e485e7bbcdd49"
+  },
+  "solver_source_availability": {
+    "available_and_bundled_kn005_N40_solver": "6da3588cf78033f10d304e64fd2e451172d9497c8e4dcfdd2157d84e8a514b6d",
+    "available_and_bundled_kn005_N40_postprocess": "ac32ca20a387227c9d61b16cc4215134c5e59032b72fac307dc3428b88e20c6a",
+    "available_and_bundled_kn005_N40_driver_before_patch": "ec1d10fa25ecdc0b48b1f66bb95462162c02be9661994d32085a29c73c0c0d0d",
+    "historical_kn020_N20_manifest_solver_not_recovered": "84cbad318ec94ae9fedd954bbe7b6af6bd014d099dcb0441efa2ea40e74c8c89",
+    "historical_kn020_N20_manifest_postprocess_not_recovered": "3a28024293200dc2544cb80e1eff1487125d401b73c489191f25d44146283a22",
+    "historical_kn020_N20_manifest_driver_not_recovered": "2ccaf4402d1411ede27c675732e2f67195efca0b2f06ac84fb9e1cc59469d911",
+    "decision": "Run both new Maxwell cases with the one fully recovered N40 source family so the new KnGu=0.05 and 0.20 results share an identical solver implementation."
+  },
+  "previous_cases": {
+    "KnGu_0.05": {
+      "nodes": 40,
+      "beta": 1.25,
+      "viscosity_exponent": 0.81,
+      "closure_mode": "jfm2009",
+      "accommodation": 1.0
+    },
+    "KnGu_0.20": {
+      "nodes": 20,
+      "beta": 0.0,
+      "viscosity_exponent": 0.81,
+      "closure_mode": "jfm2009",
+      "accommodation": 1.0
+    }
+  },
+  "pure_maxwell_cases": {
+    "KnGu_0.05": {
+      "nodes": 40,
+      "beta": 1.25,
+      "viscosity_exponent": 1.0,
+      "closure_mode": "jfm2009",
+      "accommodation": 1.0,
+      "mu_equilibrium": 0.039894228040143274
+    },
+    "KnGu_0.20": {
+      "nodes": 20,
+      "beta": 0.0,
+      "viscosity_exponent": 1.0,
+      "closure_mode": "jfm2009",
+      "accommodation": 1.0,
+      "mu_equilibrium": 0.1595769121605731
+    }
+  },
+  "patched_hashes": {
+    "source/r26/code/r26_cases.py": "ccf480bce9e40fd2fd2f6c5f5acbc84319cab7c11d9b4f0fd066ec5de656a620",
+    "source/r26/analysis/run_jfm_observability_continuation.py": "a9de96fc3266fc9c80ac068be30be41e3cad5f04e65b2844ce4cd766e52b0989"
+  },
+  "smoke_validation": {
+    "KnGu_0.05": {
+      "status": "PASS",
+      "nodes": 5,
+      "target_lid": 0.001,
+      "raw_acceptance_gate": 1.021250241223416e-09,
+      "state_file_sha256": "da190b396c8deda7f9577d18b24800668a1ae2e6a3187554f9773d40d0d94c3e"
+    },
+    "KnGu_0.20": {
+      "status": "PASS",
+      "nodes": 5,
+      "target_lid": 0.001,
+      "raw_acceptance_gate": 4.040829308309899e-09,
+      "state_file_sha256": "5ac76034c1fbf6038c329dafbdf2cec36b776929a80b548dcf7743e38756b1c2"
+    }
+  },
+  "test_counts": {
+    "existing_r26_tests_passed": 85,
+    "new_maxwell_contract_tests_passed": 5,
+    "full_grid_production_runs_completed": false
+  }
+}

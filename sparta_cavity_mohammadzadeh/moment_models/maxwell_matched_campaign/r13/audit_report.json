@@ -1,0 +1,322 @@
+{
+  "archived_sources": {
+    "coefficient_path": "work/article_final_v2/data/kn020_models/r13_N60/rana_original_coefficients.py",
+    "coefficient_sha256": "08caba3895db19c72cc69fe8c9be4b41fb5676b47e140ce123798df548a0b6fd",
+    "solver_path": "work/article_final_v2/data/kn020_models/r13_N60/rana_original_reference_solver.py",
+    "solver_sha256": "9b10862a3582ae59e91303292865ef142eabb022c103a4b18abbe0956f7f2e24"
+  },
+  "candidate_status": "coefficient-tested and integration-order-tested; no nonlinear cavity solve or external benchmark completed",
+  "claims_not_made": [
+    "No new cavity state has been solved by this audit.",
+    "No agreement with DSMC is inferred from coefficient matching.",
+    "No branch is called an author-code reproduction without an external benchmark."
+  ],
+  "coefficient_audit": {
+    "evaluation_state": [
+      1.37,
+      0.07,
+      -0.04,
+      1.11,
+      0.013,
+      -0.021,
+      0.031,
+      -0.017,
+      -0.024,
+      0.002,
+      -0.003,
+      0.004,
+      0.001,
+      -0.002,
+      0.003,
+      -0.004,
+      0.005
+    ],
+    "mismatch_count": 20,
+    "mismatch_rows": [
+      "R_xy",
+      "m_xxx",
+      "m_xxy",
+      "m_xyy",
+      "m_yyy"
+    ],
+    "mismatches": [
+      {
+        "appendix_a": 0.0036825146314197403,
+        "archived_unscaled": 0.0,
+        "column": 4,
+        "column_name": "qx",
+        "difference": -0.0036825146314197403,
+        "row": 10,
+        "row_name": "R_xy"
+      },
+      {
+        "appendix_a": -0.0022796519146884107,
+        "archived_unscaled": 0.0,
+        "column": 5,
+        "column_name": "qy",
+        "difference": 0.0022796519146884107,
+        "row": 10,
+        "row_name": "R_xy"
+      },
+      {
+        "appendix_a": -0.004892483724600512,
+        "archived_unscaled": -0.004077069770500427,
+        "column": 4,
+        "column_name": "qx",
+        "difference": 0.0008154139541000846,
+        "row": 12,
+        "row_name": "m_xxx"
+      },
+      {
+        "appendix_a": -0.0017886499638324455,
+        "archived_unscaled": -0.0014905416365270383,
+        "column": 5,
+        "column_name": "qy",
+        "difference": 0.0002981083273054072,
+        "row": 12,
+        "row_name": "m_xxx"
+      },
+      {
+        "appendix_a": -0.0013677911488130464,
+        "archived_unscaled": -0.0017097389360163082,
+        "column": 6,
+        "column_name": "sigma_xx",
+        "difference": -0.0003419477872032618,
+        "row": 12,
+        "row_name": "m_xxx"
+      },
+      {
+        "appendix_a": -0.0014730058525678964,
+        "archived_unscaled": -0.0018412573157098708,
+        "column": 7,
+        "column_name": "sigma_xy",
+        "difference": -0.0003682514631419744,
+        "row": 12,
+        "row_name": "m_xxx"
+      },
+      {
+        "appendix_a": 0.002384866618443261,
+        "archived_unscaled": 0.001987388848702718,
+        "column": 4,
+        "column_name": "qx",
+        "difference": -0.0003974777697405428,
+        "row": 13,
+        "row_name": "m_xxy"
+      },
+      {
+        "appendix_a": -0.0035597641437057495,
+        "archived_unscaled": -0.002966470119754792,
+        "column": 5,
+        "column_name": "qy",
+        "difference": 0.0005932940239509574,
+        "row": 13,
+        "row_name": "m_xxy"
+      },
+      {
+        "appendix_a": 0.0012275048771399136,
+        "archived_unscaled": 0.0015343810964248922,
+        "column": 6,
+        "column_name": "sigma_xx",
+        "difference": 0.0003068762192849786,
+        "row": 13,
+        "row_name": "m_xxy"
+      },
+      {
+        "appendix_a": -0.0012158143545004858,
+        "archived_unscaled": -0.0015197679431256078,
+        "column": 7,
+        "column_name": "sigma_xy",
+        "difference": -0.000303953588625122,
+        "row": 13,
+        "row_name": "m_xxy"
+      },
+      {
+        "appendix_a": -0.0004910019508559655,
+        "archived_unscaled": -0.000613752438569957,
+        "column": 8,
+        "column_name": "sigma_yy",
+        "difference": -0.0001227504877139915,
+        "row": 13,
+        "row_name": "m_xxy"
+      },
+      {
+        "appendix_a": 0.003191512680563775,
+        "archived_unscaled": 0.0026595939004698133,
+        "column": 4,
+        "column_name": "qx",
+        "difference": -0.0005319187800939618,
+        "row": 14,
+        "row_name": "m_xyy"
+      },
+      {
+        "appendix_a": 0.002384866618443261,
+        "archived_unscaled": 0.001987388848702718,
+        "column": 5,
+        "column_name": "qy",
+        "difference": -0.0003974777697405428,
+        "row": 14,
+        "row_name": "m_xyy"
+      },
+      {
+        "appendix_a": 0.00030395358862512145,
+        "archived_unscaled": 0.00037994198578140194,
+        "column": 6,
+        "column_name": "sigma_xx",
+        "difference": 7.59883971562805e-05,
+        "row": 14,
+        "row_name": "m_xyy"
+      },
+      {
+        "appendix_a": 0.001964007803423862,
+        "archived_unscaled": 0.002455009754279828,
+        "column": 7,
+        "column_name": "sigma_xy",
+        "difference": 0.000491001950855966,
+        "row": 14,
+        "row_name": "m_xyy"
+      },
+      {
+        "appendix_a": -0.0007598839715628036,
+        "archived_unscaled": -0.0009498549644535048,
+        "column": 8,
+        "column_name": "sigma_yy",
+        "difference": -0.00018997099289070122,
+        "row": 14,
+        "row_name": "m_xyy"
+      },
+      {
+        "appendix_a": -0.0017886499638324455,
+        "archived_unscaled": -0.0014905416365270383,
+        "column": 4,
+        "column_name": "qx",
+        "difference": 0.0002981083273054072,
+        "row": 15,
+        "row_name": "m_yyy"
+      },
+      {
+        "appendix_a": 0.00378772933517459,
+        "archived_unscaled": 0.003156441112645492,
+        "column": 5,
+        "column_name": "qy",
+        "difference": -0.0006312882225290978,
+        "row": 15,
+        "row_name": "m_yyy"
+      },
+      {
+        "appendix_a": 0.0009118607658753643,
+        "archived_unscaled": 0.0011398259573442058,
+        "column": 7,
+        "column_name": "sigma_xy",
+        "difference": 0.00022796519146884144,
+        "row": 15,
+        "row_name": "m_yyy"
+      },
+      {
+        "appendix_a": 0.0022095087788518443,
+        "archived_unscaled": 0.002761885973564806,
+        "column": 8,
+        "column_name": "sigma_yy",
+        "difference": 0.0005523771947129616,
+        "row": 15,
+        "row_name": "m_yyy"
+      }
+    ],
+    "row_10_R_xy_matches": false,
+    "row_11_R_yy_matches": true,
+    "row_16_matches": true,
+    "rows_0_to_9_match": true
+  },
+  "kn_contract": {
+    "KnGu_0.05": {
+      "Kn_Rana": 0.039894228040143274
+    },
+    "KnGu_0.20": {
+      "Kn_Rana": 0.1595769121605731
+    },
+    "formula": "Kn_Rana = sqrt(2/pi) Kn_Gu"
+  },
+  "prefactor_audit": {
+    "appendix_literal": "1/Kn_Rana",
+    "appendix_literal_caveat": "The literal printed Eq. (11)+Appendix-A factor and the factor derived from Eqs. (3)-(4) with mu proportional to theta are not identical away from rho=1.",
+    "archived": "rho*sqrt(theta)/Kn_Rana",
+    "archived_implied_viscosity_power": "mu/mu0 = sqrt(theta/theta0)",
+    "maxwell_collision_consistent": "rho/Kn_Rana",
+    "maxwell_viscosity_power": "mu/mu0 = theta/theta0"
+  },
+  "reference": {
+    "author_pdf": "https://www.engr.uvic.ca/~struchtr/2013_JCP_Lidcavity.pdf",
+    "doi": "10.1016/j.jcp.2012.11.023",
+    "evidence": [
+      "Section 2.1 states Maxwell molecules.",
+      "Equation (11) defines the 17-state quasilinear system.",
+      "Appendix A, journal page 184, prints the reduced production matrix.",
+      "Equation (29) defines Kn_Rana = mu0/(rho0 sqrt(theta0) L)."
+    ],
+    "title": "A robust numerical method for the R13 equations of rarefied gas dynamics: Application to lid driven cavity"
+  },
+  "state_order": {
+    "archived_solver_labels": [
+      "rho",
+      "vx",
+      "vy",
+      "theta",
+      "qx",
+      "qy",
+      "sigma_xx",
+      "sigma_xy",
+      "sigma_yy",
+      "R_xx",
+      "R_xy",
+      "R_yy",
+      "m_xxx",
+      "m_xxy",
+      "m_xyy",
+      "m_yyy",
+      "Delta"
+    ],
+    "executable_flux_wall_order": [
+      "rho",
+      "vx",
+      "vy",
+      "theta",
+      "qx",
+      "qy",
+      "sigma_xx",
+      "sigma_xy",
+      "sigma_yy",
+      "R_xx",
+      "R_xy",
+      "R_yy",
+      "m_xxx",
+      "m_xxy",
+      "m_xyy",
+      "m_yyy",
+      "Delta"
+    ],
+    "integration_decision": "Preserve the executable A/X order; do not permute only the production operator.",
+    "internal_evidence": [
+      "The printed Eq. (11) state list puts m_xyy in slot 13 and m_xxy in slot 14.",
+      "The Appendix-A x-flux matrix and the archived solver have A[7,13]=1, identifying slot 13 as m_xxy.",
+      "The Appendix-A x-wall matrix applies the m_ssn=m_xyy condition at slot 14, while slot 13 is an identity row."
+    ],
+    "printed_below_eq_11": [
+      "rho",
+      "vx",
+      "vy",
+      "theta",
+      "qx",
+      "qy",
+      "sigma_xx",
+      "sigma_xy",
+      "sigma_yy",
+      "R_xx",
+      "R_xy",
+      "R_yy",
+      "m_xxx",
+      "m_xyy",
+      "m_xxy",
+      "m_yyy",
+      "Delta"
+    ]
+  }
+}
