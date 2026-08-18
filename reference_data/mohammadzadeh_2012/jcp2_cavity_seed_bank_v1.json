@@ -1,0 +1,10 @@
+{
+  "status": "locked_before_any_JCP2_trajectory",
+  "condition": "S2_kn0p085_u350",
+  "evaluation_primary": [26082101, 26082102, 26082103, 26082104, 26082105, 26082106, 26082107, 26082108],
+  "evaluation_spares": [26082109, 26082110, 26082111, 26082112],
+  "reference_primary": [26082201, 26082202, 26082203, 26082204, 26082205, 26082206, 26082207, 26082208, 26082209, 26082210, 26082211, 26082212, 26082213, 26082214, 26082215, 26082216, 26082217, 26082218, 26082219, 26082220],
+  "reference_spares": [26082221, 26082222, 26082223, 26082224, 26082225],
+  "selection_order": "primary list order followed by spare list order",
+  "cross_group_overlap_forbidden": true
+}
