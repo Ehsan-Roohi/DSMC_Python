@@ -1,0 +1,19 @@
+{
+  "stage": "JCP2_prospective_cavity_S2",
+  "status": "locked_before_any_JCP2_trajectory",
+  "hashes": {
+    "protocol_sha256": "ef79373c07216fbba90849729d1502879c2accaf5d47cc327dc375b928c3212c",
+    "seed_bank_sha256": "624010d6c118602a079dc4724e1657f3dab3874b7524e824cd13e37e4debb00e",
+    "source::vgdsmc/jcp_phase1_cavity.py": "572d6c3111675c43ddfce3206e25cc8737e9dd443622ec0849566aee570d1850",
+    "source::vgdsmc/jcp_phase0.py": "7776017612ca66e60020d1cbaa6e546b01f4ea05cc1e1fb675ba11ee9d0f1fd1",
+    "source::vgdsmc/moment_sampling.py": "249618205b333d20a17fb431ea65d7b89ec3d2ef5ddd4347c994a11543a6d939",
+    "source::vgdsmc/mohammadzadeh_production.py": "47d926cbf3adc21c76fde5ca80dc75f4150a09d353264f970db2c528ae1b640a",
+    "source::vgdsmc/mohammadzadeh_spatial_refinement.py": "f4d56bd5d8dbfd23fbfa7edfd5efe7309bfc5f21ae4f59b16bdbb48856040e69",
+    "source::vgdsmc/ntc_checkpoint.py": "dd2bdc4798f7fa7db4c72631bbeb8a8131dae04885b970b26290a74e4966b036",
+    "source::scripts/unity_jcp2_task.sbatch": "e0b8414980ea11ef74eb0fca5d00ac1a86666f819a33ace8c03f2c87e6806f1b",
+    "source::scripts/unity_jcp2_predict.sbatch": "3dea020887baac47f9f7d60b11ce32be7a2295a073f0337406b6bf74565f1347",
+    "source::scripts/unity_jcp2_score.sbatch": "478268ad1c38fd546b273fe96d040763c69dbda86744d4fc9776e8c31442d3eb",
+    "source::scripts/run_jcp2_unity.sh": "22f338aaa4a855040eb0637ef2984c37f1605feb2c7df898c50d768bb9201029"
+  },
+  "attestation": "Protocol, seed bank, estimator rule, trajectory generation, prediction interface, and scoring source were frozen before any JCP2 trajectory was generated."
+}
