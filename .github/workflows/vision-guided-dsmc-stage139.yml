@@ -128,3 +128,5 @@ jobs:
           name: stage139-complement-transition-geometry-audit
           path: /tmp/stage139_complement_transition_geometry_audit
           retention-days: 30
+
+# Explicit Stage 139 launch touch; no scientific guard or numerical parameter changed.
