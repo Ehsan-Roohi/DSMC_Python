@@ -10,6 +10,8 @@ trap 'JCP2_RC=$?; echo "JCP2_EARLY_FINALIZER_FAILED rc=${JCP2_RC} line=${LINENO}
 
 command -v squeue >/dev/null || { echo "MISSING_COMMAND=squeue" >&2; exit 2; }
 command -v scontrol >/dev/null || { echo "MISSING_COMMAND=scontrol" >&2; exit 2; }
+command -v sacct >/dev/null || { echo "MISSING_COMMAND=sacct" >&2; exit 2; }
+command -v sbatch >/dev/null || { echo "MISSING_COMMAND=sbatch" >&2; exit 2; }
 [[ -f "${JCP2_ENV}" ]] || { echo "MISSING=${JCP2_ENV}" >&2; exit 2; }
 [[ -d "${JCP2_SOURCE}/vgdsmc" ]] || { echo "MISSING=${JCP2_SOURCE}/vgdsmc" >&2; exit 2; }
 
@@ -28,27 +30,57 @@ if [[ -s "${JCP2_WORK}/JCP2.zip" && -s "${JCP2_WORK}/JCP2.zip.sha256" ]]; then
     exit 0
 fi
 
-JCP2_SCORE_QUEUE_STATE="$(squeue -h -j "${JCP2_SCORE_JOB_ID}" -o '%T' 2>/dev/null | head -n 1)"
-case "${JCP2_SCORE_QUEUE_STATE}" in
+JCP2_EARLY_SCORE_JOB_ID=
+if [[ -f "${JCP2_WORK}/LAST_JCP2_EARLY_RELEASE.env" ]]; then
+    set +u
+    # shellcheck disable=SC1090
+    source "${JCP2_WORK}/LAST_JCP2_EARLY_RELEASE.env"
+    set -u
+fi
+
+jcp2_queue_state() {
+    squeue -h -j "$1" -o '%T' 2>/dev/null | head -n 1 || true
+}
+
+jcp2_accounting_state() {
+    local state
+    state="$(sacct -n -X -j "$1" --format=State -P 2>/dev/null | head -n 1 | cut -d'|' -f1 || true)"
+    state="${state%%+*}"
+    state="${state%% *}"
+    printf '%s\n' "${state}"
+}
+
+JCP2_ACTIVE_SCORE_JOB_ID="${JCP2_EARLY_SCORE_JOB_ID:-${JCP2_SCORE_JOB_ID}}"
+JCP2_SCORE_QUEUE_STATE="$(jcp2_queue_state "${JCP2_ACTIVE_SCORE_JOB_ID}")"
+JCP2_SCORE_ACCOUNTING_STATE=
+if [[ -z "${JCP2_SCORE_QUEUE_STATE}" ]]; then
+    JCP2_SCORE_ACCOUNTING_STATE="$(jcp2_accounting_state "${JCP2_ACTIVE_SCORE_JOB_ID}")"
+fi
+JCP2_SCORE_OBSERVED_STATE="${JCP2_SCORE_QUEUE_STATE:-${JCP2_SCORE_ACCOUNTING_STATE:-UNKNOWN}}"
+
+case "${JCP2_SCORE_OBSERVED_STATE}" in
     RUNNING|COMPLETING|CONFIGURING)
         echo "JCP2_SCORE_ALREADY_ACTIVE=1"
-        echo "JCP2_SCORE_JOB_ID=${JCP2_SCORE_JOB_ID}"
-        echo "MONITOR=squeue -j ${JCP2_SCORE_JOB_ID}"
+        echo "JCP2_SCORE_JOB_ID=${JCP2_ACTIVE_SCORE_JOB_ID}"
+        echo "MONITOR=squeue -j ${JCP2_ACTIVE_SCORE_JOB_ID}"
         exit 0
         ;;
     PENDING)
         ;;
-    "")
-        JCP2_ACCOUNTING_STATE="$(sacct -n -X -j "${JCP2_SCORE_JOB_ID}" --format=State -P 2>/dev/null | head -n 1 | cut -d'|' -f1 | cut -d'+' -f1)"
-        if [[ "${JCP2_ACCOUNTING_STATE}" == COMPLETED ]]; then
-            echo "JCP2_SCORE_COMPLETED_BUT_ARCHIVE_MISSING=1" >&2
-        else
-            echo "JCP2_SCORE_NOT_PENDING state=${JCP2_ACCOUNTING_STATE:-UNKNOWN}" >&2
-        fi
+    COMPLETED)
+        echo "JCP2_SCORE_COMPLETED_BUT_ARCHIVE_MISSING=1" >&2
+        exit 3
+        ;;
+    CANCELLED|FAILED|TIMEOUT|OUT_OF_MEMORY|NODE_FAIL|BOOT_FAIL|DEADLINE|PREEMPTED)
+        echo "JCP2_ORIGINAL_SCORE_TERMINAL_STATE=${JCP2_SCORE_OBSERVED_STATE}"
+        ;;
+    UNKNOWN)
+        echo "JCP2_SCORE_STATE_UNKNOWN job=${JCP2_ACTIVE_SCORE_JOB_ID}" >&2
+        echo "Refusing to submit a possible duplicate scoring job." >&2
         exit 3
         ;;
     *)
-        echo "JCP2_SCORE_NOT_RELEASABLE state=${JCP2_SCORE_QUEUE_STATE}" >&2
+        echo "JCP2_SCORE_NOT_RELEASABLE state=${JCP2_SCORE_OBSERVED_STATE}" >&2
         exit 3
         ;;
 esac
@@ -114,27 +146,50 @@ then
 fi
 cat "${JCP2_READINESS_FILE}"
 
-# Recheck immediately before changing the dependency so a scheduler transition
-# cannot create a second scoring job or a competing writer.
-JCP2_SCORE_QUEUE_STATE="$(squeue -h -j "${JCP2_SCORE_JOB_ID}" -o '%T' 2>/dev/null | head -n 1)"
-if [[ "${JCP2_SCORE_QUEUE_STATE}" != PENDING ]]; then
-    echo "JCP2_SCORE_STATE_CHANGED=${JCP2_SCORE_QUEUE_STATE:-LEFT_QUEUE}"
-    echo "No dependency was changed. Re-run this finalizer to inspect the new state."
+# Recheck immediately before changing scheduler state so a transition cannot
+# create a second scoring job or a competing writer.
+JCP2_SCORE_QUEUE_STATE="$(jcp2_queue_state "${JCP2_ACTIVE_SCORE_JOB_ID}")"
+if [[ "${JCP2_SCORE_QUEUE_STATE}" == PENDING ]]; then
+    # The readiness checks reproduce the frozen scorer's input gates.  The
+    # final reference-array spare is therefore no longer an input dependency.
+    scontrol update JobId="${JCP2_ACTIVE_SCORE_JOB_ID}" Dependency=
+    JCP2_FINAL_SCORE_JOB_ID="${JCP2_ACTIVE_SCORE_JOB_ID}"
+    JCP2_RELEASE_ACTION=dependency_released
+elif [[ -z "${JCP2_SCORE_QUEUE_STATE}" ]]; then
+    JCP2_RECHECK_ACCOUNTING_STATE="$(jcp2_accounting_state "${JCP2_ACTIVE_SCORE_JOB_ID}")"
+    case "${JCP2_RECHECK_ACCOUNTING_STATE}" in
+        CANCELLED|FAILED|TIMEOUT|OUT_OF_MEMORY|NODE_FAIL|BOOT_FAIL|DEADLINE|PREEMPTED)
+            cd "${JCP2_WORK}"
+            JCP2_FINAL_SCORE_JOB_ID="$(sbatch --parsable --job-name=j2-score-e \
+                --export="ALL,JCP2_REPO_ROOT=${JCP2_SOURCE},JCP2_RUN_ROOT=${JCP2_WORK}/runs,JCP2_PREDICTION_ROOT=${JCP2_WORK}/predictions,JCP2_SCORE_ROOT=${JCP2_WORK}/score,JCP2_WORK_ROOT=${JCP2_WORK},JCP2_PYTHON=${JCP2_PYTHON}" \
+                "${JCP2_SOURCE}/scripts/unity_jcp2_score.sbatch")"
+            JCP2_RELEASE_ACTION=replacement_submitted
+            ;;
+        RUNNING|COMPLETING|CONFIGURING|COMPLETED)
+            echo "JCP2_SCORE_STATE_CHANGED=${JCP2_RECHECK_ACCOUNTING_STATE}"
+            echo "No scheduler change was made."
+            exit 0
+            ;;
+        *)
+            echo "JCP2_SCORE_STATE_CHANGED=${JCP2_RECHECK_ACCOUNTING_STATE:-UNKNOWN}" >&2
+            echo "Refusing to submit a possible duplicate scoring job." >&2
+            exit 3
+            ;;
+    esac
+else
+    echo "JCP2_SCORE_STATE_CHANGED=${JCP2_SCORE_QUEUE_STATE}"
+    echo "No scheduler change was made."
     exit 0
 fi
 
-# The readiness checks above reproduce the frozen scorer's input gates.  Once
-# they pass, the last reference-array spare is no longer an input dependency.
-scontrol update JobId="${JCP2_SCORE_JOB_ID}" Dependency=
-
-printf 'JCP2_EARLY_RELEASED=1\nJCP2_SCORE_JOB_ID=%q\nJCP2_RELEASED_UTC=%q\n' \
-    "${JCP2_SCORE_JOB_ID}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+printf 'JCP2_EARLY_RELEASED=1\nJCP2_EARLY_SCORE_JOB_ID=%q\nJCP2_RELEASE_ACTION=%q\nJCP2_RELEASED_UTC=%q\n' \
+    "${JCP2_FINAL_SCORE_JOB_ID}" "${JCP2_RELEASE_ACTION}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     > "${JCP2_WORK}/LAST_JCP2_EARLY_RELEASE.env"
 
-JCP2_AFTER="$(squeue -h -j "${JCP2_SCORE_JOB_ID}" -o '%T|%r' 2>/dev/null | head -n 1)"
-echo "JCP2_SCORE_DEPENDENCY_RELEASED=1"
-echo "JCP2_SCORE_JOB_ID=${JCP2_SCORE_JOB_ID}"
+JCP2_AFTER="$(squeue -h -j "${JCP2_FINAL_SCORE_JOB_ID}" -o '%T|%r' 2>/dev/null | head -n 1 || true)"
+echo "JCP2_SCORE_ACTION=${JCP2_RELEASE_ACTION}"
+echo "JCP2_SCORE_JOB_ID=${JCP2_FINAL_SCORE_JOB_ID}"
 echo "JCP2_SCORE_STATE=${JCP2_AFTER:-LEFT_QUEUE_CHECK_SACCT}"
 echo "JCP2_REFERENCE_SPARE_24_UNTOUCHED=1"
-echo "MONITOR=squeue -j ${JCP2_SCORE_JOB_ID},${JCP2_REFERENCE_JOB_ID}"
+echo "MONITOR=squeue -j ${JCP2_FINAL_SCORE_JOB_ID},${JCP2_REFERENCE_JOB_ID}"
 echo "WHEN_COMPLETE_UPLOAD=${JCP2_WORK}/JCP2.zip ${JCP2_WORK}/JCP2.zip.sha256"
