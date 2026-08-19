@@ -1,0 +1,128 @@
+name: Vision-guided DSMC Stage 141
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage141_node_leverage_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage141_node_leverage_audit.py'
+      - 'vision_guided_dsmc/results/stage140_local_interpolation_robustness_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage141.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage141_node_leverage_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage141_node_leverage_audit.py'
+      - 'vision_guided_dsmc/results/stage140_local_interpolation_robustness_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage141.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  node-leverage-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 140-141 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage140_local_interpolation_robustness_audit.py \
+            tests/test_stage141_node_leverage_audit.py
+      - name: Download exact completed Stage 140 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage140-local-interpolation-robustness-audit
+          path: /tmp/stage140_local_interpolation_robustness_audit
+          run-id: 32223772145
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 140 payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage140_local_interpolation_robustness_audit/summary.json': '30575bcbf62eafb395190dd59a34bd49f6c7f308d762dbf219989705681b4c0a',
+              '/tmp/stage140_local_interpolation_robustness_audit/local_interpolation_robustness.npz': 'fc5a34f9fd3d95930bddf05de865a419feb0f6d6b7598ededa02f67699bdf58d',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 141 fixed node leverage audit
+        run: |
+          python -m vgdsmc.stage141_node_leverage_audit \
+            --stage140-dir /tmp/stage140_local_interpolation_robustness_audit \
+            --stage140-record results/stage140_local_interpolation_robustness_audit_observed.json \
+            --output-dir /tmp/stage141_node_leverage_audit
+      - name: Verify Stage 141 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage141_node_leverage_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 141
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['dominant_mirrored_sector'] == 6
+          assert cfg['small_endpoint_abs_ratio_max'] == 0.25
+          assert cfg['material_raw_sensitivity_ratio_min'] == 2.0
+          assert cfg['robust_delete_root_shift_max_cells'] == 0.25
+          assert cfg['counterfactual_root_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['aggregate']['parent_record_ok'] is True
+          assert summary['aggregate']['parent_route_ok'] is True
+          assert summary['aggregate']['sufficient_support'] is True
+          allowed = {
+              'stage141_material_node_leverage_stage142_sampled_sign_margin_audit',
+              'stage141_low_node_leverage_stage142_signed_lobe_balance_audit',
+              'stage141_mixed_node_leverage_stage142_sampled_transition_support_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          assert 'diagnostics, not solver parameters' in summary['negative_result_guard']
+          with np.load(root / 'node_leverage.npz') as data:
+              assert data['right_depth'].shape == (7,)
+              assert data['complement_signed'].shape == (7,)
+              assert data['crossing_bracket_indices'].shape == (2,)
+              assert data['parent_candidate_roots'].shape == (3,)
+              assert data['deletion_stencil_indices'].shape == (3, 3)
+              assert data['deletion_root_exists'].shape == (3,)
+              assert data['deletion_root_depths'].shape == (3,)
+              assert data['endpoint_abs_root_sensitivities'].shape == (2,)
+              assert np.isfinite(data['endpoint_abs_root_sensitivities']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage141-node-leverage-audit
+          path: /tmp/stage141_node_leverage_audit
+          retention-days: 30
