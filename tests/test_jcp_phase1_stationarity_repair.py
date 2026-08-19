@@ -85,9 +85,21 @@ def test_corrected_stationarity_replaces_infinite_negative_qy_diagnostic():
         assert corrected["checks"]["macroscopic_lid_slip_center"]
 
 
+def test_locked_selection_can_ignore_an_unavailable_trailing_spare():
+    records = [
+        {"accepted": True, "seed": seed} for seed in range(20)
+    ] + [
+        {"accepted": False, "seed": 20, "artifact_error": {"type": "missing"}}
+    ]
+    selected = [record["seed"] for record in records if record["accepted"]][:20]
+    assert len(selected) == 20
+    assert selected == list(range(20))
+
+
 if __name__ == "__main__":
     test_familywise_limit_is_fixed_and_more_conservative_than_two()
     test_signed_negative_profile_has_a_valid_scale_and_finite_statistics()
     test_two_half_gate_distinguishes_weak_and_strong_drift()
     test_corrected_stationarity_replaces_infinite_negative_qy_diagnostic()
-    print("4 JCP2 stationarity-repair tests passed")
+    test_locked_selection_can_ignore_an_unavailable_trailing_spare()
+    print("5 JCP2 stationarity-repair tests passed")

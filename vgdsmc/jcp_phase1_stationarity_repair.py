@@ -229,15 +229,30 @@ def audit_stationarity(
     selected: list[int] = []
     for order, seed in enumerate(jcp2.group_seeds(group)):
         directory = run_root / group / f"seed_{seed}"
-        summary = jcp2._verify_artifacts(directory)
-        corrected = corrected_stationarity(directory, summary)
-        record = _candidate_record(
-            directory,
-            summary,
-            corrected,
-            order=order,
-            primary_count=primary_count,
-        )
+        try:
+            summary = jcp2._verify_artifacts(directory)
+            corrected = corrected_stationarity(directory, summary)
+            record = _candidate_record(
+                directory,
+                summary,
+                corrected,
+                order=order,
+                primary_count=primary_count,
+            )
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            record = {
+                "order": int(order),
+                "seed": int(seed),
+                "role": "primary" if order < primary_count else "spare",
+                "directory": str(directory),
+                "accepted": False,
+                "failed_mechanical_checks": ["artifact_verification"],
+                "failed_stationarity_metrics": [],
+                "artifact_error": {
+                    "type": type(error).__name__,
+                    "detail": str(error),
+                },
+            }
         records.append(record)
         if record["accepted"] and len(selected) < required:
             selected.append(int(seed))
@@ -310,6 +325,8 @@ def apply_stationarity_repair(
             )
         )
     for record in records:
+        if "corrected_stationarity" not in record:
+            continue
         _apply_record(record)
     verified, _ = audit_stationarity(run_root, group)
     verified["summaries_and_manifests_updated"] = True
