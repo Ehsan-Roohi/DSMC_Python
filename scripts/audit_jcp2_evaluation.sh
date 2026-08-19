@@ -17,7 +17,7 @@ echo "JCP2_PREDICTION_JOB_ID=${JCP2_PREDICTION_JOB_ID}"
 echo "JCP2_SCORE_JOB_ID=${JCP2_SCORE_JOB_ID}"
 
 echo "=== EVALUATION ARRAY ACCOUNTING ==="
-sacct -X -j "${JCP2_EVAL_JOB_ID}" +    --format=JobID%24,JobName%16,State%22,Elapsed,ExitCode,NodeList || true
+sacct -X -j "${JCP2_EVAL_JOB_ID}" --format=JobID%24,JobName%16,State%22,Elapsed,ExitCode,NodeList || true
 
 echo "=== EVALUATION ARTIFACT COUNTS ==="
 JCP2_EVAL_MANIFESTS="$(find "${JCP2_WORK}/runs/evaluation" -type f -name artifact_manifest.json 2>/dev/null | wc -l)"
@@ -26,7 +26,7 @@ echo "artifact_manifests=${JCP2_EVAL_MANIFESTS}"
 echo "summaries=${JCP2_EVAL_SUMMARIES}"
 
 echo "=== EVALUATION DIRECTORIES ==="
-find "${JCP2_WORK}/runs/evaluation" -mindepth 1 -maxdepth 2 +    -printf '%y\t%TY-%Tm-%TdT%TH:%TM:%TS\t%s\t%p\n' 2>/dev/null | sort || true
+find "${JCP2_WORK}/runs/evaluation" -mindepth 1 -maxdepth 2 -printf '%y\t%TY-%Tm-%TdT%TH:%TM:%TS\t%s\t%p\n' 2>/dev/null | sort || true
 
 echo "=== NONEMPTY EVALUATION ERROR LOGS ==="
 JCP2_NONEMPTY_ERRORS=0
