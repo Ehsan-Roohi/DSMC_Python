@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP2_REPAIR_CODE_COMMIT=__JCP2_REPAIR_CODE_COMMIT__
+JCP2_REPAIR_CODE_COMMIT=0b73efe670513d78419f4cc33575aafff4c34082
 JCP2_REPAIR_RAW="${JCP2_REPAIR_RAW_OVERRIDE:-https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP2_REPAIR_CODE_COMMIT}}"
 JCP2_WORK="${JCP2_REPAIR_WORK_OVERRIDE:-/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/JCP2}"
 JCP2_SOURCE="${JCP2_WORK}/src"
