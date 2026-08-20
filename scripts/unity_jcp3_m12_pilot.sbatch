@@ -7,6 +7,7 @@
 
 set -Eeuo pipefail
 : "${JCP3_SOURCE_DIR:?}"
+: "${JCP3_DATA:?}"
 : "${JCP3_WORK:?}"
 : "${JCP3_CODE:?}"
 : "${JCP3_SEED:?}"
@@ -18,7 +19,7 @@ printf '1\n0\n0\n0\n0\n3\n' > "${CASE}/interactive_input.txt"
 
 python "${JCP3_CODE}/scripts/prepare_jcp3_ds2v_m12.py" \
   --source "${JCP3_SOURCE_DIR}/Plasma_Calculations2.bird_m10_fresh.F90" \
-  --data "${JCP3_SOURCE_DIR}/DS2VD.DAT" \
+  --data "${JCP3_DATA}" \
   --output-source "${CASE}/DS2V_JCP3_M12.F90" \
   --output-data "${CASE}/DS2VD.DAT" \
   --report "${CASE}/JCP3_PATCH_REPORT.json"
