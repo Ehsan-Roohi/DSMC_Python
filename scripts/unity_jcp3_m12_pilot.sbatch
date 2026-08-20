@@ -13,7 +13,7 @@ set -Eeuo pipefail
 : "${JCP3_CODE:?}"
 : "${JCP3_SEED:?}"
 
-CASE="${JCP3_WORK}/case_seed_${JCP3_SEED}"
+CASE="${JCP3_WORK}/case_seed_${JCP3_SEED}_job_${SLURM_JOB_ID}"
 mkdir -p "${CASE}"
 find "${JCP3_SOURCE_DIR}" -maxdepth 1 -type f -exec cp -p -- {} "${CASE}/" \;
 cp -p -- "${JCP3_HEAT_BENCH}" "${CASE}/HEAT-BENCH.TXT"
