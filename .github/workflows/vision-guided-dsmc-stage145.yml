@@ -1,0 +1,128 @@
+name: Vision-guided DSMC Stage 145
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage145_trough_persistence_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage145_trough_persistence_audit.py'
+      - 'vision_guided_dsmc/results/stage144_positive_lobe_shape_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage145.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage145_trough_persistence_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage145_trough_persistence_audit.py'
+      - 'vision_guided_dsmc/results/stage144_positive_lobe_shape_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage145.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  trough-persistence-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 143-145 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage143_positive_lobe_scale_audit.py \
+            tests/test_stage144_positive_lobe_shape_audit.py \
+            tests/test_stage145_trough_persistence_audit.py
+      - name: Download exact completed Stage 144 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage144-positive-lobe-shape-audit
+          path: /tmp/stage144_positive_lobe_shape_audit
+          run-id: 32315737077
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 144 payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage144_positive_lobe_shape_audit/summary.json': '8f63bc6fd4f72696118f634957c2d933d434b85c426a84eb754000d8ec9f30d8',
+              '/tmp/stage144_positive_lobe_shape_audit/positive_lobe_shape.npz': '794534c55513cbab6af3864a2c652526af67d823e992065fc08b00ce7f694f9c',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 145 fixed neighboring-support trough-persistence audit
+        run: |
+          python -m vgdsmc.stage145_trough_persistence_audit \
+            --stage144-dir /tmp/stage144_positive_lobe_shape_audit \
+            --stage144-record results/stage144_positive_lobe_shape_audit_observed.json \
+            --output-dir /tmp/stage145_trough_persistence_audit
+      - name: Verify Stage 145 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage145_trough_persistence_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 145
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['dominant_mirrored_sector'] == 6
+          assert cfg['material_depression_min'] == 0.25
+          assert cfg['persistent_support_min_samples'] == 2
+          assert cfg['trough_persistence_used_for_solver'] is False
+          assert cfg['trough_amplitude_refit_applied'] is False
+          assert cfg['trough_location_shift_applied'] is False
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          agg = summary['aggregate']
+          assert agg['parent_record_ok'] is True
+          assert agg['parent_route_ok'] is True
+          assert agg['has_neighbor_support'] is True
+          assert agg['maximum_parent_metric_closure'] <= 1.0e-12
+          assert agg['trough_material_depression_pass'] is True
+          allowed = {
+              'stage145_trough_isolated_to_single_sample_stage146_trough_provenance_audit',
+              'stage145_trough_persists_over_neighbor_support_stage146_trough_width_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          assert 'diagnostics, not solver parameters' in summary['negative_result_guard']
+          with np.load(root / 'trough_persistence.npz') as data:
+              assert data['later_positive_depth'].shape == (4,)
+              assert data['later_positive_values'].shape == (4,)
+              assert data['material_depression_mask'].shape == (4,)
+              assert data['trough_index'].shape == (1,)
+              assert np.isfinite(data['local_neighbor_secant_value']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage145-trough-persistence-audit
+          path: /tmp/stage145_trough_persistence_audit
+          retention-days: 30
