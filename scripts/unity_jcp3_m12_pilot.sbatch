@@ -33,12 +33,13 @@ gfortran -O2 -g -std=legacy -fdec -fno-automatic -fallow-argument-mismatch \
   DS2V_JCP3_M12.F90 -o ds2v_jcp3_m12
 
 set +e
-timeout --signal=TERM --kill-after=60s 02:30:00 \
+timeout --signal=TERM --kill-after=60s 150m \
   ./ds2v_jcp3_m12 < interactive_input.txt > JCP3_DS2V.out 2> JCP3_DS2V.err
 RC=$?
 set -e
 if [[ "${RC}" != 0 && "${RC}" != 124 ]]; then
   echo "JCP3_DS2V_FAILED=${RC}" >&2
+  tail -n 120 JCP3_DS2V.err >&2 || true
   exit "${RC}"
 fi
 
