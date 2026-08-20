@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP3_CODE_COMMIT=453bc720cfae225e6334eaca584cae1d4aa31de3
+JCP3_CODE_COMMIT=2979d74fbb4896cce5c15924309bbad87832fe2d
 JCP3_RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP3_CODE_COMMIT}"
 JCP3_SOURCE_DIR=/project/pi_roohie_umass_edu/Ab-initio-shock/ABINITIO_SHOCK_TESTS_v2/DS2V_BIRD_M10_FRESH_ONLY_20260722_234904/source
+JCP3_DATA_SEARCH_ROOT=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc/mv11_ds2v_cylinder_runs
+JCP3_EXPECTED_DATA_SHA256=a13e82650ffa7a0303b0353ad385b198839c2c738df7cff98ce343806e736b96
 JCP3_WORK=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/JCP3_M12_PILOT
 JCP3_CODE="${JCP3_WORK}/code"
 JCP3_SEED=26082301
@@ -11,7 +13,30 @@ JCP3_SEED=26082301
 trap 'RC=$?; echo "JCP3_PILOT_BOOTSTRAP_FAILED rc=${RC} line=${LINENO} command=${BASH_COMMAND}" >&2; exit "${RC}"' ERR
 
 [[ -f "${JCP3_SOURCE_DIR}/Plasma_Calculations2.bird_m10_fresh.F90" ]] || { echo "MISSING_DS2V_SOURCE=1" >&2; exit 2; }
-[[ -f "${JCP3_SOURCE_DIR}/DS2VD.DAT" ]] || { echo "MISSING_DS2V_DATA=1" >&2; exit 2; }
+
+JCP3_DATA=
+for CANDIDATE in \
+  "${JCP3_SOURCE_DIR}/DS2VD.DAT" \
+  "${JCP3_SOURCE_DIR}/../DS2VD.DAT" \
+  "${JCP3_DATA_SEARCH_ROOT}/MV11_DS2V_CYLINDER_20260813_170355/input/DS2VD.DAT" \
+  "${JCP3_DATA_SEARCH_ROOT}/MV11_DS2V_CYLINDER_20260813_133511/input/DS2VD.DAT"
+do
+  if [[ -f "${CANDIDATE}" ]]; then
+    JCP3_DATA="${CANDIDATE}"
+    break
+  fi
+done
+if [[ -z "${JCP3_DATA}" && -d "${JCP3_DATA_SEARCH_ROOT}" ]]; then
+  JCP3_DATA="$(find "${JCP3_DATA_SEARCH_ROOT}" -type f -path '*/input/DS2VD.DAT' -print -quit 2>/dev/null || true)"
+fi
+[[ -n "${JCP3_DATA}" && -f "${JCP3_DATA}" ]] || { echo "MISSING_DS2V_DATA=1 search_root=${JCP3_DATA_SEARCH_ROOT}" >&2; exit 2; }
+JCP3_DATA_SHA256="$(sha256sum "${JCP3_DATA}" | awk '{print $1}')"
+[[ "${JCP3_DATA_SHA256}" == "${JCP3_EXPECTED_DATA_SHA256}" ]] || {
+  echo "DS2V_DATA_CHECKSUM_MISMATCH expected=${JCP3_EXPECTED_DATA_SHA256} actual=${JCP3_DATA_SHA256} path=${JCP3_DATA}" >&2
+  exit 2
+}
+echo "JCP3_DATA=${JCP3_DATA}"
+echo "JCP3_DATA_SHA256=${JCP3_DATA_SHA256}"
 
 if [[ -f "${JCP3_WORK}/JCP3_M12_PILOT.zip" && -f "${JCP3_WORK}/JCP3_M12_PILOT.zip.sha256" ]]; then
   cd "${JCP3_WORK}"
@@ -31,9 +56,10 @@ bash -n "${JCP3_CODE}/scripts/unity_jcp3_m12_pilot.sbatch"
 JOB_ID="$(sbatch --parsable \
   --output="${JCP3_WORK}/logs/j3-m12-pilot_%j.out" \
   --error="${JCP3_WORK}/logs/j3-m12-pilot_%j.err" \
-  --export="ALL,JCP3_SOURCE_DIR=${JCP3_SOURCE_DIR},JCP3_WORK=${JCP3_WORK},JCP3_CODE=${JCP3_CODE},JCP3_SEED=${JCP3_SEED}" \
+  --export="ALL,JCP3_SOURCE_DIR=${JCP3_SOURCE_DIR},JCP3_DATA=${JCP3_DATA},JCP3_WORK=${JCP3_WORK},JCP3_CODE=${JCP3_CODE},JCP3_SEED=${JCP3_SEED}" \
   "${JCP3_CODE}/scripts/unity_jcp3_m12_pilot.sbatch")"
-printf 'JCP3_PILOT_JOB_ID=%q\nJCP3_WORK=%q\nJCP3_CODE_COMMIT=%q\n' "${JOB_ID}" "${JCP3_WORK}" "${JCP3_CODE_COMMIT}" > "${JCP3_WORK}/LAST_JCP3_PILOT.env"
+printf 'JCP3_PILOT_JOB_ID=%q\nJCP3_WORK=%q\nJCP3_CODE_COMMIT=%q\nJCP3_DATA=%q\nJCP3_DATA_SHA256=%q\n' \
+  "${JOB_ID}" "${JCP3_WORK}" "${JCP3_CODE_COMMIT}" "${JCP3_DATA}" "${JCP3_DATA_SHA256}" > "${JCP3_WORK}/LAST_JCP3_PILOT.env"
 echo "JCP3_M12_PILOT_SUBMITTED=1"
 echo "JCP3_PILOT_JOB_ID=${JOB_ID}"
 echo "MONITOR=squeue -j ${JOB_ID}"
