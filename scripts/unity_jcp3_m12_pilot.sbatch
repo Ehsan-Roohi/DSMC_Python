@@ -8,6 +8,7 @@
 set -Eeuo pipefail
 : "${JCP3_SOURCE_DIR:?}"
 : "${JCP3_DATA:?}"
+: "${JCP3_HEAT_BENCH:?}"
 : "${JCP3_WORK:?}"
 : "${JCP3_CODE:?}"
 : "${JCP3_SEED:?}"
@@ -15,6 +16,7 @@ set -Eeuo pipefail
 CASE="${JCP3_WORK}/case_seed_${JCP3_SEED}"
 mkdir -p "${CASE}"
 find "${JCP3_SOURCE_DIR}" -maxdepth 1 -type f -exec cp -p -- {} "${CASE}/" \;
+cp -p -- "${JCP3_HEAT_BENCH}" "${CASE}/HEAT-BENCH.TXT"
 printf '1\n0\n0\n0\n0\n3\n' > "${CASE}/interactive_input.txt"
 
 python "${JCP3_CODE}/scripts/prepare_jcp3_ds2v_m12.py" \
