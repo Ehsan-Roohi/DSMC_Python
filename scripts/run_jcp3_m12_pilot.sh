@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP3_CODE_COMMIT=2979d74fbb4896cce5c15924309bbad87832fe2d
+JCP3_CODE_COMMIT=54d275d00cf536ea69230ec9cc65ec97ff2ac6af
 JCP3_RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP3_CODE_COMMIT}"
 JCP3_SOURCE_DIR=/project/pi_roohie_umass_edu/Ab-initio-shock/ABINITIO_SHOCK_TESTS_v2/DS2V_BIRD_M10_FRESH_ONLY_20260722_234904/source
 JCP3_DATA_SEARCH_ROOT=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc/mv11_ds2v_cylinder_runs
