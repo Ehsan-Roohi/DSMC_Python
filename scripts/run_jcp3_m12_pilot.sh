@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP3_CODE_COMMIT=54d275d00cf536ea69230ec9cc65ec97ff2ac6af
+JCP3_CODE_COMMIT=8843222ab7b9368f3b94e892a78d82027282e876
 JCP3_RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP3_CODE_COMMIT}"
 JCP3_SOURCE_DIR=/project/pi_roohie_umass_edu/Ab-initio-shock/ABINITIO_SHOCK_TESTS_v2/DS2V_BIRD_M10_FRESH_ONLY_20260722_234904/source
 JCP3_DATA_SEARCH_ROOT=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/vision_guided_dsmc/mv11_ds2v_cylinder_runs
 JCP3_EXPECTED_DATA_SHA256=a13e82650ffa7a0303b0353ad385b198839c2c738df7cff98ce343806e736b96
+JCP3_EXPECTED_HEAT_BENCH_SHA256=2d94da3d86786afd1c497994cad935cfca1d188d9431bf16960fbc533e3f6c34
 JCP3_WORK=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/JCP3_M12_PILOT
 JCP3_CODE="${JCP3_WORK}/code"
 JCP3_SEED=26082301
@@ -38,6 +39,29 @@ JCP3_DATA_SHA256="$(sha256sum "${JCP3_DATA}" | awk '{print $1}')"
 echo "JCP3_DATA=${JCP3_DATA}"
 echo "JCP3_DATA_SHA256=${JCP3_DATA_SHA256}"
 
+JCP3_HEAT_BENCH=
+for CANDIDATE in \
+  "$(dirname "${JCP3_DATA}")/HEAT-BENCH.TXT" \
+  "${JCP3_DATA_SEARCH_ROOT}/MV11_DS2V_CYLINDER_20260813_170355/input/HEAT-BENCH.TXT" \
+  "${JCP3_DATA_SEARCH_ROOT}/MV11_DS2V_CYLINDER_20260813_133511/input/HEAT-BENCH.TXT"
+do
+  if [[ -f "${CANDIDATE}" ]]; then
+    JCP3_HEAT_BENCH="${CANDIDATE}"
+    break
+  fi
+done
+if [[ -z "${JCP3_HEAT_BENCH}" && -d "${JCP3_DATA_SEARCH_ROOT}" ]]; then
+  JCP3_HEAT_BENCH="$(find "${JCP3_DATA_SEARCH_ROOT}" -type f -path '*/input/HEAT-BENCH.TXT' -print -quit 2>/dev/null || true)"
+fi
+[[ -n "${JCP3_HEAT_BENCH}" && -f "${JCP3_HEAT_BENCH}" ]] || { echo "MISSING_HEAT_BENCH=1 search_root=${JCP3_DATA_SEARCH_ROOT}" >&2; exit 2; }
+JCP3_HEAT_BENCH_SHA256="$(sha256sum "${JCP3_HEAT_BENCH}" | awk '{print $1}')"
+[[ "${JCP3_HEAT_BENCH_SHA256}" == "${JCP3_EXPECTED_HEAT_BENCH_SHA256}" ]] || {
+  echo "HEAT_BENCH_CHECKSUM_MISMATCH expected=${JCP3_EXPECTED_HEAT_BENCH_SHA256} actual=${JCP3_HEAT_BENCH_SHA256} path=${JCP3_HEAT_BENCH}" >&2
+  exit 2
+}
+echo "JCP3_HEAT_BENCH=${JCP3_HEAT_BENCH}"
+echo "JCP3_HEAT_BENCH_SHA256=${JCP3_HEAT_BENCH_SHA256}"
+
 if [[ -f "${JCP3_WORK}/JCP3_M12_PILOT.zip" && -f "${JCP3_WORK}/JCP3_M12_PILOT.zip.sha256" ]]; then
   cd "${JCP3_WORK}"
   sha256sum -c JCP3_M12_PILOT.zip.sha256
@@ -56,10 +80,11 @@ bash -n "${JCP3_CODE}/scripts/unity_jcp3_m12_pilot.sbatch"
 JOB_ID="$(sbatch --parsable \
   --output="${JCP3_WORK}/logs/j3-m12-pilot_%j.out" \
   --error="${JCP3_WORK}/logs/j3-m12-pilot_%j.err" \
-  --export="ALL,JCP3_SOURCE_DIR=${JCP3_SOURCE_DIR},JCP3_DATA=${JCP3_DATA},JCP3_WORK=${JCP3_WORK},JCP3_CODE=${JCP3_CODE},JCP3_SEED=${JCP3_SEED}" \
+  --export="ALL,JCP3_SOURCE_DIR=${JCP3_SOURCE_DIR},JCP3_DATA=${JCP3_DATA},JCP3_HEAT_BENCH=${JCP3_HEAT_BENCH},JCP3_WORK=${JCP3_WORK},JCP3_CODE=${JCP3_CODE},JCP3_SEED=${JCP3_SEED}" \
   "${JCP3_CODE}/scripts/unity_jcp3_m12_pilot.sbatch")"
-printf 'JCP3_PILOT_JOB_ID=%q\nJCP3_WORK=%q\nJCP3_CODE_COMMIT=%q\nJCP3_DATA=%q\nJCP3_DATA_SHA256=%q\n' \
-  "${JOB_ID}" "${JCP3_WORK}" "${JCP3_CODE_COMMIT}" "${JCP3_DATA}" "${JCP3_DATA_SHA256}" > "${JCP3_WORK}/LAST_JCP3_PILOT.env"
+printf 'JCP3_PILOT_JOB_ID=%q\nJCP3_WORK=%q\nJCP3_CODE_COMMIT=%q\nJCP3_DATA=%q\nJCP3_DATA_SHA256=%q\nJCP3_HEAT_BENCH=%q\nJCP3_HEAT_BENCH_SHA256=%q\n' \
+  "${JOB_ID}" "${JCP3_WORK}" "${JCP3_CODE_COMMIT}" "${JCP3_DATA}" "${JCP3_DATA_SHA256}" \
+  "${JCP3_HEAT_BENCH}" "${JCP3_HEAT_BENCH_SHA256}" > "${JCP3_WORK}/LAST_JCP3_PILOT.env"
 echo "JCP3_M12_PILOT_SUBMITTED=1"
 echo "JCP3_PILOT_JOB_ID=${JOB_ID}"
 echo "MONITOR=squeue -j ${JOB_ID}"
