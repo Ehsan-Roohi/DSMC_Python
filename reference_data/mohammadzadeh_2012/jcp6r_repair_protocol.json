@@ -1,0 +1,34 @@
+{
+  "protocol_version": 1,
+  "stage": "JCP6R_pre_M12_development_repair",
+  "classification": "development_only_after_failed_JCP6_gate",
+  "failed_jcp6_archive_sha256": "1f3881fc4b59716922a581304891f5d7b721423b2301d518210b499b54483ac1",
+  "development_conditions": [8.0, 10.0],
+  "units_per_condition": 4,
+  "blocks_per_unit": 40,
+  "validation": {
+    "scheme": "leave_one_seed_out_with_disjoint_observation_and_reference_blocks",
+    "draws_per_unit": 4,
+    "observation_budget": 3,
+    "raw_comparator_budget": 10,
+    "reference_budget": 30,
+    "per_draw_partition": "B3 subset of B10; B10 disjoint from B30 reference"
+  },
+  "candidate": {
+    "name": "registered_condition_prior_adaptive_eb",
+    "condition_prior": "mean of the other development seeds at the same Mach during validation",
+    "final_prior": "mean of all four development seeds at each Mach",
+    "M12_prior_rule": "linear Mach extrapolation: 2*prior_M10-prior_M8",
+    "fusion": "data-consistent exact-cell empirical-Bayes residual gain",
+    "gain": "clip((residual_power-observation_noise_power)/residual_power,0,1)",
+    "spatial_strata": ["near_wall", "wake", "outer"],
+    "heat_flux_basis": "cylinder-normal and cylinder-tangential components"
+  },
+  "primary_gate": {
+    "global_qy_geometric_nrmse_ratio_B3_candidate_to_raw_B10_below": 0.95,
+    "near_wall_qn_geometric_nrmse_ratio_B3_candidate_to_raw_B10_below": 0.95,
+    "minimum_units_improved_for_each_heat_flux_endpoint": 6,
+    "total_units": 8
+  },
+  "publication_guard": "No Mach-12 evaluation or reference artifact may be read. JCP6R must finish and pass its development gate before any prospective Mach-12 evaluation begins."
+}
