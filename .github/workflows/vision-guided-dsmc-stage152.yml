@@ -1,3 +1,4 @@
+# Explicit Stage 152 launch trigger after workflow registration.
 name: Vision-guided DSMC Stage 152
 
 on:
