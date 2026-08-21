@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP6R_CODE_COMMIT=3fbf1ca88ba91c6377b834303af412e64c8bfe48
+JCP6R_CODE_COMMIT=385d785c436ea93790f62f55032e5b6fa5f2694e
 JCP6R_RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP6R_CODE_COMMIT}"
 JCP6R_WORK=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/JCP6R_MODEL_LOCK
 JCP6R_CODE="${JCP6R_WORK}/code"
@@ -14,10 +14,29 @@ EXPECTED_FAILED_JCP6_SHA256=1f3881fc4b59716922a581304891f5d7b721423b2301d518210b
 trap 'RC=$?; echo "JCP6R_BOOTSTRAP_FAILED rc=${RC} line=${LINENO} command=${BASH_COMMAND}" >&2; exit "${RC}"' ERR
 
 if [[ -f "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip" && -f "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip.sha256" ]]; then
-  (cd "${JCP6R_WORK}" && sha256sum -c JCP6R_MODEL_LOCK.zip.sha256)
-  echo "JCP6R_MODEL_LOCK_ALREADY_COMPLETE=1"
-  echo "UPLOAD=${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip ${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip.sha256"
-  exit 0
+  if (cd "${JCP6R_WORK}" && sha256sum -c JCP6R_MODEL_LOCK.zip.sha256) && \
+    python - "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip" <<'PY'
+import io
+import sys
+import zipfile
+import numpy as np
+with zipfile.ZipFile(sys.argv[1]) as archive:
+    with np.load(io.BytesIO(archive.read("JCP6R_MODEL.npz")), allow_pickle=False) as model:
+        if not all(
+            not np.issubdtype(model[name].dtype, np.number) or np.isfinite(model[name]).all()
+            for name in model.files
+        ):
+            raise SystemExit(1)
+PY
+  then
+    echo "JCP6R_MODEL_LOCK_ALREADY_COMPLETE=1"
+    echo "UPLOAD=${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip ${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip.sha256"
+    exit 0
+  fi
+  STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+  mv "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip" "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip.nonfinite-${STAMP}"
+  mv "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip.sha256" "${JCP6R_WORK}/JCP6R_MODEL_LOCK.zip.sha256.nonfinite-${STAMP}"
+  echo "JCP6R_NONFINITE_ARCHIVE_PRESERVED=${STAMP}"
 fi
 [[ "$(sha256sum "${JCP6R_JCP4}" | awk '{print $1}')" == "${EXPECTED_JCP4_SHA256}" ]] || { echo "JCP4_CHECKSUM_MISMATCH=1" >&2; exit 2; }
 [[ "$(sha256sum "${JCP6R_FAILED_JCP6}" | awk '{print $1}')" == "${EXPECTED_FAILED_JCP6_SHA256}" ]] || { echo "FAILED_JCP6_CHECKSUM_MISMATCH=1" >&2; exit 2; }
