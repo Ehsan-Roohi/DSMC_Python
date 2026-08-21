@@ -248,9 +248,16 @@ def main() -> None:
         zones=zones,
         prior_m8=prior_m8.astype(np.float32),
         prior_m10=prior_m10.astype(np.float32),
-        block_variance_m8=variance_m8.astype(np.float32),
-        block_variance_m10=variance_m10.astype(np.float32),
+        # Density is O(1e20), so its variance can exceed the float32 range.
+        # Preserve variance ledgers in float64 for prospective fusion.
+        block_variance_m8=variance_m8.astype(np.float64),
+        block_variance_m10=variance_m10.astype(np.float64),
     )
+    with np.load(model_path, allow_pickle=False) as frozen:
+        for name in frozen.files:
+            value = frozen[name]
+            if np.issubdtype(value.dtype, np.number) and not np.isfinite(value).all():
+                raise ValueError(f"nonfinite frozen-model array {name}")
 
     metrics_path = args.output / "JCP6R_VALIDATION_METRICS.csv"
     with metrics_path.open("w", newline="", encoding="utf-8") as stream:
@@ -267,6 +274,7 @@ def main() -> None:
         "jcp4_sha256": sha256(args.jcp4),
         "protocol_sha256": sha256(args.protocol),
         "model_sha256": sha256(model_path),
+        "model_all_numeric_arrays_finite": True,
         "metrics_sha256": sha256(metrics_path),
         "fields": list(FIELDS),
         "development_units": 8,
