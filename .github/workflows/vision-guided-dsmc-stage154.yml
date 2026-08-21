@@ -1,0 +1,138 @@
+# Explicit Stage 154 launch trigger after workflow registration.
+name: Vision-guided DSMC Stage 154
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage154_coarse_endpoint_support_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage154_coarse_endpoint_support_audit.py'
+      - 'vision_guided_dsmc/results/stage153_left_channel_endpoint_balance_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage154.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage154_coarse_endpoint_support_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage154_coarse_endpoint_support_audit.py'
+      - 'vision_guided_dsmc/results/stage153_left_channel_endpoint_balance_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage154.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  coarse-endpoint-support-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 153-154 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage153_left_channel_endpoint_balance_audit.py \
+            tests/test_stage154_coarse_endpoint_support_audit.py
+      - name: Download exact completed Stage 153 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage153-left-channel-endpoint-balance-audit
+          path: /tmp/stage153_left_channel_endpoint_balance_audit
+          run-id: 32476131806
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 153 parent payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage153_left_channel_endpoint_balance_audit/summary.json': 'e48fee36cad86162c69309863970064db329bfc1412e91ec537f347da97de3c9',
+              '/tmp/stage153_left_channel_endpoint_balance_audit/left_channel_endpoint_balance.npz': '23ce0124dad79d32bbc4d26cfc5fed147f5390df6433130060541ff4e2db8dad',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Download exact completed Stage 147 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage147-dual-channel-neighborhood-audit
+          path: /tmp/stage147_dual_channel_neighborhood_audit
+          run-id: 32358081943
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 147 supporting payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage147_dual_channel_neighborhood_audit/summary.json': 'bf8fa6cc06e510fa2f4fbd76726db8e03faf5237bc95cc897fbfa7d42cf0ba5b',
+              '/tmp/stage147_dual_channel_neighborhood_audit/dual_channel_neighborhood.npz': 'a77b8bc80a291fe9e440d30f7c09e768964e86b9e873a9ab9890074caf8d6c2d',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 154 fixed coarse-endpoint support audit
+        run: |
+          python -m vgdsmc.stage154_coarse_endpoint_support_audit \
+            --stage153-dir /tmp/stage153_left_channel_endpoint_balance_audit \
+            --stage153-record results/stage153_left_channel_endpoint_balance_audit_observed.json \
+            --stage147-dir /tmp/stage147_dual_channel_neighborhood_audit \
+            --stage147-record results/stage147_dual_channel_neighborhood_audit_observed.json \
+            --output-dir /tmp/stage154_coarse_endpoint_support_audit
+      - name: Verify Stage 154 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          from pathlib import Path
+          root = Path('/tmp/stage154_coarse_endpoint_support_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 154 and summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64] and cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0 and cfg['cold_hot_ratio'] == 0.1 and cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0 and cfg['limiter'] == 'minmod' and cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0 and cfg['correction_floor'] == 0.05
+          assert cfg['coarse_endpoint_cancellation_min'] == 0.75
+          assert cfg['single_sample_support_dominance_min'] == 0.75
+          assert cfg['min_broad_opposed_support_count'] == 2
+          assert cfg['support_metrics_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False and cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          agg = summary['aggregate']
+          assert agg['stage153_record_ok'] is True and agg['stage147_record_ok'] is True and agg['parent_route_ok'] is True
+          assert agg['opposed_support_count'] == 3
+          assert agg['maximum_single_sample_cancellation_support_share'] < 0.75
+          assert agg['effective_cancellation_support_count'] > 2.0
+          assert agg['maximum_identity_or_provenance_error'] <= 1e-12
+          assert summary['decision'] == 'stage154_coarse_cancellation_broad_support_stage155_support_sign_geometry_audit'
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          assert 'diagnostics, not solver parameters' in summary['negative_result_guard']
+          with np.load(root / 'coarse_endpoint_support.npz') as data:
+              assert data['support_indices'].tolist() == [0, 2, 4]
+              assert data['support_depth'].shape == (3,)
+              assert data['dominant_support_contributions'].shape == (3,)
+              assert data['parent_support_contributions'].shape == (3,)
+              assert data['combined_support_contributions'].shape == (3,)
+              assert data['channel_sign_products'].tolist() == [-1, -1, -1]
+              assert data['node_cancellation_support_share'].shape == (3,)
+              assert np.isfinite(data['node_cancellation_support_share']).all()
+              assert np.isclose(data['node_cancellation_support_share'].sum(), 1.0)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage154-coarse-endpoint-support-audit
+          path: /tmp/stage154_coarse_endpoint_support_audit
+          retention-days: 30
