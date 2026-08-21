@@ -116,9 +116,17 @@ def parse_moment_bytes(data: bytes) -> tuple[np.ndarray, np.ndarray, dict[str, A
 def parse_wall_bytes(data: bytes) -> np.ndarray:
     wall = np.loadtxt(io.BytesIO(data), skiprows=2)
     wall = np.atleast_2d(wall)
-    if wall.shape[0] < 20 or wall.shape[1] < 16 or not np.isfinite(wall).all():
+    if wall.shape[0] < 20 or not np.isfinite(wall).all():
         raise ValueError(f"invalid wall tally {wall.shape}")
-    return wall[:, 15].astype(np.float64)
+    if wall.shape[1] >= 16:
+        heat_flux_column = 15
+    elif wall.shape[1] == 5:
+        # The archived Mach-10 campaign uses the legacy five-column
+        # HEAT-FLUX table; heat flux is the final column in that layout.
+        heat_flux_column = 4
+    else:
+        raise ValueError(f"unsupported wall tally layout {wall.shape}")
+    return wall[:, heat_flux_column].astype(np.float64)
 
 
 def assert_coords(reference: np.ndarray | None, current: np.ndarray) -> np.ndarray:
