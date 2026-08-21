@@ -1,0 +1,95 @@
+{
+  "aggregate": {
+    "dominant_channel_sign_transition": false,
+    "maximum_identity_or_provenance_error": 0.0,
+    "parent_channel_sign_transition": true,
+    "parent_outer_cancellation_fraction": 0.6324593677860357,
+    "parent_route_ok": true,
+    "parent_stronger_outer_absolute_share": 0.6837703161069821,
+    "stage147_record_ok": true,
+    "stage149_record_ok": true
+  },
+  "artifact_id": 9430006423,
+  "artifact_sha256": "ce7e2be6eb7e5bc93dca540430c58671642a68706012a61afea61600972b45d8",
+  "artifact_size_bytes": 2597,
+  "channel_sign_transition_localization_sha256": "5e841e56d1d22d82fd73f9bfd6193857dc65b2ac42849ced065b273d264dc5c0",
+  "decision": "stage150_opposing_outer_intervals_no_single_side_dominance_stage151_outer_interval_asymmetry_audit",
+  "design": {
+    "benchmark_or_validation_claim_permitted": false,
+    "boundary_slope": "zero",
+    "cold_hot_ratio": 0.1,
+    "collision_source_retuning": false,
+    "correction_floor": 0.05,
+    "cross_knudsen_extension_permitted": false,
+    "dominant_mirrored_sector": 6,
+    "floor_retuning": false,
+    "grid": [
+      64,
+      64
+    ],
+    "interior_grid": [
+      56,
+      56
+    ],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "limiter_retuning": false,
+    "normalization_retuning": false,
+    "outer_side_dominance_min": 0.75,
+    "pair_sectors": [
+      5,
+      6
+    ],
+    "physical_parameter_retuning": false,
+    "radial_scale": 2.0,
+    "reconstruction_retuning": false,
+    "rule": [
+      40,
+      96
+    ],
+    "solver_endpoint_advanced": false,
+    "solver_rerun": false,
+    "source_relaxation": 1.0,
+    "source_relaxation_retuning": false,
+    "transition_metrics_used_for_solver": false,
+    "transport_retuning": false,
+    "velocity_grid_retuning": false,
+    "wall_retuning": false,
+    "witness_node": 9
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. Stage 150 is an artifact-only channel sign-transition localization audit; outer-interval shares and cancellation fractions are diagnostics, not solver parameters. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no measured transition location or scale is fed back into the solver, no solver endpoint or cross-Knudsen extension is advanced, and no benchmark or validation claim is permitted.",
+  "key_metrics": {
+    "dominant_coarse_center": 0.0043610410121524,
+    "dominant_fine_center": 0.0062655553375603745,
+    "dominant_left_outer_increment": 0.0035605261840368774,
+    "dominant_outer_cancellation_fraction": 0.7889867317934267,
+    "dominant_right_outer_increment": -0.005465040509444852,
+    "dominant_stronger_outer_absolute_share": 0.6055066341032866,
+    "maximum_identity_or_provenance_error": 0.0,
+    "parent_coarse_center": -0.003396086379121477,
+    "parent_fine_center": 0.0021739721596047423,
+    "parent_left_outer_increment": -0.010362502411820462,
+    "parent_outer_cancellation_fraction": 0.6324593677860357,
+    "parent_right_outer_increment": 0.004792443873094243,
+    "parent_stronger_outer_absolute_share": 0.6837703161069821
+  },
+  "record_type": "completed_channel_sign_transition_localization_audit",
+  "routing": {
+    "next_stage": 151,
+    "next_stage_justified": true,
+    "next_stage_name": "outer_interval_asymmetry_audit",
+    "reason": "The parent channel flips sign between the one-cell and two-cell scales, but its left and right outer increments oppose one another and neither side reaches the fixed 75% dominance guard. The next fixed artifact-only question is whether the two inherited component channels share or oppose the same left/right asymmetry and how their exact recombination carries the coarse-scale attenuation."
+  },
+  "scientific_conclusion": "The parent channel is the channel that changes sign between the one-cell and two-cell secant scales, but the change is not localized to a single outer interval. The left and right outer-span contributions oppose each other, and the stronger side remains below the fixed 75% absolute-share guard. The observed coarse cancellation is therefore an asymmetric two-sided scale effect in the frozen five-point profile, not a one-sided defect and not evidence of solver causality.",
+  "source_head": "1e4fe5ff5e3542e6e0cc7c8b036c9f5ad6dda994",
+  "stage": 150,
+  "summary_sha256": "fbabcb9d83d008b0d52b96ea80c546636461c150a821a713cf773bfe31f7376a",
+  "tests": {
+    "failed": 0,
+    "passed": 21
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 96622574831,
+  "workflow_run_id": 32431079197,
+  "workflow_status": "completed"
+}
