@@ -9,12 +9,14 @@ import hashlib
 import json
 from collections import Counter
 from pathlib import Path
+import re
 import zipfile
 
 
 TEXT_SUFFIXES = {".dat", ".txt", ".json", ".csv", ".tsv", ".env", ".out", ".err", ".f90", ".md"}
 SNAPSHOT_LIMIT = 2 * 1024 * 1024
 HASH_LIMIT = 64 * 1024 * 1024
+NOUT_RE = re.compile(r"NOUT(\d+)", re.IGNORECASE)
 
 
 def sha256(path: Path) -> str:
@@ -27,9 +29,11 @@ def sha256(path: Path) -> str:
 
 def classify(path: Path) -> str:
     name = path.name.upper()
-    if name.startswith("JCP3_MOMENTS_NOUT"):
+    if name.startswith(("JCP3_MOMENTS_NOUT", "MV11_MOMENTS_NOUT")):
         return "additive_moment_block"
     if name.startswith("JCP3_WALL_NOUT"):
+        return "paired_wall_block"
+    if name == "HEAT FLUX ERROR.DAT" and NOUT_RE.fullmatch(path.parent.name):
         return "paired_wall_block"
     if name == "DS2VD.DAT":
         return "locked_input"
@@ -66,7 +70,7 @@ def main() -> None:
     campaign_summary = []
     for campaign in campaigns:
         counts = Counter()
-        paired_by_parent: dict[str, dict[str, int]] = {}
+        paired_by_seed: dict[str, dict[str, set[int]]] = {}
         for path in sorted(p for p in campaign.rglob("*") if p.is_file()):
             rel = path.relative_to(args.m10_root)
             size = path.stat().st_size
@@ -80,21 +84,25 @@ def main() -> None:
                 "classification": kind,
                 "sha256": digest,
             })
-            parent = str(path.parent.relative_to(campaign))
-            entry = paired_by_parent.setdefault(parent, {"moments": 0, "walls": 0})
-            if kind == "additive_moment_block":
-                entry["moments"] += 1
-            elif kind == "paired_wall_block":
-                entry["walls"] += 1
+            parts = path.relative_to(campaign).parts
+            seed = next((part for part in parts if part.startswith("seed_")), None)
+            if seed and kind in {"additive_moment_block", "paired_wall_block"}:
+                match = NOUT_RE.search(path.name) or NOUT_RE.search(path.parent.name)
+                if match:
+                    entry = paired_by_seed.setdefault(seed, {"moments": set(), "walls": set()})
+                    entry["moments" if kind == "additive_moment_block" else "walls"].add(int(match.group(1)))
             if size <= SNAPSHOT_LIMIT and path.suffix.lower() in TEXT_SUFFIXES and kind in {
                 "locked_input", "heat_benchmark_input", "source", "metadata", "log"
             }:
                 snapshots.append((path, f"snapshots/{rel}"))
-        paired_units = [
-            {"directory": key, **value, "paired": min(value["moments"], value["walls"])}
-            for key, value in sorted(paired_by_parent.items())
-            if value["moments"] or value["walls"]
-        ]
+        paired_units = []
+        for key, value in sorted(paired_by_seed.items()):
+            paired_units.append({
+                "directory": f"cases/{key}",
+                "moments": len(value["moments"]),
+                "walls": len(value["walls"]),
+                "paired": len(value["moments"] & value["walls"]),
+            })
         campaign_summary.append({
             "campaign": campaign.name,
             "file_count": int(sum(counts.values())),

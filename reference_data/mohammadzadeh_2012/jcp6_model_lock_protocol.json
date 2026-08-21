@@ -1,0 +1,42 @@
+{
+  "protocol_version": 1,
+  "stage": "JCP6_cylinder_development_model_lock",
+  "classification": "development_only_before_M12_prospective_evaluation",
+  "conditions": [
+    {
+      "mach": 8.0,
+      "source": "JCP4_M8_REFERENCE.zip",
+      "seeds": [26082401, 26082402, 26082403, 26082404],
+      "retained_blocks_per_seed": 40
+    },
+    {
+      "mach": 10.0,
+      "source": "MV11_DS2V_CYLINDER_20260813_170355",
+      "seeds": [20260813, 32452843, 49979687, 67867967],
+      "retained_blocks_per_seed": 40
+    }
+  ],
+  "fields": ["n", "u", "v", "T", "Pxx", "Pxy", "Pyy", "qx", "qy"],
+  "mixed_block_budgets": [1, 2, 3, 5, 10],
+  "training_draws_per_budget": 4,
+  "validation_seed_position": 3,
+  "restorer": {
+    "family": "bounded_conditioned_random_feature_network",
+    "hidden_features": 96,
+    "activation": "tanh",
+    "ridge": 0.001,
+    "maximum_normalized_correction_at_B1": 4.0,
+    "correction_decay": "B^(-1/2)",
+    "random_seed": 26082601
+  },
+  "fusion": {
+    "coordinate_system": "polar_about_cylinder_center",
+    "cylinder_center_m": [0.1524, 0.0],
+    "near_wall_radius_limit_m": 0.20,
+    "polar_grid": [64, 64],
+    "dct_bin_width": 8,
+    "gain": "clip((residual_power-noise_power)/residual_power,0,1)",
+    "noise": "between-block scatter"
+  },
+  "publication_guard": "No Mach-12 evaluation or reference artifact may be read during JCP6. The final model and its SHA-256 lock must exist before Mach-12 evaluation starts."
+}
