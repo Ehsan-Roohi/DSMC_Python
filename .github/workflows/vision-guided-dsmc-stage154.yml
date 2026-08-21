@@ -136,3 +136,4 @@ jobs:
           name: stage154-coarse-endpoint-support-audit
           path: /tmp/stage154_coarse_endpoint_support_audit
           retention-days: 30
+# provenance-preserving no-op marker
