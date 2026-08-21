@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-JCP6_CODE_COMMIT=dd2c4f09e8cafcfbdc6362bcf4e4af7aaaa5bd13
+JCP6_CODE_COMMIT=29e64d6151638e038baf9144a1c5e0750afd9419
 JCP6_RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${JCP6_CODE_COMMIT}"
 JCP6_WORK=/project/pi_roohie_umass_edu/DSMC_Python_M3_QY/JCP6_MODEL_LOCK
 JCP6_CODE="${JCP6_WORK}/code"
