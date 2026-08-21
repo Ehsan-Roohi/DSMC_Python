@@ -1,0 +1,108 @@
+name: Vision-guided DSMC Stage 152
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage152_left_outer_channel_balance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage152_left_outer_channel_balance_audit.py'
+      - 'vision_guided_dsmc/results/stage151_outer_interval_asymmetry_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage152.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage152_left_outer_channel_balance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage152_left_outer_channel_balance_audit.py'
+      - 'vision_guided_dsmc/results/stage151_outer_interval_asymmetry_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage152.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  left-outer-channel-balance-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 151-152 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage151_outer_interval_asymmetry_audit.py \
+            tests/test_stage152_left_outer_channel_balance_audit.py
+      - name: Download exact completed Stage 151 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage151-outer-interval-asymmetry-audit
+          path: /tmp/stage151_outer_interval_asymmetry_audit
+          run-id: 32435299998
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 151 parent payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage151_outer_interval_asymmetry_audit/summary.json': 'f769935c13ba7c4f4faca911fb2ee50bda52e6c8e02affc699a0044a928f47d2',
+              '/tmp/stage151_outer_interval_asymmetry_audit/outer_interval_asymmetry.npz': 'ffea9bf184073318dd8c383136e8c87adc8ee6bdd69060eedc1515e7e97dcd67',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 152 fixed left outer-channel balance audit
+        run: |
+          python -m vgdsmc.stage152_left_outer_channel_balance_audit \
+            --stage151-dir /tmp/stage151_outer_interval_asymmetry_audit \
+            --stage151-record results/stage151_outer_interval_asymmetry_audit_observed.json \
+            --output-dir /tmp/stage152_left_outer_channel_balance_audit
+      - name: Verify Stage 152 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          from pathlib import Path
+          root = Path('/tmp/stage152_left_outer_channel_balance_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 152 and summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64] and cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0 and cfg['cold_hot_ratio'] == 0.1 and cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0 and cfg['limiter'] == 'minmod' and cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0 and cfg['correction_floor'] == 0.05
+          assert cfg['parent_channel_dominance_min'] == 0.75 and cfg['material_cancellation_min'] == 0.50
+          assert cfg['balance_metrics_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False and cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False and cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'): assert value is False
+          agg = summary['aggregate']
+          assert agg['stage151_record_ok'] is True and agg['parent_route_ok'] is True
+          assert agg['left_channel_sign_product'] == -1
+          assert agg['left_parent_absolute_share'] < 0.75
+          assert agg['left_cancellation_fraction'] >= 0.50
+          assert agg['maximum_identity_or_provenance_error'] <= 1e-12
+          assert summary['decision'] == 'stage152_left_balance_mixed_cancellation_stage153_left_channel_endpoint_balance_audit'
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          assert 'diagnostics, not solver parameters' in summary['negative_result_guard']
+          with np.load(root / 'left_outer_channel_balance.npz') as data:
+              assert data['dominant_outer_increments'].shape == (2,)
+              assert data['parent_outer_increments'].shape == (2,)
+              assert data['combined_outer_increments'].shape == (2,)
+              assert data['left_balance_vector'].shape == (3,)
+              assert data['left_share_vector'].shape == (2,)
+              assert np.isfinite(data['left_balance_vector']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage152-left-outer-channel-balance-audit
+          path: /tmp/stage152_left_outer_channel_balance_audit
+          retention-days: 30
