@@ -1,0 +1,25 @@
+{
+  "stage": 100,
+  "attempt": 1,
+  "record_type": "pre_audit_regression_failure",
+  "workflow_run_id": 31392747761,
+  "workflow_job_id": 93468174684,
+  "workflow_status": "completed",
+  "workflow_conclusion": "failure",
+  "source_head": "23a8f90515a94c773a659e4d7128fc63f9e764fa",
+  "tests": {
+    "passed": 86,
+    "failed": 1,
+    "total": 87,
+    "duration_s": 0.37
+  },
+  "failing_test": "tests/test_stage100_fused_single_run_directional_audit.py::test_same_state_directional_map_matches_monolithic_parent_map",
+  "observed_relative_l2": 10.508983116249482,
+  "required_relative_l2": 1e-12,
+  "audit_executed": false,
+  "artifact_uploaded": false,
+  "scientific_conclusion": "No Stage-100 scientific conclusion is authorized from this attempt because the regression suite failed before artifact download and before the fused directional audit executed.",
+  "root_cause": "The synthetic regression fixture used a 5x6 spatial field while the imported frozen Stage-98 directional helper intentionally evaluates the retained Stage-90/100 GRID spacing (64x64). The monolithic comparator used 5x6 spacings, so the test compared different discrete operators. This is a test-harness geometry mismatch, not a solver or physical-model result.",
+  "corrective_action": "Run the same algebraic identity on the exact frozen GRID dimensions and spacings used by Stage 100. No solver source, physical parameter, collision/source parameter, correction or positivity floor, source relaxation, wall model, limiter, normalization, transport parameter, or velocity quadrature is changed.",
+  "negative_result_guard": "Stage 99 remains a negative cross-run replay result; Stage 98 remains blocked for cross-run attribution; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint and is not extended to Kn0=0.1 or 10. This test-harness repair must not be interpreted as MUSCL rehabilitation or benchmark improvement."
+}

@@ -1,0 +1,178 @@
+name: Vision-guided DSMC Stage 102
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage102_radial_speed_shell_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage102_radial_speed_shell_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage102.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  radial-speed-shell-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+
+      - name: Test Stage 102 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage102_radial_speed_shell_audit.py \
+            tests/test_stage101_interior_velocity_sector_audit.py \
+            tests/test_stage100_fused_single_run_directional_audit.py \
+            tests/test_stage99_replay_provenance_audit.py \
+            tests/test_stage98_directional_operator_growth_audit.py \
+            tests/test_stage97_muscl_correction_spatial_localization_audit.py \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+
+      - name: Download exact completed Stage 101 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage101-interior-velocity-sector-audit
+          path: /tmp/stage101_interior_velocity_sector_audit
+          run-id: 31430526392
+          github-token: ${{ github.token }}
+
+      - name: Verify exact Stage 67 and Stage 101 payload provenance
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          expected = {
+              '/tmp/stage67_frozen_full_distribution_residual_decomposition/summary.json':
+                  'e04043a1913b2fa9ae57fe1561aa26c70627830d648e91204093c8f1fb57b3d1',
+              '/tmp/stage67_frozen_full_distribution_residual_decomposition/converged_full_distributions.npz':
+                  'd4002a2765137ba517abec2d0483a3e5adcf13f415c53259018556bd14d612d1',
+              '/tmp/stage101_interior_velocity_sector_audit/summary.json':
+                  '339e33253536621d5570718d0774e70d6518e1c8635b8726c968738826acb0cf',
+              '/tmp/stage101_interior_velocity_sector_audit/interior_velocity_sector_histories.npz':
+                  '4e701cc74596702abda43590aa4c63fda63734dfd3e7600a81fd3d343c16917e',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+
+      - name: Run Stage 102 radial speed-shell audit
+        run: |
+          python -m vgdsmc.stage102_radial_speed_shell_audit \
+            --stage67-artifact-dir /tmp/stage67_frozen_full_distribution_residual_decomposition \
+            --stage101-artifact-dir /tmp/stage101_interior_velocity_sector_audit \
+            --output-dir /tmp/stage102_radial_speed_shell_audit
+
+      - name: Verify Stage 102 fixed design and negative-result guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage102_radial_speed_shell_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 102
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['tolerance'] == 2.0e-5
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['diagnostic_steps'] == 25
+          assert cfg['wall_band_cells'] == 4
+          assert cfg['radial_shell_count'] == 4
+          assert cfg['radial_nodes_per_shell'] == 10
+          assert cfg['dominant_radial_shell_share_guard'] == 0.50
+          assert cfg['top_two_radial_shell_concentration_guard'] == 0.65
+          assert cfg['material_shell_growth_ratio'] == 2.0
+          assert cfg['shell_parent_closure_tolerance'] == 1.0e-12
+          assert cfg['stage67_run_id'] == 30991124477
+          assert cfg['stage100_run_id'] == 31423728782
+          assert cfg['stage101_run_id'] == 31430526392
+          assert cfg['stage101_job_id'] == 93592574615
+          assert cfg['stage101_artifact_id'] == 9079226660
+          assert cfg['full_solver_endpoint_rerun'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['one_sided_boundary_slope_promoted'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['validation_claim_permitted'] is False
+          assert cfg['solver_endpoint_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          assert summary['stage101_authorization']['decision'] == (
+              'stage101_diffuse_velocity_sector_growth_stage102_radial_speed_shell_audit'
+          )
+          assert summary['stage101_authorization']['maximum_sector_parent_closure_relative'] <= 1.0e-12
+          assert 1 <= summary['executed_steps'] <= 25
+          assert np.isfinite(summary['maximum_shell_parent_closure_relative'])
+
+          allowed_prefixes = (
+              'stage102_nonfinite_replay_blocker_without_retuning',
+              'stage102_shell_parent_closure_blocker_without_retuning',
+              'stage102_common_dominant_radial_shell_',
+              'stage102_common_top_two_radial_shells_',
+              'stage102_diffuse_radial_growth_stage103_interior_gradient_scale_audit',
+          )
+          assert summary['decision'].startswith(allowed_prefixes)
+          if not summary['decision'].endswith('blocker_without_retuning'):
+              assert summary['finite'] is True
+              assert summary['executed_steps'] == 25
+              assert summary['maximum_shell_parent_closure_relative'] <= 1.0e-12
+
+          assert 'Stage 99 remains a negative cross-run reproducibility result' in summary['negative_result_guard']
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'no cross-Knudsen MUSCL extension is permitted' in summary['negative_result_guard']
+
+          with np.load(root / 'interior_radial_speed_shell_histories.npz') as data:
+              n = summary['executed_steps']
+              assert data['radial_shell_index'].shape == (40 * 96,)
+              assert set(np.unique(data['radial_shell_index']).tolist()) == set(range(4))
+              assert data['interior_mask'].shape == (64, 64)
+              for k in range(4):
+                  assert int(np.sum(data['radial_shell_index'] == k)) == 10 * 96
+              for distribution in ('phi', 'psi'):
+                  for metric in (
+                      'shell_weighted_abs',
+                      'shell_weighted_signed',
+                      'shell_abs_share',
+                      'shell_signed_to_abs_ratio',
+                  ):
+                      name = f'{distribution}_{metric}'
+                      assert data[name].shape == (n, 4)
+                      assert np.isfinite(data[name]).all()
+                  closure = data[f'{distribution}_shell_parent_closure_relative']
+                  assert closure.shape == (n,)
+                  assert np.isfinite(closure).all()
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage102-radial-speed-shell-audit
+          path: /tmp/stage102_radial_speed_shell_audit
+          retention-days: 30

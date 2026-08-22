@@ -1,0 +1,69 @@
+name: Vision-guided DSMC Stage 29
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/tests/test_velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/pyproject.toml'
+      - '.github/workflows/vision-guided-dsmc-stage29.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/tests/test_velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/pyproject.toml'
+      - '.github/workflows/vision-guided-dsmc-stage29.yml'
+
+jobs:
+  velocity-quadrature-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 29 quadrature rules and audit contract
+        run: pytest -q tests/test_velocity_quadrature_audit.py
+      - name: Run reduced and non-Cartesian velocity-quadrature audit
+        run: |
+          vgdsmc-stage29-quadrature-audit \
+            --output-dir /tmp/stage29_velocity_quadrature
+      - name: Verify Stage 29 fixed design and scientific decision
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage29_velocity_quadrature/summary.json'))
+          assert summary['stage'] == 29
+          assert summary['conditions']['no_physical_parameter_retuning'] is True
+          assert summary['conditions']['temperatures'] == [0.1, 0.5, 1.0]
+          assert summary['conditions']['tangential_shifts'] == [-0.005, 0.005]
+          assert len(summary['schemes']) == 5
+          families = {row['family'] for row in summary['schemes']}
+          assert families == {'cartesian_midpoint', 'tensor_gauss_hermite', 'spherical_product'}
+          for row in summary['schemes']:
+              assert row['positive_weights'] is True
+              assert row['point_count'] > 0
+              for key in ('max_equilibrium_error', 'max_shifted_tangential_error',
+                          'shifted_sign_agreement', 'cold_wall_mass_flux_relative_error',
+                          'cold_wall_energy_flux_relative_error', 'composite_max_error'):
+                  assert math.isfinite(row[key])
+          assert summary['decision'] in {
+              'integrate_best_non_cartesian_rule_into_reduced_kinetic_solver',
+              'audit_wall_observable_and_sign_convention_before_solver_integration',
+          }
+          arrays = np.load('/tmp/stage29_velocity_quadrature/quadrature_metrics.npz')
+          assert arrays['point_count'].shape == (5,)
+          assert np.isfinite(arrays['composite_max_error']).all()
+          assert Path('/tmp/stage29_velocity_quadrature/summary.json').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage29-velocity-quadrature-audit
+          path: /tmp/stage29_velocity_quadrature
+          retention-days: 30

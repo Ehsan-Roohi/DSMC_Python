@@ -1,0 +1,23 @@
+{
+  "stage": 116,
+  "record_type": "completed_pair_resolved_radial_node_audit",
+  "source_head": "f6b949d798fbf4bf957a33616aadfa3b57bc6b8f",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31703583725,
+  "workflow_job_id": 94458434060,
+  "artifact_id": 9198596088,
+  "artifact_sha256": "310f0b57d1a62272e94906f6cf6719bd898d6655f6787639489e59c715776aeb",
+  "summary_sha256": "6907dc4be24a3bb987bd80c6b57f1876ccbfba69a70ec5226a6213d4da6aebbd",
+  "profiles_sha256": "309b17f927b32719be8aa6634508919b9d786b9b2321f2116779d9c3460bb019",
+  "tests": {"passed": 15, "failed": 0, "runtime_seconds": 0.17},
+  "decision": "stage116_mixed_pair_radial_structure_stage117_pair_node_transition_audit",
+  "max_parent_share_reconstruction_abs_error": 1.1102230246251565e-16,
+  "key_metrics": {
+    "near_1_4": {"phi_top2_nodes": [0,1], "phi_top2_share": 0.39337109285489774, "psi_top2_nodes": [5,4], "psi_top2_share": 0.329371477557208, "profile_cosine": 0.6984113763623953, "overlap": 0.6365690624327018, "total_variation": 0.3634309375672982},
+    "mid_5_14": {"phi_top2_nodes": [0,1], "phi_top2_share": 0.39358637445310346, "psi_top2_nodes": [4,5], "psi_top2_share": 0.33254783755363915, "profile_cosine": 0.704795228636975, "overlap": 0.6466588285747548, "total_variation": 0.35334117142524535},
+    "inner_15_28": {"phi_top2_nodes": [0,1], "phi_top2_share": 0.3912238302014311, "psi_top2_nodes": [5,4], "psi_top2_share": 0.3339355350567578, "profile_cosine": 0.7035420701608657, "overlap": 0.6427802237669762, "total_variation": 0.35721977623302387}
+  },
+  "scientific_conclusion": "The fixed audit rejects a common radial-node concentration for phi and psi while preserving distribution-specific localization. Phi is concentrated at the two lowest shell-1 radial nodes, while psi peaks at intermediate nodes 4-5. This is a negative common-node result and a positive localization result only; it is not a stability, endpoint, benchmark, or validation result.",
+  "design_guard": "No model, wall, reconstruction, source, transport, floor, normalization, or velocity-grid setting was changed. The prior nonconverged and failed endpoints remain unchanged."
+}

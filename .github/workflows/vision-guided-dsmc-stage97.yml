@@ -1,0 +1,118 @@
+name: Vision-guided DSMC Stage 97
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage97_muscl_correction_spatial_localization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage97_muscl_correction_spatial_localization_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage97.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage97_muscl_correction_spatial_localization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage97_muscl_correction_spatial_localization_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage97.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  muscl-correction-spatial-localization-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 97 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage97_muscl_correction_spatial_localization_audit.py \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+      - name: Download exact completed Stage 96 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage96-muscl-correction-growth-audit
+          path: /tmp/stage96_muscl_correction_growth_audit
+          run-id: 31338220298
+          github-token: ${{ github.token }}
+      - name: Run Stage 97 fixed spatial-localization audit
+        run: |
+          python -m vgdsmc.stage97_muscl_correction_spatial_localization_audit \
+            --stage96-artifact-dir /tmp/stage96_muscl_correction_growth_audit \
+            --output-dir /tmp/stage97_muscl_correction_spatial_localization_audit
+      - name: Verify fixed design and negative-result guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage97_muscl_correction_spatial_localization_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 97
+          assert summary['retained_stage96_decision'] == (
+              'stage96_material_persistent_muscl_correction_stage97_spatial_localization_audit'
+          )
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['wall_band_cells'] == 4
+          assert cfg['top_fraction'] == 0.10
+          assert cfg['dominant_share'] == 2.0 / 3.0
+          assert cfg['material_share_shift'] == 0.10
+          assert cfg['stage96_run_id'] == 31338220298
+          assert cfg['solver_rerun'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['one_sided_boundary_slope_promoted'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['validation_claim_permitted'] is False
+          assert cfg['solver_endpoint_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          for distribution in ('phi', 'psi'):
+              metrics = summary[distribution]
+              for when in ('first', 'final'):
+                  shares = metrics[when]['region_shares']
+                  assert np.isclose(shares['wall_band'] + shares['interior'], 1.0)
+                  assert np.isclose(
+                      shares['corners'] + shares['vertical_sidewalls'] + shares['horizontal_walls'],
+                      shares['wall_band'],
+                  )
+                  assert 0.0 <= metrics[when]['top_decile_share'] <= 1.0
+                  assert metrics[when]['total_magnitude'] > 0.0
+              assert metrics['final_to_first_total_magnitude_ratio'] > 0.0
+              assert 0.0 <= metrics['normalized_map_total_variation'] <= 1.0
+              assert 0.0 <= metrics['first_final_cosine_similarity'] <= 1.0 + 1.0e-12
+
+          allowed = {
+              'stage97_interior_dominant_redistribution_stage98_directional_operator_growth_audit',
+              'stage97_wall_dominant_persistence_stage98_wall_orientation_operator_audit',
+              'stage97_mixed_spatial_persistence_stage98_signed_directional_balance_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 90 remains nonconverged in both reconstruction arms' in summary['negative_result_guard']
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'one-sided boundary slope is not promoted' in summary['negative_result_guard']
+
+          with np.load(root / 'spatial_localization_maps.npz') as data:
+              for name in ('first_phi', 'final_phi', 'first_psi', 'final_psi'):
+                  assert data[name].shape == (64, 64)
+                  assert np.isfinite(data[name]).all()
+                  assert np.all(data[name] >= 0.0)
+              assert data['wall_band'].shape == (64, 64)
+              assert data['interior'].shape == (64, 64)
+              assert np.array_equal(data['wall_band'], ~data['interior'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage97-muscl-correction-spatial-localization-audit
+          path: /tmp/stage97_muscl_correction_spatial_localization_audit
+          retention-days: 30

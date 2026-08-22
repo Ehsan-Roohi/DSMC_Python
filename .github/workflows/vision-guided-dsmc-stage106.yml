@@ -1,0 +1,143 @@
+name: Vision-guided DSMC Stage 106
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage106_gradient_magnitude_coupling_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage106_gradient_magnitude_coupling_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage106.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  gradient-magnitude-coupling-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 106 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage106_gradient_magnitude_coupling_audit.py \
+            tests/test_stage105_directional_gradient_alignment_audit.py \
+            tests/test_stage104_interior_gradient_scale_audit.py \
+            tests/test_stage103_shell1_spatial_localization_audit.py \
+            tests/test_stage102_radial_speed_shell_audit.py \
+            tests/test_stage101_interior_velocity_sector_audit.py \
+            tests/test_stage100_fused_single_run_directional_audit.py \
+            tests/test_stage99_replay_provenance_audit.py \
+            tests/test_stage98_directional_operator_growth_audit.py \
+            tests/test_stage97_muscl_correction_spatial_localization_audit.py \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+      - name: Download exact completed Stage 105 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage105-directional-gradient-alignment-audit
+          path: /tmp/stage105_directional_gradient_alignment_audit
+          run-id: 31463907070
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 105 payload provenance
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage105_directional_gradient_alignment_audit/summary.json': '82a80cfac05cee2e3f4cd86799c5a91315ffeff7b49770b661ef9d53a08ec2cf',
+              '/tmp/stage105_directional_gradient_alignment_audit/directional_gradient_alignment_maps.npz': '27d5a557fc6c4442b7a0b29deb527f9540fb5f715b9e60b5ea8202df5ec63ee8',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 106 gradient-magnitude coupling audit
+        run: |
+          python -m vgdsmc.stage106_gradient_magnitude_coupling_audit \
+            --stage105-artifact-dir /tmp/stage105_directional_gradient_alignment_audit \
+            --output-dir /tmp/stage106_gradient_magnitude_coupling_audit
+      - name: Verify Stage 106 fixed design and negative-result guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage106_gradient_magnitude_coupling_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 106
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['tolerance'] == 2.0e-5
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['diagnostic_steps'] == 25
+          assert cfg['wall_band_cells'] == 4
+          assert cfg['dominant_radial_shell'] == 1
+          assert cfg['magnitude_cosine_guard'] == 0.80
+          assert cfg['magnitude_pearson_guard'] == 0.75
+          assert cfg['upper_quantile'] == 0.75
+          assert cfg['upper_quartile_overlap_guard'] == 0.50
+          assert cfg['parent_closure_tolerance'] == 1.0e-12
+          assert cfg['stage105_run_id'] == 31463907070
+          assert cfg['stage105_job_id'] == 93692732878
+          assert cfg['stage105_artifact_id'] == 9101336753
+          assert cfg['full_solver_endpoint_rerun'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['one_sided_boundary_slope_promoted'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['validation_claim_permitted'] is False
+          assert cfg['solver_endpoint_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['stage105_authorization']['decision'] == 'stage105_common_gradient_alignment_without_axis_dominance_stage106_gradient_magnitude_coupling_audit'
+          assert summary['finite'] is True
+          assert summary['parent_closure_relative'] <= 1.0e-12
+          allowed = {
+              'stage106_nonfinite_magnitude_metric_blocker_without_retuning',
+              'stage106_stage105_parent_closure_blocker_without_retuning',
+              'stage106_common_gradient_magnitude_coupling_stage107_frozen_limiter_activation_colocation_audit',
+              'stage106_global_magnitude_coupling_diffuse_upper_support_stage107_high_gradient_support_topology_audit',
+              'stage106_high_gradient_support_overlap_without_linear_coupling_stage107_rank_coupling_audit',
+              'stage106_gradient_amplitude_decoupling_stage107_spatial_phase_amplitude_audit',
+          }
+          assert summary['decision'] in allowed
+          assert summary['decision'] == 'stage106_common_gradient_magnitude_coupling_stage107_frozen_limiter_activation_colocation_audit'
+          metrics = summary['metrics']
+          assert metrics['gradient_magnitude_cosine'] >= 0.80
+          assert metrics['gradient_magnitude_pearson'] >= 0.75
+          assert metrics['upper_quartile_overlap_coefficient'] >= 0.50
+          assert metrics['common_upper_quartile_pair_weight_share'] > 0.75
+          assert metrics['upper_quartile_cell_counts']['common'] > 0
+          assert 'Stage 99 remains a negative cross-run reproducibility result' in summary['negative_result_guard']
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'no cross-Knudsen MUSCL extension is permitted' in summary['negative_result_guard']
+          with np.load(root / 'gradient_magnitude_coupling_maps.npz') as data:
+              assert set(data.files) == {
+                  'phi_gradient_magnitude', 'psi_gradient_magnitude',
+                  'phi_normalized_gradient_magnitude', 'psi_normalized_gradient_magnitude',
+                  'common_upper_quartile_mask', 'magnitude_product_weight'
+              }
+              for name in data.files:
+                  assert data[name].shape == (56, 56)
+                  assert np.isfinite(data[name]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage106-gradient-magnitude-coupling-audit
+          path: /tmp/stage106_gradient_magnitude_coupling_audit
+          retention-days: 30

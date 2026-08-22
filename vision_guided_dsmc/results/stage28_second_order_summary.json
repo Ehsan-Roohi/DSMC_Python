@@ -1,0 +1,62 @@
+{
+  "stage": 28,
+  "workflow_run_id": 30677121354,
+  "workflow_job_id": 91306586647,
+  "workflow_status": "success",
+  "artifact": {
+    "id": 8811250148,
+    "name": "stage28-second-order-transport",
+    "sha256": "b013cf071016e3865930c307c84e1e06dc8f5843d1760164032045ca58c903cd",
+    "size_bytes": 15422
+  },
+  "tests": {
+    "passed": 9,
+    "failed": 0,
+    "duration_seconds": 0.18
+  },
+  "configuration": {
+    "grid": [20, 20],
+    "nv": 17,
+    "velocity_extent": 5.0,
+    "kn0": 1.0,
+    "cold_hot_ratio": 0.1,
+    "limiter": "monotonized-central minmod3",
+    "limiter_theta": 1.5,
+    "time_integrator": "SSP-RK2 transport plus explicit Shakhov relaxation",
+    "max_steps": 7000,
+    "tolerance": 2e-5,
+    "physics_frozen": true
+  },
+  "first_order_baseline": {
+    "iterations": 4500,
+    "predicted_qav": 0.2005499953149862,
+    "literature_qav": 0.148,
+    "qav_relative_error": 0.3550675359120691,
+    "wall_velocity_relative_rms": 3.9764569069981572,
+    "wall_velocity_sign_agreement": 0.0
+  },
+  "second_order": {
+    "iterations": 7000,
+    "converged": false,
+    "final_change": 7.154012999432968e-5,
+    "predicted_qav": 0.11422501950650463,
+    "literature_qav": 0.148,
+    "qav_relative_error": 0.2282093276587525,
+    "wall_velocity_relative_rms": 5.951546502686165,
+    "wall_velocity_sign_agreement": 0.0,
+    "minimum_distribution_proxy": 1e-30
+  },
+  "fractional_changes": {
+    "qav_error": -0.3572790960104347,
+    "wall_velocity_error": 0.49669583799891104,
+    "sign_agreement": 0.0
+  },
+  "decision": {
+    "qav_error_reduced_by_at_least_10pct": true,
+    "velocity_error_reduced_by_at_least_10pct": false,
+    "velocity_sign_improved": false,
+    "extend_to_kn0_0p1_and_10": false,
+    "next_stage": "reduced_and_non_cartesian_velocity_quadrature_audit"
+  },
+  "scientific_conclusion": "MUSCL SSP-RK2 reduced the Table 6 average heat-flux error by 35.73%, but did not converge within 7000 steps, increased the Table 3 wall-velocity RMS error by 49.67%, and left sign agreement at 0%. Spatial order alone does not explain the benchmark discrepancy. No Knudsen, wall, collision, or normalization parameter was retuned."
+}

@@ -1,0 +1,94 @@
+{
+  "aggregate": {
+    "coarse_channel_sign_product": -1,
+    "coarse_cross_channel_cancellation_fraction": 0.8756041271003984,
+    "coarse_stronger_absolute_share": 0.5621979364498008,
+    "fine_channel_sign_product": 1,
+    "maximum_identity_or_provenance_error": 0.0,
+    "parent_route_ok": true,
+    "stage150_record_ok": true,
+    "stage152_record_ok": true
+  },
+  "artifact_id": 9457019335,
+  "artifact_sha256": "d60c5c764ffd4b57eb8417c6d5de79a19a7ad9d9f79f3bfad1d04b917cd724c6",
+  "artifact_size_bytes": 2464,
+  "decision": "stage153_coarse_endpoint_cancellation_without_single_channel_dominance_stage154_coarse_endpoint_support_audit",
+  "design": {
+    "benchmark_or_validation_claim_permitted": false,
+    "boundary_slope": "zero",
+    "coarse_endpoint_cancellation_min": 0.75,
+    "cold_hot_ratio": 0.1,
+    "collision_source_retuning": false,
+    "correction_floor": 0.05,
+    "cross_knudsen_extension_permitted": false,
+    "dominant_mirrored_sector": 6,
+    "endpoint_metrics_used_for_solver": false,
+    "floor_retuning": false,
+    "grid": [
+      64,
+      64
+    ],
+    "interior_grid": [
+      56,
+      56
+    ],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "limiter_retuning": false,
+    "normalization_retuning": false,
+    "pair_sectors": [
+      5,
+      6
+    ],
+    "physical_parameter_retuning": false,
+    "radial_scale": 2.0,
+    "reconstruction_retuning": false,
+    "rule": [
+      40,
+      96
+    ],
+    "single_channel_dominance_min": 0.75,
+    "solver_endpoint_advanced": false,
+    "solver_rerun": false,
+    "source_relaxation": 1.0,
+    "source_relaxation_retuning": false,
+    "transport_retuning": false,
+    "velocity_grid_retuning": false,
+    "wall_retuning": false,
+    "witness_node": 9
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. Stage 153 is an artifact-only left-channel endpoint-balance audit; endpoint shares, sign products, cancellation fractions, and retention ratios are diagnostics, not solver parameters. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no measured endpoint balance is fed back into the solver, no solver endpoint or cross-Knudsen extension is advanced, and no benchmark or validation claim is permitted.",
+  "key_metrics": {
+    "coarse_combined": 0.0009649546330309233,
+    "coarse_cross_channel_cancellation_fraction": 0.8756041271003984,
+    "coarse_dominant": 0.0043610410121524,
+    "coarse_parent": -0.003396086379121477,
+    "coarse_stronger_absolute_share": 0.5621979364498008,
+    "combined_coarse_to_fine_magnitude_ratio": 0.1143375187005501,
+    "fine_combined": 0.008439527497165117,
+    "fine_dominant": 0.0062655553375603745,
+    "fine_parent": 0.0021739721596047423,
+    "maximum_identity_or_provenance_error": 0.0,
+    "parent_endpoint_sign_transition": true
+  },
+  "left_channel_endpoint_balance_sha256": "23ce0124dad79d32bbc4d26cfc5fed147f5390df6433130060541ff4e2db8dad",
+  "record_type": "completed_left_channel_endpoint_balance_audit",
+  "routing": {
+    "next_stage": 154,
+    "next_stage_justified": true,
+    "next_stage_name": "coarse_endpoint_support_audit",
+    "reason": "At the fine endpoint the two inherited channels reinforce, but at the fixed coarse endpoint they oppose and cancel 87.5604% of their componentwise absolute magnitude. The stronger coarse channel carries only 56.2198%, far below the fixed 75% single-channel guard. The next fixed artifact-only question is therefore whether the coarse cancellation is broadly supported across the inherited coarse-stencil samples or concentrated at one sampled location."
+  },
+  "scientific_conclusion": "The mixed Stage-152 left balance is tied to a fixed fine-to-coarse endpoint transition: the two inherited channels reinforce at the fine endpoint but oppose at the coarse endpoint, where cross-channel cancellation removes 87.56041271003984% of the componentwise absolute magnitude. Neither coarse component is dominant under the fixed 75% guard; the stronger channel carries only 56.21979364498008%. This is a frozen-artifact decomposition only and does not establish limiter causality, nonlinear MUSCL stability, heat-flux improvement, benchmark accuracy, or validation.",
+  "source_head": "1ed9276166fc4cad2fdf2b1ebd5e2a9e0a7c6c2c",
+  "stage": 153,
+  "summary_sha256": "e48fee36cad86162c69309863970064db329bfc1412e91ec537f347da97de3c9",
+  "tests": {
+    "failed": 0,
+    "passed": 17
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 96752746805,
+  "workflow_run_id": 32476131806,
+  "workflow_status": "completed"
+}

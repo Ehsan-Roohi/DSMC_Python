@@ -1,0 +1,61 @@
+{
+  "artifact_id": 9129826604,
+  "artifact_size_bytes": 423344,
+  "artifact_sha256": "cb00f0e5188074762a354973c4e288d42790eee5581e1038a7ebe9ce33cd62e1",
+  "decision": "stage109_same_sign_amplitude_mode_dominates_stage110_same_sign_slope_asymmetry_audit",
+  "finite": true,
+  "limiter_intervention_mode_decomposition_maps_sha256": "37b57cd484a2ab0426c93599fdf0fb84b2392c93e31314738d66edd1dc7f993b",
+  "max_mode_closure_relative_l2": 1.3433079807186818e-16,
+  "metrics": {
+    "common_mode_coupling": {
+      "same_sign_amplitude": {
+        "pearson": 0.5711896435296893,
+        "spearman": 0.6202016341265169,
+        "upper_to_lower_mean_amplitude_ratio": 3.206779045732635,
+        "upper_severity_quartile_amplitude_share": 0.4163910757395886
+      },
+      "zeroing": {
+        "pearson": 0.268762550244323,
+        "spearman": 0.3900906520708444,
+        "upper_to_lower_mean_amplitude_ratio": 1.9911181384807848,
+        "upper_severity_quartile_amplitude_share": 0.3536416243019246
+      }
+    },
+    "phi": {
+      "same_sign_amplitude_weighted_change_share": 0.9915167436594045,
+      "same_sign_amplitude_spearman": 0.5518070651863749,
+      "same_sign_upper_to_lower_mean_amplitude_ratio": 2.6607940524803713,
+      "zeroing_weighted_change_share": 0.008483256340595524,
+      "zeroing_spearman": 0.32366398976567806
+    },
+    "psi": {
+      "same_sign_amplitude_weighted_change_share": 0.9964139046749644,
+      "same_sign_amplitude_spearman": 0.6160123313403613,
+      "same_sign_upper_to_lower_mean_amplitude_ratio": 3.802102809270844,
+      "zeroing_weighted_change_share": 0.0035860953250355983,
+      "zeroing_spearman": 0.3949048311835257
+    }
+  },
+  "negative_result_guard": "Stage 109 is algebraic limiter-mode attribution only. Stage 108 remains association only; Stage 107 remains precursor association only; Stage 106 remains gradient-magnitude organization; Stage 105 remains directional alignment without strong single-axis dominance; Stage 104 remains mesoscopic; Stage 103 remains spatially diffuse; Stage 102 remains velocity-shell localization; Stage 101 remains angularly diffuse; Stage 100 is same-run attribution only; Stage 99 remains a negative cross-run reproducibility result; Stage 98 remains a negative cross-run replay result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; and the Stage-89 one-sided boundary slope is not promoted. No failed parameter is retuned, no cross-Knudsen MUSCL extension is permitted, and no stability, accuracy, benchmark, heat-flux-improvement, or validation claim is authorized.",
+  "record_type": "completed_limiter_intervention_mode_decomposition_audit",
+  "scientific_conclusion": "Stage 109 closes the shell-1 limiter-mode decomposition to 1.3433079807186818e-16 relative L2 and shows that same-sign amplitude limiting, not sign-reversal/zeroing, carries nearly all weighted limiter change: 99.15167436594045% for phi and 99.64139046749644% for psi. The same-sign mode also retains the Stage-108 severity/growth association (Spearman 0.5518070651863749 and 0.6160123313403613; upper-to-lower severity-quartile mean-amplitude ratios 2.6607940524803713 and 3.802102809270844), while zeroing is much smaller and more weakly coupled. This remains attribution only and does not establish limiter causality or rehabilitate the failed MUSCL endpoint. The preregistered next step is Stage 110, which audits relative one-sided same-sign slope-magnitude asymmetry without retuning any failed parameter.",
+  "source_head": "879af9f8618d3cb119550bae2a879657f2c6c064",
+  "stage": 109,
+  "stage108_authorization": {
+    "decision": "stage108_continuous_limiter_severity_coupling_stage109_limiter_intervention_mode_decomposition_audit",
+    "joint_spearman": 0.6201800581558593,
+    "phi_spearman": 0.5510597486592914,
+    "psi_spearman": 0.6163037240611526
+  },
+  "summary_sha256": "ae5942c05221b0e6bf68b22f5547a7bb762649fd30eaab7cfe381e7848267416",
+  "tests": {
+    "failed": 0,
+    "passed": 173,
+    "runtime_seconds": 0.75,
+    "total": 173
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93981657168,
+  "workflow_run_id": 31553717856,
+  "workflow_status": "completed"
+}

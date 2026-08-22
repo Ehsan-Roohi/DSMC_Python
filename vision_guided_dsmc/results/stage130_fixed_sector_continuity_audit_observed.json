@@ -1,0 +1,55 @@
+{
+  "stage": 130,
+  "record_type": "completed_fixed_sector_continuity_audit",
+  "source_head": "02a5f93f78ac693d56f0c910f83a88790dfa03b1",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31966517708,
+  "workflow_job_id": 95212392074,
+  "artifact_id": 9273190595,
+  "artifact_size_bytes": 77756,
+  "artifact_sha256": "a7d88febfa695b537a9622e463a9563e4ec089bfee3674a1de7b7cfbbcdba01b",
+  "summary_sha256": "0c918ec583a84176e65a2de6db60baf3406ec9431cf6d4a6bb30a8863dcf50f3",
+  "fixed_sector_continuity_sha256": "d8019c6fef615a971afb49211b225b6395a1b368c8df7de7ca56bdc9cc9472f9",
+  "tests": {"passed": 8, "failed": 0},
+  "decision": "stage130_wall_specific_sector_carriage_stage131_cross_wall_sector_interaction_audit",
+  "aggregate": {
+    "cross_wall_sector_transition_delta_cosine": 0.24346434369753822,
+    "maximum_additive_sector_asymmetry_absolute_closure": 3.677613769070831e-16,
+    "maximum_parent_closure": 5.720506550380753e-16,
+    "maximum_stage129_parent_asymmetry_absolute_closure": 1.1102230246251565e-16,
+    "maximum_stage129_support_relative_l2_closure": 0.0,
+    "minimum_dominant_sector_carrier_fraction": 0.7959030197030074,
+    "minimum_pair_transition_coherence_ratio": 0.9898727724676556,
+    "same_dominant_transition_sector_on_both_walls": false,
+    "sector_residual_parent_relative_l2_closure": 5.720506550380753e-16
+  },
+  "key_metrics": {
+    "axis1_low": {
+      "crossing_depth_cells": 14.038803831792146,
+      "dominant_transition_sector": 6,
+      "dominant_sector_carrier_fraction": 0.7959030197030074,
+      "pair_transition_coherence_ratio": 1.0,
+      "parent_transition_delta": -0.20484666789407138,
+      "sector5_transition_delta": -0.04180858634108091,
+      "sector6_transition_delta": -0.16303808155299052
+    },
+    "axis1_high": {
+      "crossing_depth_cells": 15.552724000693987,
+      "dominant_transition_sector": 5,
+      "dominant_sector_carrier_fraction": 0.9949363862338279,
+      "pair_transition_coherence_ratio": 0.9898727724676556,
+      "parent_transition_delta": -0.09857424274751495,
+      "sector5_transition_delta": -0.09907849127969995,
+      "sector6_transition_delta": 0.0005042485321846008
+    }
+  },
+  "scientific_conclusion": "The Stage-129 bilateral node-9 transition does not reduce to one common sector or one cross-wall coherent sector pair: the fixed sector-transition carriage differs between the two opposite walls and/or contains material within-pair cancellation. The angular support is therefore wall-specific at this resolution. This negative sufficiency result does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "routing": {
+    "next_stage_justified": true,
+    "next_stage": 131,
+    "next_stage_name": "cross_wall_sector_interaction_audit",
+    "design": "Keep the exact Stage-130 node-9 sectors 5+6 artifact and both Stage-129 crossing depths fixed. Compare direct sector labels with the physically mirrored 5<->6 exchange after aligning wall-normal depth by each crossing, and quantify whether the apparent wall-specific carriage is a geometric label exchange or a genuinely different cross-wall angular structure. Do not rerun the solver or change any physical/numerical parameter."
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}

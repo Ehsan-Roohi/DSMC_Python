@@ -1,0 +1,64 @@
+{
+  "stage": 19,
+  "description": "Confirmatory five-percent closed loop at Kn=0.10 across three temperature differences",
+  "workflow_run": 2,
+  "workflow_id": 30641342644,
+  "status": "success",
+  "primary_success": false,
+  "design": {
+    "selection_basis": "Kn=0.10 was the strongest exploratory condition in Stage 18.",
+    "amplitude": 0.05,
+    "knudsen": 0.10,
+    "temperature_differences_K": [20.0, 40.0, 60.0],
+    "training_seeds": [11, 22, 33],
+    "validation_seeds": [44, 55],
+    "exploratory_seeds": [66, 77, 88, 99, 111, 122, 133, 144, 155, 166],
+    "confirmatory_seeds": [177, 188, 199, 211, 222, 233, 244, 255, 266, 277],
+    "paired_runs": 30,
+    "particles_per_arm": 720,
+    "success_rule": "The upper 95% normal-approximation confidence bound must be below one and at least two of the three temperature-difference means must be below one."
+  },
+  "primary_endpoint": {
+    "mean_error_ratio": 1.0161371993617574,
+    "median_error_ratio": 1.0289587700178906,
+    "standard_error": 0.0204434858995269,
+    "ci95": [0.9760679669986847, 1.05620643172483],
+    "improved_runs": 11,
+    "run_count": 30,
+    "mean_improvement_percent": -1.6137199361757393,
+    "mean_realized_absolute_fractional_change": 0.022500000000000017,
+    "maximum_realized_fractional_change": 0.050000000000000044,
+    "mean_collision_ratio": 1.006067591990738
+  },
+  "condition_results": {
+    "deltaT_20": {
+      "mean_error_ratio": 1.0238298882005923,
+      "median_error_ratio": 1.0526562684805305,
+      "standard_error": 0.03467811274276962,
+      "ci95": [0.9558607872247639, 1.0917989891764208],
+      "improved_runs": 3,
+      "run_count": 10,
+      "mean_improvement_percent": -2.3829888200592286
+    },
+    "deltaT_40": {
+      "mean_error_ratio": 1.0033758779943733,
+      "median_error_ratio": 1.023744983613313,
+      "standard_error": 0.030135041475768787,
+      "ci95": [0.9443111967018665, 1.0624405592868802],
+      "improved_runs": 4,
+      "run_count": 10,
+      "mean_improvement_percent": -0.3375877994373333
+    },
+    "deltaT_60": {
+      "mean_error_ratio": 1.021205831890307,
+      "median_error_ratio": 1.0236476828760144,
+      "standard_error": 0.043610004196744066,
+      "ci95": [0.9357302236646886, 1.1066814401159253],
+      "improved_runs": 4,
+      "run_count": 10,
+      "mean_improvement_percent": -2.1205831890307003
+    }
+  },
+  "improving_condition_count": 0,
+  "conclusion": "The confirmatory hypothesis failed. The exploratory Kn=0.10 signal did not replicate: the learned low-frequency particle-reallocation policy increased mean error by 1.61 percent, no temperature-difference condition improved on average, and the primary confidence interval crossed one. Learned particle reallocation remains disabled. The next stage pivots to matched-cost sampling allocation, which does not alter particle dynamics or variable weights."
+}

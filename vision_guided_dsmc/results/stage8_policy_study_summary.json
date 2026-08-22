@@ -1,0 +1,75 @@
+{
+  "design": "Nine reference-free policies screened on five development warm seeds; current plus the three best development policies evaluated on ten disjoint validation warm seeds. Equal adaptive/uniform particle budgets and paired continuation seeds were used throughout.",
+  "condition": {
+    "knudsen": 0.2,
+    "t_left": 320.0,
+    "t_right": 280.0
+  },
+  "development": {
+    "seeds": [401, 402, 403, 404, 405],
+    "reference_seeds": [9101, 9102],
+    "repetitions": 2,
+    "policies": {
+      "current": {"mean_ratio": 0.978093313923649, "median_ratio": 0.9286651939616972, "improved_seeds": 3, "worst_ratio": 1.1133373442566628},
+      "grad_t": {"mean_ratio": 1.0084267720322866, "median_ratio": 0.9404475789878926, "improved_seeds": 3, "worst_ratio": 1.2061493150154265},
+      "grad_rho": {"mean_ratio": 1.0069002758108183, "median_ratio": 0.9650145396904509, "improved_seeds": 3, "worst_ratio": 1.1440268993807432},
+      "noise": {"mean_ratio": 1.0243214415064987, "median_ratio": 1.0098904633692034, "improved_seeds": 2, "worst_ratio": 1.1826042522379394},
+      "grad_t_noise": {"mean_ratio": 1.0312626805905905, "median_ratio": 1.016764180475521, "improved_seeds": 2, "worst_ratio": 1.1241955856646377},
+      "snr_grad_t": {"mean_ratio": 0.9738778037837253, "median_ratio": 0.9946928303066578, "improved_seeds": 3, "worst_ratio": 1.0788022492809926},
+      "curvature_t": {"mean_ratio": 0.9970055938122053, "median_ratio": 0.9815948782470314, "improved_seeds": 4, "worst_ratio": 1.1217328184970838},
+      "sidewall": {"mean_ratio": 0.9647121997574933, "median_ratio": 0.9396378207501473, "improved_seeds": 3, "worst_ratio": 1.2001066088131005},
+      "sidewall_grad_t": {"mean_ratio": 0.9639795762697301, "median_ratio": 0.9432648852214903, "improved_seeds": 4, "worst_ratio": 1.1737735803119862}
+    }
+  },
+  "selected_finalists": [
+    "current",
+    "sidewall_grad_t",
+    "sidewall",
+    "snr_grad_t"
+  ],
+  "validation": {
+    "seeds": [501, 502, 503, 504, 505, 506, 507, 508, 509, 510],
+    "reference_seeds": [9201, 9202, 9203, 9204],
+    "repetitions": 3,
+    "statistical_unit": "independent warm seed",
+    "policies": {
+      "current": {
+        "mean_ratio": 0.9958331650004393,
+        "mean_improvement_percent": 0.4166834999560678,
+        "improved_seeds": 5,
+        "t_95_ci": [0.9407432455512844, 1.050923084449594],
+        "bootstrap_95_ci": [0.9509773803747311, 1.0411198277112472],
+        "two_sided_sign_test_p": 1.0,
+        "worst_ratio": 1.0969050657087493
+      },
+      "snr_grad_t": {
+        "mean_ratio": 0.991638471155337,
+        "mean_improvement_percent": 0.8361528844663042,
+        "improved_seeds": 5,
+        "t_95_ci": [0.9631887989933628, 1.0200881433173112],
+        "bootstrap_95_ci": [0.9672542131401896, 1.0136687459956633],
+        "two_sided_sign_test_p": 1.0,
+        "worst_ratio": 1.0409542653328396
+      },
+      "sidewall": {
+        "mean_ratio": 1.021415542375496,
+        "mean_improvement_percent": -2.1415542375496033,
+        "improved_seeds": 3,
+        "t_95_ci": [0.9726578357728711, 1.070173248978121],
+        "bootstrap_95_ci": [0.9785456074084977, 1.0590744546923414],
+        "two_sided_sign_test_p": 0.34375,
+        "worst_ratio": 1.1035026291784786
+      },
+      "sidewall_grad_t": {
+        "mean_ratio": 0.999131070301879,
+        "mean_improvement_percent": 0.08689296981210282,
+        "improved_seeds": 6,
+        "t_95_ci": [0.9487033331145824, 1.0495588074891755],
+        "bootstrap_95_ci": [0.9575711176246388, 1.0411874062992261],
+        "two_sided_sign_test_p": 0.75390625,
+        "worst_ratio": 1.1269830558351013
+      }
+    }
+  },
+  "scientific_status": "No tested reference-free priority policy achieved a statistically resolved held-out improvement. SNR-scaled temperature gradient had the best validation mean and worst-case behavior, but its interval includes equality and only five of ten seeds improved."
+}

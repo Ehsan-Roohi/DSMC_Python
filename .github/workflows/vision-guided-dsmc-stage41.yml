@@ -1,0 +1,129 @@
+name: Vision-guided DSMC Stage 41
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage41_projected_polar_operator_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage41.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage41_projected_polar_operator_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage41.yml'
+
+jobs:
+  projected-polar-operator-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test retained Stage 40 infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_stage39_collision_model_benchmark_audit.py \
+            tests/test_stage38_transport_collision_interaction_audit.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Run projected polar operator self-tests
+        run: |
+          python -m vgdsmc.stage41_projected_polar_operator_audit --self-test
+      - name: Run Stage 41 projected polar operator audit
+        run: |
+          python -m vgdsmc.stage41_projected_polar_operator_audit \
+            --output-dir /tmp/stage41_projected_polar_operator_audit
+      - name: Verify frozen scope and retain positive and negative endpoints
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+
+          root = Path('/tmp/stage41_projected_polar_operator_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 41
+
+          retained = summary['retained_stage40_endpoint']
+          assert retained['workflow_run_id'] == 30725610349
+          assert retained['workflow_job_id'] == 91436612348
+          assert retained['tests_passed'] == 74
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8826814764
+          assert retained['artifact_sha256'] == (
+              'ca7a493fc5c17e416ba06905fdbdc19598535cb5d8aecd7adae6a883c0ee1eb7'
+          )
+          assert retained['relative_error_to_source_shakhov'] == (
+              0.008574117123590345
+          )
+          assert retained['relative_error_to_source_dsmc'] == (
+              0.014208609398023778
+          )
+          assert retained['table3_independent_reference_available'] is False
+
+          cfg = summary['configuration']
+          assert cfg['coarse_rule'] == {
+              'radial_nodes': 16, 'angular_nodes': 48, 'point_count': 768
+          }
+          assert cfg['fine_rule'] == {
+              'radial_nodes': 32, 'angular_nodes': 96, 'point_count': 3072
+          }
+          assert cfg['prandtl'] == 2.0 / 3.0
+          assert cfg['shakhov_correction_floor'] == 0.05
+          assert cfg['physical_parameter_retuning'] is False
+          assert cfg['heated_cavity_solved'] is False
+
+          projection = summary['projection_formulas']
+          assert projection['phi_shakhov_polynomial_constant'] == -4.0
+          assert projection['psi_shakhov_polynomial_constant'] == -2.0
+          assert projection['expected_equilibrium_heat_flux'] == '(1-Pr)*q'
+
+          coarse = summary['coarse_quadrature_audit']
+          fine = summary['fine_quadrature_audit']
+          for audit in (coarse, fine):
+              for key in (
+                  'max_maxwellian_moment_error',
+                  'max_shakhov_invariant_error',
+                  'max_shakhov_heat_flux_closure_error',
+                  'max_phi_clipped_weight_fraction',
+                  'max_psi_clipped_weight_fraction',
+              ):
+                  assert math.isfinite(audit[key])
+              for row in audit['rows']:
+                  for key, value in row.items():
+                      if key not in {
+                          'state', 'expected_equilibrium_q',
+                          'recovered_equilibrium_q'
+                      }:
+                          assert math.isfinite(value)
+
+          assert fine['max_maxwellian_moment_error'] < (
+              coarse['max_maxwellian_moment_error']
+          )
+          assert fine['max_shakhov_invariant_error'] < (
+              coarse['max_shakhov_invariant_error']
+          )
+          assert fine['max_shakhov_heat_flux_closure_error'] < (
+              coarse['max_shakhov_heat_flux_closure_error']
+          )
+          assert summary['diffuse_wall_audit'][
+              'mass_balance_relative_error'
+          ] < 1.0e-12
+          assert summary['homogeneous_relaxation_audit'][
+              'maximum_conserved_moment_change'
+          ] < 1.0e-6
+
+          assert summary['decision'] in {
+              'projected_polar_operators_pass_stage42_heated_cavity_pilot',
+              'projected_polar_operator_blocker',
+          }
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage41-projected-polar-operator-audit
+          path: /tmp/stage41_projected_polar_operator_audit
+          retention-days: 30

@@ -1,0 +1,60 @@
+{
+  "artifact_id": 9138171523,
+  "artifact_size_bytes": 285148,
+  "artifact_sha256": "1311985d50c2840ee9ce06f60eacc49d3d2d10023a22283d04325fad3459e7e4",
+  "decision": "stage110_relative_same_sign_asymmetry_coupled_stage111_axis_conditioned_asymmetry_audit",
+  "finite": true,
+  "same_sign_slope_asymmetry_maps_sha256": "d63a60ff8ee51769385031066429b43efdba61e8373185e818d3813e39943265",
+  "max_mode_closure_relative_l2": 2.5948526200666604e-17,
+  "metrics": {
+    "common_relative_asymmetry": {
+      "pearson": 0.5711159171604638,
+      "spearman": 0.6201807573555144,
+      "upper_to_lower_mean_amplitude_ratio": 3.206779045732635,
+      "upper_severity_quartile_amplitude_share": 0.4163910757395886
+    },
+    "common_same_sign_gradient_strength": {
+      "pearson": 0.7979749404747777,
+      "spearman": 0.8445068036387221,
+      "upper_to_lower_mean_amplitude_ratio": 3.486990497349146,
+      "upper_severity_quartile_amplitude_share": 0.4789470030717044
+    },
+    "phi": {
+      "mean_relative_asymmetry": 0.03952269802173794,
+      "mean_same_sign_support_weight_fraction": 0.9870322264933595,
+      "relative_asymmetry_spearman": 0.5516932672324791,
+      "relative_asymmetry_upper_to_lower_mean_amplitude_ratio": 2.6607940524803713,
+      "same_sign_gradient_strength_spearman": 0.7638719844370155,
+      "same_sign_gradient_strength_upper_to_lower_mean_amplitude_ratio": 3.067703936536611
+    },
+    "psi": {
+      "mean_relative_asymmetry": 0.032917568311579576,
+      "mean_same_sign_support_weight_fraction": 0.9912682880088293,
+      "relative_asymmetry_spearman": 0.6159981356808094,
+      "relative_asymmetry_upper_to_lower_mean_amplitude_ratio": 3.802102809270844,
+      "same_sign_gradient_strength_spearman": 0.7792259049164028,
+      "same_sign_gradient_strength_upper_to_lower_mean_amplitude_ratio": 3.792420921697501
+    }
+  },
+  "negative_result_guard": "Stage 110 is a frozen association/localization audit only. Relative same-sign slope asymmetry is coupled to correction-growth amplitude under the preregistered guards, but same-sign gradient strength is also strongly coupled and is numerically stronger in the common map. Therefore Stage 110 does not isolate a unique mechanism, establish limiter causality, prove nonlinear instability, recover the Stage-90 nonconverged arms, rehabilitate the failed Stage-28 MUSCL endpoint, improve heat flux, or validate the solver. The Stage-89 one-sided boundary slope remains unpromoted; no failed parameter is retuned and no cross-Knudsen MUSCL extension is permitted.",
+  "record_type": "completed_same_sign_slope_asymmetry_audit",
+  "scientific_conclusion": "Stage 110 closes the Stage-109 dominant same-sign amplitude mode to 2.5948526200666604e-17 relative L2. Relative one-sided same-sign slope-magnitude asymmetry satisfies the preregistered coupling guards for both phi and psi: Spearman 0.5516932672324791 and 0.6159981356808094 with upper/lower severity-quartile mean growth-amplitude ratios 2.6607940524803713 and 3.802102809270844. The common asymmetry map has Spearman 0.6201807573555144 and ratio 3.206779045732635. However, same-sign gradient strength is at least as strongly associated, including common-map Spearman 0.8445068036387221, so the result is diagnostic association rather than a unique causal explanation. The preregistered next step is the fixed Stage-111 axis-conditioned asymmetry audit, without any physical or numerical retuning.",
+  "source_head": "c11cd1668de46023608ecbe2fcf734e4c273185b",
+  "stage": 110,
+  "stage109_authorization": {
+    "decision": "stage109_same_sign_amplitude_mode_dominates_stage110_same_sign_slope_asymmetry_audit",
+    "phi_same_sign_weighted_change_share": 0.9915167436594045,
+    "psi_same_sign_weighted_change_share": 0.9964139046749644
+  },
+  "summary_sha256": "277d860d302e6216cbbdb5ba503acb02bfbf78a2826ba505b2eb635c07e1ef9a",
+  "tests": {
+    "failed": 0,
+    "passed": 184,
+    "runtime_seconds": 0.44,
+    "total": 184
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 94022470984,
+  "workflow_run_id": 31567568732,
+  "workflow_status": "completed"
+}

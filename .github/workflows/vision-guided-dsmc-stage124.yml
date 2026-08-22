@@ -1,0 +1,41 @@
+# Fixed-design artifact diagnostic; no solver rerun or parameter retuning.
+name: Vision-guided DSMC Stage 124
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage124_*'
+      - 'vision_guided_dsmc/tests/test_stage124_*'
+      - 'vision_guided_dsmc/results/stage123_cellwise_ratio_persistence_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage124.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  within-band-cancellation-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage124_within_band_cancellation_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage123-cellwise-ratio-persistence-audit
+          path: /tmp/stage123
+          github-token: ${{ github.token }}
+          run-id: 31897076543
+      - run: |
+          python -m vgdsmc.stage124_within_band_cancellation_audit \
+            --stage123-dir /tmp/stage123 \
+            --stage123-record results/stage123_cellwise_ratio_persistence_audit_observed.json \
+            --output-dir /tmp/stage124
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage124-within-band-cancellation-audit
+          path: /tmp/stage124
+          retention-days: 30

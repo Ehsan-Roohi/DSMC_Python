@@ -1,0 +1,71 @@
+name: Vision-guided DSMC Stage 19
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage19.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage19.yml'
+jobs:
+  confirmatory-closed-loop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[full]'
+      - name: Verify confirmatory utilities
+        run: pytest -q tests/test_confirmatory_closed_loop.py tests/test_lowfreq_closed_loop.py
+      - name: Build fixed five-seed training dataset
+        run: |
+          vgdsmc-build-dvm-dataset \
+            --output-dir /tmp/dvm_dataset \
+            --nx 6 --ny 6 --ppc 5 \
+            --dsmc-steps 25 --nv 6 --dvm-max-steps 900 \
+            --seeds 11 22 33 44 55
+      - name: Train fixed low-frequency model
+        run: |
+          vgdsmc-train-lowfreq-score \
+            --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
+            --output-dir /tmp/lowfreq_score_training \
+            --epochs 100 --batch-size 6 \
+            --validation-seed-count 2 --smoothing-passes 2
+      - name: Run Stage 19 confirmatory evaluation
+        run: |
+          vgdsmc-confirmatory-closed-loop \
+            --model /tmp/lowfreq_score_training/lowfreq_score_model.pt \
+            --output-dir /tmp/stage19_confirmatory \
+            --amplitude 0.05 \
+            --nx 6 --ny 6 --ppc 20 \
+            --warm-steps 40 --continuation-steps 60 \
+            --nv 6 --dvm-max-steps 900 \
+            --seeds 177 188 199 211 222 233 244 255 266 277
+      - name: Verify preregistered-style endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          summary = json.load(open('/tmp/stage19_confirmatory/summary.json'))
+          assert summary['stage'] == 19
+          assert summary['configuration']['seeds'] == [177,188,199,211,222,233,244,255,266,277]
+          assert summary['confirmatory_design']['knudsen'] == 0.10
+          assert summary['confirmatory_design']['temperature_differences'] == [20.0,40.0,60.0]
+          assert len(summary['rows']) == 30
+          assert set(summary['condition_summaries']) == {'deltaT_20','deltaT_40','deltaT_60'}
+          primary = summary['amplitude_summaries']['0.050']
+          assert primary['run_count'] == 30
+          assert math.isfinite(primary['mean'])
+          assert primary['ci95_low'] <= primary['mean'] <= primary['ci95_high']
+          assert isinstance(summary['primary_success'], bool)
+          for row in summary['rows']:
+              assert row['uniform_particles'] == row['adaptive_particles'] == 720
+              assert row['particle_ratio'] == 1.0
+          assert Path('/tmp/stage19_confirmatory/allocation_maps.npz').exists()
+          PY

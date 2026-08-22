@@ -1,0 +1,59 @@
+{
+  "stage": 121,
+  "record_type": "completed_radial_kernel_factor_decomposition_audit",
+  "source_head": "cc7d6f2be053866719e128de7c40c05fdfdd24c4",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31849920665,
+  "workflow_job_id": 94923642748,
+  "artifact_id": 9241880532,
+  "artifact_size_bytes": 3901,
+  "artifact_sha256": "b37c499cd4e9c6696acc29ab99cc261f6bc4d02b31f9bb71b1fec0c51b9b112f",
+  "summary_sha256": "8c2135d85984ad4a3e0902d35203bbadfe8e1c8c9ba942022a8744d824c34fe1",
+  "radial_kernel_factor_profiles_sha256": "a5df5efbc9b50d6b97638419e32bd69d99d24b5a963d267b3a284b530e8ec5a0",
+  "tests": {"passed": 5, "failed": 0},
+  "decision": "stage121_radial_speed_squared_kernel_material_but_incomplete_stage122_common_kernel_distribution_ratio_audit",
+  "aggregate": {
+    "minimum_kernel_counterfactual_tv_reduction_fraction": 0.26833321604067645,
+    "maximum_kernel_counterfactual_tv_reduction_fraction": 0.36287087267960844,
+    "minimum_kernel_counterfactual_profile_cosine": 0.9637992837850714,
+    "minimum_kernel_counterfactual_overlap": 0.8694790081410464,
+    "maximum_common_abs_cx_total_variation": 0.22445030055929627,
+    "minimum_common_abs_cx_profile_cosine": 0.8878242440361478,
+    "maximum_stage120_metric_reconstruction_absolute_error": 0.0
+  },
+  "key_metrics": {
+    "near_1_4": {
+      "original_exact_profile_cosine": 0.9445112575879259,
+      "original_exact_total_variation": 0.17094342888072694,
+      "kernel_counterfactual_profile_cosine": 0.9657024534600152,
+      "kernel_counterfactual_overlap": 0.8749263711518591,
+      "kernel_counterfactual_total_variation": 0.12507362884814083,
+      "kernel_counterfactual_tv_reduction_fraction": 0.26833321604067645,
+      "common_abs_cx_profile_cosine": 0.8922989345522074,
+      "common_abs_cx_total_variation": 0.2185663734968383
+    },
+    "mid_5_14": {
+      "original_exact_profile_cosine": 0.939757214550812,
+      "original_exact_total_variation": 0.17895634854758735,
+      "kernel_counterfactual_profile_cosine": 0.9637992837850714,
+      "kernel_counterfactual_overlap": 0.8694790081410464,
+      "kernel_counterfactual_total_variation": 0.13052099185895366,
+      "kernel_counterfactual_tv_reduction_fraction": 0.2706545874551858,
+      "common_abs_cx_profile_cosine": 0.888727016692831,
+      "common_abs_cx_total_variation": 0.2179317844419425
+    },
+    "inner_15_28": {
+      "original_exact_profile_cosine": 0.9385744907890331,
+      "original_exact_total_variation": 0.18015806060554634,
+      "kernel_counterfactual_profile_cosine": 0.9743470238828298,
+      "kernel_counterfactual_overlap": 0.885216052066654,
+      "kernel_counterfactual_total_variation": 0.11478394793334595,
+      "kernel_counterfactual_tv_reduction_fraction": 0.36287087267960844,
+      "common_abs_cx_profile_cosine": 0.8878242440361478,
+      "common_abs_cx_total_variation": 0.22445030055929627
+    }
+  },
+  "scientific_conclusion": "The fixed extra r^2 factor in the phi x-directed heat-flux kernel materially explains part of the Stage-120 radial phi/psi mismatch: replacing only that kernel factor reduces total variation by 26.8%-36.3% and raises the profile cosine to at least 0.9638. It is not sufficient, because the predicted overlap remains only 0.8695-0.8852 and the residual common-|c_x| phi/psi profiles remain substantially different. The justified next audit therefore examines the distribution-specific common-kernel radial ratio directly rather than retuning any solver parameter.",
+  "design_guard": "No model, wall, collision/source, reconstruction, transport, positivity/correction floor, normalization, source-relaxation, velocity-grid, or failed MUSCL parameter was changed. Stage 90 remains nonconverged, Stage 28 remains a failed MUSCL endpoint, Stage 89 remains unpromoted, no solver endpoint is advanced, and no cross-Knudsen MUSCL extension is permitted."
+}

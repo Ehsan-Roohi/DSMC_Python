@@ -1,0 +1,36 @@
+name: Vision-guided DSMC Stage 118
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage118_*'
+      - 'vision_guided_dsmc/tests/test_stage118_*'
+      - '.github/workflows/vision-guided-dsmc-stage118.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  distribution-role-weighting-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage118_distribution_role_weighting_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage117-pair-node-transition-audit
+          path: /tmp/stage117
+          github-token: ${{ github.token }}
+          run-id: 31748875063
+      - run: python -m vgdsmc.stage118_parent_checks /tmp/stage117 results/stage117_pair_node_transition_audit_observed.json
+      - run: python -m vgdsmc.stage118_distribution_role_weighting_audit --parent-dir /tmp/stage117 --output-dir /tmp/stage118
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage118-distribution-role-weighting-audit
+          path: /tmp/stage118
+          retention-days: 30

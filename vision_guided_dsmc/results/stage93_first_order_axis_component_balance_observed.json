@@ -1,0 +1,82 @@
+{
+  "stage": 93,
+  "workflow_run_id": 31309184991,
+  "workflow_job_id": 93234231556,
+  "workflow_conclusion": "success",
+  "artifact_id": 9038287844,
+  "artifact_sha256": "dd8cbdd4f85c9196a1b2b622e8e6c9b2e77227a69ad67d6bbda3732040f541cb",
+  "summary_sha256": "eb4978115321f98cd7da9f1ed1180553ce1c21959b4be9aa3619025c6fc12d71",
+  "maps_sha256": "59d47380a4ac71c7d5b72f8567ae2e09d18c831bb1053b01e40582c2849410de",
+  "tests_passed": 35,
+  "tests_failed": 0,
+  "configuration": {
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "velocity_rule": [40, 96],
+    "velocity_points": 3840,
+    "radial_scale": 2.0,
+    "limiter": "minmod",
+    "source_relaxation": 1.0,
+    "tolerance": 2e-05,
+    "onset_step": 1,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "positivity_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "limiter_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false,
+    "validation_claim_permitted": false,
+    "solver_endpoint_claim_permitted": false
+  },
+  "phi": {
+    "floor_activation_fraction_by_count": 0.2762652079264323,
+    "floor_activation_fraction_by_quadrature_weight": 0.999996530756678,
+    "strict_negative_fraction": 0.0,
+    "exact_zero_fraction_of_activations": 0.0002623538757952314,
+    "masked_quadrature_value_fraction_of_global_first_order": 6.582184845139395e-23,
+    "positive_reduced_moment_fractions_from_floor_set": {
+      "m0": 6.582184845139395e-23,
+      "abs_vx": 2.0614474280019288e-19,
+      "abs_vy": 2.0734026673199397e-19,
+      "speed_squared": 4.268540092055176e-16
+    },
+    "dominant_component_fraction_among_nonzero_activations": {
+      "source": 0.00011118436439374826,
+      "x_transport": 0.5023514457190107,
+      "y_transport": 0.49753736991659564
+    },
+    "component_sum_closure_relative_l2": 0.0
+  },
+  "psi": {
+    "floor_activation_fraction_by_count": 0.27674560546875,
+    "floor_activation_fraction_by_quadrature_weight": 0.9999965446375529,
+    "strict_negative_fraction": 0.0,
+    "exact_zero_fraction_of_activations": 0.0002618984605884169,
+    "masked_quadrature_value_fraction_of_global_first_order": 1.68442293532526e-22,
+    "positive_reduced_moment_fractions_from_floor_set": {
+      "m0": 1.68442293532526e-22,
+      "abs_vx": 3.799327700799507e-19,
+      "abs_vy": 3.810610778605022e-19,
+      "speed_squared": 6.261497318337335e-16
+    },
+    "dominant_component_fraction_among_nonzero_activations": {
+      "source": 0.00012110232066056145,
+      "x_transport": 0.5024296296704822,
+      "y_transport": 0.49744926800885725
+    },
+    "component_sum_closure_relative_l2": 0.0
+  },
+  "equilibrium_clipping": {
+    "maximum_phi_clipped_weight_fraction": 0.010909397002271217,
+    "maximum_psi_clipped_weight_fraction": 0.023436897609476003
+  },
+  "decision": "stage93_axis_component_balance_complete_stage94_floor_moment_perturbation_audit",
+  "scientific_guard": "Stage 93 is a positive operator-decomposition consistency result but not a solver or validation result. Roughly 27.6% of velocity entries lie below the fixed 1e-30 positivity floor at the first update, yet none are strictly negative and their actual weighted distribution-value and reduced-moment footprints are extremely small. The source is dominant for only about 0.01% of nonzero activations; x- and y-upwind transport split the dominant set almost equally. Binary quadrature-weight coverage is therefore not a physically meaningful measure of the floor's effect by itself. Stage 90 remains nonconverged in both reconstruction arms and Stage 28 remains a failed MUSCL endpoint. No failed physical or numerical parameter is retuned, and no benchmark, validation, accuracy-improvement, or stable-solver claim is made."
+}

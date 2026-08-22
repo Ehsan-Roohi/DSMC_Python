@@ -1,0 +1,76 @@
+{
+  "stage": 42,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 42",
+    "run_id": 30731231176,
+    "job_id": 91451917655,
+    "job_name": "projected-polar-heated-cavity-pilot",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "eb6447ef81c5dd925f163caf314f4e2a75d77372"
+  },
+  "tests": {
+    "passed": 44,
+    "failed": 0,
+    "duration_seconds": 0.31
+  },
+  "artifact": {
+    "id": 8828768222,
+    "name": "stage42-projected-polar-heated-cavity-pilot",
+    "size_bytes": 29149,
+    "sha256": "4d9181f5e01407ebb15da0b3a52539d3e536a62e6b38271b905cc5d1be646552",
+    "expires_at": "2026-09-01T05:10:12Z"
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [8, 8],
+    "polar_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false,
+    "source_resolution_reproduction": false
+  },
+  "result": {
+    "iterations": 500,
+    "converged": true,
+    "final_change": 6.200682328705298e-12,
+    "predicted_qav": 0.08915883055151556,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.2383170909932718,
+    "velocity_metrics": {
+      "relative_rms": 4.342029169274625,
+      "relative_l1": 4.959838161846327,
+      "sign_agreement": 0.2
+    },
+    "wall_mass_balance_relative_error": 1.446888721362172e-16,
+    "minimum_phi": 1e-30,
+    "minimum_psi": 1e-30,
+    "maximum_phi_clipped_weight_fraction": 0.0017852355264458837,
+    "maximum_psi_clipped_weight_fraction": 0.004012338285911871,
+    "finite": true,
+    "work_proxy": 98304000
+  },
+  "stage41_operator_recheck": {
+    "passed": true,
+    "shakhov_heat_flux_closure_error": 0.00021704939264784862,
+    "wall_mass_balance_relative_error": 3.5989022049905664e-17,
+    "relaxation_maximum_conserved_moment_change": 1.1335007126043825e-08
+  },
+  "decision": "projected_polar_pilot_converged_stage43_resolution_sequence",
+  "scientific_conclusion": "The fixed 8x8, 3072-vector projected-polar heated-cavity pilot is finite, positive, mass balanced and converged without physical retuning. Its Table 6 heat-flux error is 23.83170909932718% and its direct Table 3 wall-velocity relative RMS error is 4.342029169274625 with 20% sign agreement. These negative finite-resolution discrepancies are retained; the result supports a frozen-physics spatial-resolution sequence, not benchmark validation."
+}

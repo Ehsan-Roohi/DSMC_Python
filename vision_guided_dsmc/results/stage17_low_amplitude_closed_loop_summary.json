@@ -1,0 +1,64 @@
+{
+  "stage": 17,
+  "description": "Low-amplitude matched-budget paired closed loop on unseen seeds",
+  "ci_run": 240,
+  "status": "success",
+  "tests": {
+    "passed": 63,
+    "runtime_seconds": 5.14
+  },
+  "configuration": {
+    "grid": [6, 6],
+    "particles_per_cell": 20,
+    "particles_per_run": 720,
+    "warm_steps": 40,
+    "continuation_steps": 60,
+    "training_seeds": [11, 22, 33],
+    "validation_seeds": [44, 55],
+    "closed_loop_seeds": [66, 77, 88],
+    "conditions": [
+      [0.05, 40.0],
+      [0.10, 40.0],
+      [0.20, 40.0]
+    ]
+  },
+  "amplitudes": {
+    "0.050": {
+      "mean_error_ratio": 0.9593017067548892,
+      "median_error_ratio": 0.9294328120626337,
+      "standard_error": 0.039206638581842826,
+      "ci95": [0.8824566951344773, 1.0361467183753013],
+      "improved_runs": 5,
+      "run_count": 9,
+      "mean_improvement_percent": 4.069829324511076,
+      "mean_realized_absolute_fractional_change": 0.021913580246913596,
+      "maximum_realized_fractional_change": 0.05,
+      "mean_collision_ratio": 1.0057822385560278
+    },
+    "0.100": {
+      "mean_error_ratio": 1.0038813740888861,
+      "median_error_ratio": 1.015041307624069,
+      "standard_error": 0.039265544312228375,
+      "ci95": [0.9269209072369184, 1.0808418409408538],
+      "improved_runs": 4,
+      "run_count": 9,
+      "mean_improvement_percent": -0.38813740888861137,
+      "mean_realized_absolute_fractional_change": 0.045679012345679046,
+      "maximum_realized_fractional_change": 0.10,
+      "mean_collision_ratio": 0.9829247418595501
+    },
+    "0.200": {
+      "mean_error_ratio": 0.9985043694948033,
+      "median_error_ratio": 0.9674388531203412,
+      "standard_error": 0.03770823778202557,
+      "ci95": [0.9245962234420332, 1.0724125155475734],
+      "improved_runs": 6,
+      "run_count": 9,
+      "mean_improvement_percent": 0.14956305051967433,
+      "mean_realized_absolute_fractional_change": 0.0910493827160494,
+      "maximum_realized_fractional_change": 0.20,
+      "mean_collision_ratio": 0.9920323265822591
+    }
+  },
+  "conclusion": "All paired confidence intervals include an error ratio of one, so no statistically resolved closed-loop benefit is claimed. The five-percent amplitude is the only promising setting and is advanced to a larger unseen-seed ensemble."
+}

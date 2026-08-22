@@ -1,0 +1,122 @@
+{
+  "stage": 44,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 44",
+    "run_id": 30743552934,
+    "job_id": 91485129929,
+    "status": "completed",
+    "conclusion": "success",
+    "source_head_sha": "947cabc1b75636c8e19a9d29304ca07d5fb29f52",
+    "tests_passed": 37,
+    "tests_failed": 0,
+    "artifact": {
+      "id": 8832382991,
+      "name": "stage44-projected-polar-finer-grid-sequence",
+      "size_bytes": 37290,
+      "sha256": "3eabd271c4b05ccdd6c04d462398ecf08cb70411ef1b977424171a619df6de34",
+      "created_at": "2026-08-02T10:46:44Z"
+    },
+    "preflight_recovery": {
+      "failed_run_id": 30739004407,
+      "failed_job_id": 91472888754,
+      "scientific_run_started": false,
+      "cause": "workflow referenced a non-existent test path",
+      "fix_commit_sha": "947cabc1b75636c8e19a9d29304ca07d5fb29f52"
+    }
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "new_grids": [[20, 20], [24, 24]],
+    "combined_sequence_grids": [16, 20, 24],
+    "polar_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false,
+    "velocity_quadrature_retuning": false
+  },
+  "retained_16x16_case": {
+    "grid": [16, 16],
+    "iterations": 500,
+    "converged": true,
+    "final_change": 1.9979318251275857e-06,
+    "predicted_qav": 0.0814053328666412,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.13062962314779453,
+    "velocity_metrics": {
+      "relative_rms": 2.0834768337668104,
+      "relative_l1": 2.357676714858226,
+      "sign_agreement": 0.2
+    }
+  },
+  "new_cases": [
+    {
+      "grid": [20, 20],
+      "iterations": 550,
+      "converged": true,
+      "final_change": 9.611691218588951e-06,
+      "predicted_qav": 0.07988685618966523,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.10953966930090611,
+      "velocity_metrics": {
+        "relative_rms": 1.6137584554918936,
+        "relative_l1": 1.818079614086768,
+        "sign_agreement": 0.2
+      },
+      "wall_mass_balance_relative_error": 1.7584297059707913e-16,
+      "maximum_phi_clipped_weight_fraction": 0.0022314458914989635,
+      "maximum_psi_clipped_weight_fraction": 0.004820725128282489,
+      "table_velocity": [0.003940044894081905, 0.002763769303288723, 0.0018634912771260097, 0.0011776544004352262, 0.000668866859999322, 0.0003570509290675451, 0.00034081425109317717, 0.0008011750957768484, 0.0020113343949879113, 0.004152457620959318]
+    },
+    {
+      "grid": [24, 24],
+      "iterations": 625,
+      "converged": true,
+      "final_change": 1.0299366825117229e-05,
+      "predicted_qav": 0.07888585433050331,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.09563686570143495,
+      "velocity_metrics": {
+        "relative_rms": 1.2973287076686175,
+        "relative_l1": 1.4558592163053783,
+        "sign_agreement": 0.4
+      },
+      "wall_mass_balance_relative_error": 1.5240787796522437e-16,
+      "maximum_phi_clipped_weight_fraction": 0.0024081694616501876,
+      "maximum_psi_clipped_weight_fraction": 0.004957436431617976,
+      "table_velocity": [0.003558702245332935, 0.0023641564964287007, 0.0014250942410337542, 0.0006881894511479978, 0.00012813867599237625, -0.00024311044353719075, -0.00032870356385294596, 7.266449491364512e-05, 0.0012259803339745023, 0.003466449234811846]
+    }
+  ],
+  "combined_monotonicity": {
+    "qav_error_nonincreasing": true,
+    "velocity_rms_nonincreasing": true,
+    "qav_errors": [0.13062962314779453, 0.10953966930090611, 0.09563686570143495],
+    "velocity_rms_errors": [2.0834768337668104, 1.6137584554918936, 1.2973287076686175],
+    "qav_change_20x20_to_24x24": 0.012689244068627138,
+    "profile_change_20x20_to_24x24": 0.3166498655567256
+  },
+  "linear_h_extrapolation": {
+    "extrapolated_qav": 0.07384243044553461,
+    "qav_fit_r2": 0.9999905771259096,
+    "extrapolated_qav_relative_error": 0.025589311743536323,
+    "velocity_fit_r2": 0.9998756274122671,
+    "extrapolated_velocity_relative_rms": 0.35505841903160573,
+    "diagnostic_only": true
+  },
+  "decision": "projected_polar_finer_grid_improving_not_converged_stage45_32x32_confirmation",
+  "scientific_conclusion": "Both average heat-flux error and wall-velocity RMS decrease monotonically from 16x16 through 24x24, but the 20x20-to-24x24 wall-profile change remains 31.7%. The sequence is improving but not spatially converged; a frozen 32x32 confirmation is justified before any cross-Knudsen extension."
+}

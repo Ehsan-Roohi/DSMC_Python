@@ -1,0 +1,41 @@
+# Fixed-design artifact diagnostic; no solver rerun or parameter retuning.
+name: Vision-guided DSMC Stage 129
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage129_*'
+      - 'vision_guided_dsmc/tests/test_stage129_*'
+      - 'vision_guided_dsmc/results/stage128_radial_node_continuity_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage129.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  transition-strength-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage128_radial_node_continuity_audit.py tests/test_stage129_transition_strength_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage128-radial-node-continuity-audit
+          path: /tmp/stage128
+          github-token: ${{ github.token }}
+          run-id: 31940630751
+      - run: |
+          python -m vgdsmc.stage129_transition_strength_audit \
+            --stage128-dir /tmp/stage128 \
+            --stage128-record results/stage128_radial_node_continuity_audit_observed.json \
+            --output-dir /tmp/stage129
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage129-transition-strength-audit
+          path: /tmp/stage129
+          retention-days: 30

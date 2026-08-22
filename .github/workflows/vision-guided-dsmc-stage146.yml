@@ -1,0 +1,141 @@
+name: Vision-guided DSMC Stage 146
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage146_trough_provenance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage146_trough_provenance_audit.py'
+      - 'vision_guided_dsmc/results/stage145_trough_persistence_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage146.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage146_trough_provenance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage146_trough_provenance_audit.py'
+      - 'vision_guided_dsmc/results/stage145_trough_persistence_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage146.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  trough-provenance-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 143-146 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage143_positive_lobe_scale_audit.py \
+            tests/test_stage144_positive_lobe_shape_audit.py \
+            tests/test_stage145_trough_persistence_audit.py \
+            tests/test_stage146_trough_provenance_audit.py
+      - name: Download exact completed Stage 145 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage145-trough-persistence-audit
+          path: /tmp/stage145_trough_persistence_audit
+          run-id: 32333756029
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 138 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage138-channel-rate-origin-audit
+          path: /tmp/stage138_channel_rate_origin_audit
+          run-id: 32176056342
+          github-token: ${{ github.token }}
+      - name: Verify exact parent payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage145_trough_persistence_audit/summary.json': '0654c6929d1a1c65aba84f77e46774162b77c2320f82611f203d8dca9f3f0a7a',
+              '/tmp/stage145_trough_persistence_audit/trough_persistence.npz': '2a8f0b1a8dd10ebb435bc0e4b50ca9985645743d1b8d4b1191922a6022969cee',
+              '/tmp/stage138_channel_rate_origin_audit/summary.json': '61a10326c2dce8e5a47dd57333ea9acd5776f0b531dcce48204129a330860c3f',
+              '/tmp/stage138_channel_rate_origin_audit/channel_rate_origin.npz': '44ddc0cc8bd3c1bc18c4cb60b953c985bdcb93ebe0c3446b5216a8cf000e03c8',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 146 fixed inherited-channel trough-provenance audit
+        run: |
+          python -m vgdsmc.stage146_trough_provenance_audit \
+            --stage145-dir /tmp/stage145_trough_persistence_audit \
+            --stage145-record results/stage145_trough_persistence_audit_observed.json \
+            --stage138-dir /tmp/stage138_channel_rate_origin_audit \
+            --stage138-record results/stage138_channel_rate_origin_audit_observed.json \
+            --output-dir /tmp/stage146_trough_provenance_audit
+      - name: Verify Stage 146 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage146_trough_provenance_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 146
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['dominant_mirrored_sector'] == 6
+          assert cfg['single_channel_dominance_min'] == 0.75
+          assert cfg['trough_provenance_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          agg = summary['aggregate']
+          assert agg['stage145_record_ok'] is True
+          assert agg['stage138_record_ok'] is True
+          assert agg['parent_route_ok'] is True
+          assert agg['inherited_value_match_error'] <= 1.0e-12
+          assert agg['inherited_secant_match_error'] <= 1.0e-12
+          assert agg['maximum_identity_or_decomposition_closure'] <= 1.0e-12
+          allowed = {
+              'stage146_single_channel_curvature_dominance_stage147_dominant_channel_neighborhood_audit',
+              'stage146_mixed_reinforcing_channel_curvature_stage147_dual_channel_neighborhood_audit',
+              'stage146_opposed_channel_curvature_cancellation_stage147_channel_cancellation_neighborhood_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          assert 'diagnostics, not solver parameters' in summary['negative_result_guard']
+          with np.load(root / 'trough_provenance.npz') as data:
+              assert data['local_depth'].shape == (3,)
+              assert data['local_dominant_signed'].shape == (3,)
+              assert data['local_parent_signed'].shape == (3,)
+              assert data['local_complement_signed'].shape == (3,)
+              assert data['projected_contributions'].shape == (2,)
+              assert data['absolute_contribution_shares'].shape == (2,)
+              assert np.isfinite(data['absolute_contribution_shares']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage146-trough-provenance-audit
+          path: /tmp/stage146_trough_provenance_audit
+          retention-days: 30

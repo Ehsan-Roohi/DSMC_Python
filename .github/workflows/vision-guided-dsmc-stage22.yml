@@ -1,0 +1,62 @@
+name: Vision-guided DSMC Stage 22
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage22.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage22.yml'
+jobs:
+  dvm-convergence:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test convergence utilities
+        run: pytest -q tests/test_dvm_convergence.py tests/test_dvm_shakhov.py
+      - name: Run Stage 22 spatial and velocity convergence
+        run: |
+          vgdsmc-dvm-convergence \
+            --output-dir /tmp/stage22_dvm_convergence \
+            --kn 0.10 --max-steps 1400 --tolerance 3e-6 \
+            --spatial-levels 6 8 10 --spatial-reference 12 --spatial-nv 8 \
+            --velocity-levels 6 8 10 --velocity-reference 12 --velocity-grid 8
+      - name: Verify convergence artifacts without forcing monotonicity
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage22_dvm_convergence/summary.json'))
+          assert summary['stage'] == 22
+          assert summary['run_count'] == 7
+          assert summary['spatial_convergence']['levels'] == [6, 8, 10]
+          assert summary['velocity_convergence']['levels'] == [6, 8, 10]
+          assert len(summary['spatial_convergence']['metrics']) == 3
+          assert len(summary['velocity_convergence']['metrics']) == 3
+          for sequence in ('spatial_convergence', 'velocity_convergence'):
+              for row in summary[sequence]['metrics']:
+                  for value in row.values():
+                      assert math.isfinite(value)
+                      assert value >= 0.0
+              assert set(summary[sequence]['monotone_nonincreasing_with_2pct_tolerance']) == {
+                  'temperature_relative_rms',
+                  'density_relative_rms',
+                  'velocity_thermal_rms',
+                  'heat_flux_relative_rms',
+                  'composite_error',
+              }
+          fields = np.load('/tmp/stage22_dvm_convergence/fields.npz')
+          assert 'T_nx12_ny12_nv8' in fields.files
+          assert 'T_nx8_ny8_nv12' in fields.files
+          assert Path('/tmp/stage22_dvm_convergence/summary.json').exists()
+          PY

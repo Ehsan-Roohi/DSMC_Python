@@ -1,0 +1,150 @@
+name: Vision-guided DSMC Stage 74
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage74_radial_speed_shell_opposite_sector_cancellation_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage74_radial_speed_shell_opposite_sector_cancellation_audit.py'
+      - 'vision_guided_dsmc/results/stage73_velocity_sign_angular_bin_interior_face_flux_attribution_audit_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage74.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage74_radial_speed_shell_opposite_sector_cancellation_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage74_radial_speed_shell_opposite_sector_cancellation_audit.py'
+      - 'vision_guided_dsmc/results/stage73_velocity_sign_angular_bin_interior_face_flux_attribution_audit_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage74.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  radial-speed-shell-opposite-sector-cancellation-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 74 and retained audit endpoints
+        run: |
+          pytest -q \
+            tests/test_stage74_radial_speed_shell_opposite_sector_cancellation_audit.py \
+            tests/test_stage73_velocity_sign_angular_bin_interior_face_flux_attribution_audit.py \
+            tests/test_stage72_directional_transport_component_audit.py \
+            tests/test_stage71_wall_layer_interior_face_transport_attribution_audit.py \
+            tests/test_stage70_independent_wall_face_flux_discretization_audit.py \
+            tests/test_stage69_frozen_grid_transfer_residual_scaling_audit.py \
+            tests/test_stage68_independent_transport_operator_residual_audit.py \
+            tests/test_stage67_frozen_full_distribution_residual_decomposition.py \
+            tests/test_stage66_frozen_collision_source_observable_audit.py \
+            tests/test_stage65_local_clipping_activation_map_audit.py \
+            tests/test_stage64_source_step_consistency_audit.py \
+            tests/test_stage63_collision_target_equivalence_audit.py \
+            tests/test_stage62_finite_kn_normalization_audit.py \
+            tests/test_stage60_transport_wall_equation_audit.py
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 73 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage73-velocity-sign-angular-bin-interior-face-flux-attribution-audit
+          path: /tmp/stage73_velocity_sign_angular_bin_interior_face_flux_attribution_audit
+          run-id: 31088628167
+          github-token: ${{ github.token }}
+      - name: Run Stage 74 radial-speed shell and opposite-sector cancellation audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from vgdsmc import stage74_radial_speed_shell_opposite_sector_cancellation_audit as stage74
+
+          summary = stage74.run_stage74(
+              Path('/tmp/stage67_frozen_full_distribution_residual_decomposition'),
+              Path('/tmp/stage73_velocity_sign_angular_bin_interior_face_flux_attribution_audit'),
+              Path('/tmp/stage74_radial_speed_shell_opposite_sector_cancellation_audit'),
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+      - name: Verify exact shell/bin closure, provenance, and scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage74_radial_speed_shell_opposite_sector_cancellation_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 74
+          assert summary['finite'] is True
+          assert summary['grouped_closure_closed'] is True
+          assert summary['radial_shell_contract_consistent'] is True
+          assert summary['provenance_consistent'] is True
+          assert not summary['decision'].endswith('blocker')
+          assert summary['decision'].startswith('stage74_')
+
+          endpoint73 = summary['retained_stage73_endpoint']
+          assert endpoint73['workflow_run_id'] == 31088628167
+          assert endpoint73['workflow_job_id'] == 92573989499
+          assert endpoint73['artifact_id'] == 8966181833
+          assert endpoint73['tests_passed'] == 166
+          assert endpoint73['tests_failed'] == 0
+
+          cfg = summary['configuration']
+          assert cfg['grids'] == [16, 32, 64]
+          assert cfg['fine_grid'] == 64
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['radial_shell_count'] == 4
+          assert cfg['radial_nodes_per_shell'] == 10
+          assert cfg['opposite_bin_pairs'] == [[0, 4], [1, 5], [2, 6], [3, 7]]
+          assert cfg['vertical_oblique_opposite_pairs'] == [[1, 5], [2, 6]]
+          assert [row['velocity_point_count'] for row in cfg['radial_shell_metadata']] == [960, 960, 960, 960]
+          assert cfg['solver_rerun_count'] == 0
+          assert cfg['bounded_wall_face_arm_adopted'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          with np.load(root / 'radial_shell_opposite_sector_maps.npz') as maps:
+              for grid in (16, 32, 64):
+                  row = summary['grid_results'][str(grid)]
+                  assert row['grouped_closure']['within_guard'] is True
+                  attr = row['attribution']
+                  assert abs(sum(attr['shell_absolute_shares']) - 1.0) < 1e-12
+                  reconstructed = maps[f'grid{grid}_reconstructed_x_qy']
+                  reference = maps[f'grid{grid}_stage73_reference_x_qy']
+                  assert reconstructed.shape == reference.shape == (grid, grid)
+                  assert np.all(np.isfinite(reconstructed))
+                  relative = np.linalg.norm((reconstructed - reference).ravel()) / max(np.linalg.norm(reference.ravel()), 1e-300)
+                  assert relative <= 1e-10
+
+          fine = summary['fine_grid_radial_shell_opposite_sector_attribution']
+          assert fine['stage73_vertical_oblique_absolute_share_error'] <= 1e-12
+          assert 0.0 <= fine['opposite_pair_metrics']['vertical_oblique_cancellation_ratio'] <= 1.0
+          assert 'not an adjoint sensitivity' in summary['negative_findings'][0]
+          assert 'failed Stage-28 MUSCL' in summary['negative_findings'][2]
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage74-radial-speed-shell-opposite-sector-cancellation-audit
+          path: /tmp/stage74_radial_speed_shell_opposite_sector_cancellation_audit
+          retention-days: 30

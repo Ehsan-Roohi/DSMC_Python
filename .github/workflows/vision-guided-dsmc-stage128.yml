@@ -1,0 +1,50 @@
+# Fixed-design artifact diagnostic; no solver rerun or parameter retuning.
+name: Vision-guided DSMC Stage 128
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage128_*'
+      - 'vision_guided_dsmc/tests/test_stage128_*'
+      - 'vision_guided_dsmc/results/stage127_wall_normal_side_switch_audit_observed.json'
+      - 'vision_guided_dsmc/results/stage124_within_band_cancellation_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage128.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  radial-node-continuity-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage127_wall_normal_side_switch_audit.py tests/test_stage128_radial_node_continuity_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage127-wall-normal-side-switch-audit
+          path: /tmp/stage127
+          github-token: ${{ github.token }}
+          run-id: 31935671977
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage124-within-band-cancellation-audit
+          path: /tmp/stage124
+          github-token: ${{ github.token }}
+          run-id: 31898392223
+      - run: |
+          python -m vgdsmc.stage128_radial_node_continuity_audit \
+            --stage127-dir /tmp/stage127 \
+            --stage127-record results/stage127_wall_normal_side_switch_audit_observed.json \
+            --stage124-dir /tmp/stage124 \
+            --stage124-record results/stage124_within_band_cancellation_audit_observed.json \
+            --output-dir /tmp/stage128
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage128-radial-node-continuity-audit
+          path: /tmp/stage128
+          retention-days: 30

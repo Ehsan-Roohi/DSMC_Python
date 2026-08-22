@@ -1,0 +1,152 @@
+name: Vision-guided DSMC Stage 108
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage108_limiter_severity_correction_amplitude_coupling_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage108_limiter_severity_correction_amplitude_coupling_audit.py'
+      - 'vision_guided_dsmc/results/stage107_limiter_activation_colocation_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage108.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  limiter-severity-correction-amplitude-coupling-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 108 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage108_limiter_severity_correction_amplitude_coupling_audit.py \
+            tests/test_stage107_limiter_activation_colocation_audit.py \
+            tests/test_stage106_gradient_magnitude_coupling_audit.py \
+            tests/test_stage105_directional_gradient_alignment_audit.py \
+            tests/test_stage104_interior_gradient_scale_audit.py \
+            tests/test_stage103_shell1_spatial_localization_audit.py \
+            tests/test_stage102_radial_speed_shell_audit.py \
+            tests/test_stage101_interior_velocity_sector_audit.py \
+            tests/test_stage100_fused_single_run_directional_audit.py \
+            tests/test_stage99_replay_provenance_audit.py \
+            tests/test_stage98_directional_operator_growth_audit.py \
+            tests/test_stage97_muscl_correction_spatial_localization_audit.py \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+      - name: Download exact completed Stage 104 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage104-interior-gradient-scale-audit
+          path: /tmp/stage104_interior_gradient_scale_audit
+          run-id: 31448978626
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 107 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage107-limiter-activation-colocation-audit
+          path: /tmp/stage107_limiter_activation_colocation_audit
+          run-id: 31514716731
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 104 and Stage 107 payload provenance
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage104_interior_gradient_scale_audit/summary.json': '5ff1e7f4bae6ec0cf473ae61272143c9616dc83942052cccdcd90320008cfc95',
+              '/tmp/stage104_interior_gradient_scale_audit/interior_gradient_scale_maps.npz': '88e45ddb944f498e34c305d2d2585475213937f825d9938a7c334451e11bdc64',
+              '/tmp/stage107_limiter_activation_colocation_audit/summary.json': '7f9b03aa09048d2b6b2b0de678e83dcfa6b3dce623a04c0b9cd24730efac409d',
+              '/tmp/stage107_limiter_activation_colocation_audit/limiter_activation_colocation_maps.npz': '99f7e1e5b1716b2a4544a9c5828a580e01c04dea9864226ecc16daaf332964ad',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 108 frozen limiter-severity correction-amplitude coupling audit
+        run: |
+          python -m vgdsmc.stage108_limiter_severity_correction_amplitude_coupling_audit \
+            --stage104-artifact-dir /tmp/stage104_interior_gradient_scale_audit \
+            --stage107-artifact-dir /tmp/stage107_limiter_activation_colocation_audit \
+            --output-dir /tmp/stage108_limiter_severity_correction_amplitude_coupling_audit
+      - name: Verify Stage 108 fixed design and negative-result guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage108_limiter_severity_correction_amplitude_coupling_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 108
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['tolerance'] == 2.0e-5
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['diagnostic_steps'] == 25
+          assert cfg['wall_band_cells'] == 4
+          assert cfg['dominant_radial_shell'] == 1
+          assert cfg['rank_coupling_guard'] == 0.40
+          assert cfg['quartile_amplitude_ratio_guard'] == 1.50
+          assert cfg['lower_quantile'] == 0.25
+          assert cfg['upper_quantile'] == 0.75
+          assert cfg['stage104_run_id'] == 31448978626
+          assert cfg['stage104_job_id'] == 93649171038
+          assert cfg['stage104_artifact_id'] == 9090545022
+          assert cfg['stage107_run_id'] == 31514716731
+          assert cfg['stage107_job_id'] == 93856877768
+          assert cfg['stage107_artifact_id'] == 9116979302
+          assert cfg['full_solver_endpoint_rerun'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['one_sided_boundary_slope_promoted'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['validation_claim_permitted'] is False
+          assert cfg['solver_endpoint_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['stage107_authorization']['decision'] == 'stage107_limiter_intervention_colocated_stage108_limiter_severity_correction_amplitude_coupling_audit'
+          allowed = {
+              'stage108_nonfinite_severity_amplitude_coupling_blocker_without_retuning',
+              'stage108_continuous_limiter_severity_coupling_stage109_limiter_intervention_mode_decomposition_audit',
+              'stage108_partial_continuous_severity_coupling_stage109_spatial_monotonicity_audit',
+              'stage108_no_continuous_severity_coupling_stage109_unlimited_gradient_smoothness_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 99 remains a negative cross-run reproducibility result' in summary['negative_result_guard']
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'no cross-Knudsen MUSCL extension is permitted' in summary['negative_result_guard']
+          with np.load(root / 'limiter_severity_correction_amplitude_coupling_maps.npz') as data:
+              expected = {
+                  'phi_intervention_fraction', 'phi_growth_amplitude',
+                  'phi_low_severity_support', 'phi_high_severity_support',
+                  'psi_intervention_fraction', 'psi_growth_amplitude',
+                  'psi_low_severity_support', 'psi_high_severity_support',
+                  'joint_intervention_fraction', 'joint_growth_amplitude',
+                  'joint_low_severity_support', 'joint_high_severity_support',
+                  'phi_zeroed_velocity_weight_fraction', 'psi_zeroed_velocity_weight_fraction',
+              }
+              assert set(data.files) == expected
+              for name in data.files:
+                  assert data[name].shape == (56, 56)
+                  assert np.isfinite(data[name]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage108-limiter-severity-correction-amplitude-coupling-audit
+          path: /tmp/stage108_limiter_severity_correction_amplitude_coupling_audit
+          retention-days: 30

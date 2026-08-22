@@ -1,0 +1,61 @@
+{
+  "stage": 127,
+  "record_type": "completed_wall_normal_side_switch_audit",
+  "source_head": "c65950ac48c57ab067d404d1cc49c5defcb5a141",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31935671977,
+  "workflow_job_id": 95137068274,
+  "artifact_id": 9261546150,
+  "artifact_size_bytes": 5395,
+  "artifact_sha256": "3f6c18a98afad27367c0371857c1f4eff64aa1ae9c6391adcc6a16f477abe989",
+  "summary_sha256": "5c25b03efaee7e96add6e5ca46ba4b75d3e776b014c7a43ad374ed53b74a6f42",
+  "wall_normal_side_switch_sha256": "cf031274bd6b06deef6898883c0b74f1a410a6d7d974bb1289af9ea19bef9c8e",
+  "tests": {
+    "passed": 17,
+    "failed": 0
+  },
+  "decision": "stage127_bilateral_single_transition_zone_stage128_radial_node_continuity_audit",
+  "aggregate": {
+    "cross_wall_asymmetry_profile_cosine": 0.9831956762946098,
+    "cross_wall_asymmetry_profile_pearson": 0.9928442700731575,
+    "cross_wall_depth_side_agreement_fraction": 0.9642857142857143,
+    "crossing_depth_separation_cells": 0.8357835180346473,
+    "wall_crossing_depths_cells": [
+      14.71694048265934,
+      15.552724000693987
+    ],
+    "first_axis0_low_dominant_depths_cells": [
+      15,
+      16
+    ],
+    "depths_with_cross_wall_side_disagreement": [
+      15
+    ],
+    "maximum_stage126_parent_fraction_abs_error": 5.551115123125783e-16
+  },
+  "key_metrics": {
+    "axis1_low": {
+      "crossing_count": 1,
+      "interpolated_zero_crossing_depth_cells": 14.71694048265934,
+      "first_axis0_low_dominant_depth_cells": 15,
+      "depth_14_asymmetry_axis0_high_minus_low": 0.49870793327874824,
+      "depth_15_asymmetry_axis0_high_minus_low": -0.19689783224992824,
+      "depth_16_asymmetry_axis0_high_minus_low": -0.3041675320859117,
+      "minimum_depth_dominance_fraction": 0.5984489161249642,
+      "maximum_depth_dominance_fraction": 0.9779426209095368
+    },
+    "axis1_high": {
+      "crossing_count": 1,
+      "interpolated_zero_crossing_depth_cells": 15.552724000693987,
+      "first_axis0_low_dominant_depth_cells": 16,
+      "depth_14_asymmetry_axis0_high_minus_low": 0.52069705597538,
+      "depth_15_asymmetry_axis0_high_minus_low": 0.05448434981678668,
+      "depth_16_asymmetry_axis0_high_minus_low": -0.04408989293072829,
+      "minimum_depth_dominance_fraction": 0.522044946465364,
+      "maximum_depth_dominance_fraction": 0.9849358163101677
+    }
+  },
+  "scientific_conclusion": "The Stage-126 band-level tangential-side reversal resolves into one wall-normal zero crossing on each opposite wall. The 28-depth asymmetry profiles are highly coherent across walls (cosine 0.9831956762946098; Pearson 0.9928442700731575), their dominant-side labels agree at 27/28 depths, and the two interpolated crossings at 14.71694048265934 and 15.552724000693987 cells differ by only 0.8357835180346473 cells, within the fixed two-cell guard. This establishes a bilateral narrow transition zone rather than a one-wall or broad-band averaging artifact. It does not yet establish the physical origin of the switch because the parent dominant radial node and net sign also change across the mid-to-inner band boundary. A fixed radial-node continuity audit is therefore justified. No limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation is claimed.",
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}

@@ -1,0 +1,120 @@
+name: Vision-guided DSMC Stage 40
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage40_external_benchmark_fidelity_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/linear_sidewall_validation.py'
+      - 'vision_guided_dsmc/tests/test_stage40_external_benchmark_fidelity_audit.py'
+      - 'vision_guided_dsmc/results/stage39_collision_model_benchmark_audit_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage40.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage40_external_benchmark_fidelity_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/linear_sidewall_validation.py'
+      - 'vision_guided_dsmc/tests/test_stage40_external_benchmark_fidelity_audit.py'
+      - 'vision_guided_dsmc/results/stage39_collision_model_benchmark_audit_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage40.yml'
+
+jobs:
+  external-benchmark-fidelity-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 40 and retained low-Kn infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_stage39_collision_model_benchmark_audit.py \
+            tests/test_stage38_transport_collision_interaction_audit.py \
+            tests/test_stage37_low_kn_transport_audit.py \
+            tests/test_stage36_high_resolution_cross_kn.py \
+            tests/test_second_order_transport.py \
+            tests/test_stage34_velocity_scale_consistency.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Run external benchmark and published-method fidelity audit
+        run: |
+          python -m vgdsmc.stage40_external_benchmark_fidelity_audit \
+            --output-dir /tmp/stage40_external_benchmark_fidelity_audit
+      - name: Verify exact source transcription and independent benchmark decision
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+
+          root = Path('/tmp/stage40_external_benchmark_fidelity_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 40
+          assert summary['source']['doi'] == '10.1080/01457632.2015.1111079'
+          assert summary['repository_source_transcription']['all_exact'] is True
+
+          retained = summary['retained_stage39_endpoint']
+          assert retained['workflow_run_id'] == 30718896816
+          assert retained['workflow_job_id'] == 91419210631
+          assert retained['tests_passed'] == 64
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8825367919
+          assert retained['artifact_sha256'] == (
+              'c2d44bb727009bb6f7d15255606fad2270e0d80bec5f1ce60643a95a01f43656'
+          )
+          assert retained['configuration']['physical_parameter_retuning'] is False
+
+          comparison = summary['stage39_external_heat_flux_comparison']
+          assert math.isclose(
+              comparison['predicted_qav'], 0.0726173364328985,
+              rel_tol=0.0, abs_tol=1e-15,
+          )
+          assert math.isclose(
+              comparison['relative_error_to_source_shakhov'],
+              0.008574117123590345,
+              rel_tol=0.0, abs_tol=1e-15,
+          )
+          assert math.isclose(
+              comparison['relative_error_to_source_dsmc'],
+              0.014208609398023778,
+              rel_tol=0.0, abs_tol=1e-15,
+          )
+          assert comparison['agrees_with_source_shakhov'] is True
+          assert comparison['agrees_with_independent_dsmc'] is True
+
+          table3 = summary['table3_reference_status']
+          assert table3['source_values_are_shakhov_only'] is True
+          assert table3['independent_table3_reference_available'] is False
+
+          gap = summary['method_fidelity_gap']
+          assert math.isclose(
+              gap['physical_cells_per_direction_ratio_source_to_stage39'],
+              400 / 24,
+          )
+          assert math.isclose(
+              gap['physical_cell_count_ratio_source_to_stage39'],
+              (400 * 400) / (24 * 24),
+          )
+          assert math.isclose(
+              gap['velocity_vector_count_ratio_source_to_stage39'],
+              32000 / 4608,
+          )
+          assert gap['convergence_tolerance_ratio_stage39_to_source'] == 200000.0
+          assert gap['transport_order_matches'] is False
+          assert gap['distribution_representation_matches'] is False
+          assert gap['velocity_quadrature_architecture_matches'] is False
+
+          assert summary['physical_parameter_retuning'] is False
+          assert summary['decision'] == (
+              'heat_flux_independently_supported_stage41_projected_polar_dvm'
+          )
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage40-external-benchmark-fidelity-audit
+          path: /tmp/stage40_external_benchmark_fidelity_audit
+          retention-days: 30

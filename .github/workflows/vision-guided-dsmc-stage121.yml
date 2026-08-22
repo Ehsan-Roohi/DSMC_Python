@@ -1,0 +1,47 @@
+name: Vision-guided DSMC Stage 121
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage121_*'
+      - 'vision_guided_dsmc/tests/test_stage121_*'
+      - 'vision_guided_dsmc/results/stage120_kernel_residual_velocity_cell_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage121.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  radial-kernel-factor-decomposition-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage121_radial_kernel_factor_decomposition_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67
+          github-token: ${{ github.token }}
+          run-id: 30991124477
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage120-kernel-residual-velocity-cell-audit
+          path: /tmp/stage120
+          github-token: ${{ github.token }}
+          run-id: 31831746351
+      - run: >-
+          python -m vgdsmc.stage121_radial_kernel_factor_decomposition_audit
+          --stage67-dir /tmp/stage67
+          --stage120-dir /tmp/stage120
+          --stage120-record results/stage120_kernel_residual_velocity_cell_audit_observed.json
+          --output-dir /tmp/stage121
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage121-radial-kernel-factor-decomposition-audit
+          path: /tmp/stage121
+          retention-days: 30

@@ -1,0 +1,41 @@
+# Fixed-design artifact diagnostic; no solver rerun or parameter retuning.
+name: Vision-guided DSMC Stage 126
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage126_*'
+      - 'vision_guided_dsmc/tests/test_stage126_*'
+      - 'vision_guided_dsmc/results/stage125_dominant_node_spatial_sign_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage126.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  wall-side-asymmetry-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage125_dominant_node_spatial_sign_audit.py tests/test_stage126_wall_side_asymmetry_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage125-dominant-node-spatial-sign-audit
+          path: /tmp/stage125
+          github-token: ${{ github.token }}
+          run-id: 31911866789
+      - run: |
+          python -m vgdsmc.stage126_wall_side_asymmetry_audit \
+            --stage125-dir /tmp/stage125 \
+            --stage125-record results/stage125_dominant_node_spatial_sign_audit_observed.json \
+            --output-dir /tmp/stage126
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage126-wall-side-asymmetry-audit
+          path: /tmp/stage126
+          retention-days: 30

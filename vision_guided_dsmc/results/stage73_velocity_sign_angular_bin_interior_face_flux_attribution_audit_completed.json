@@ -1,0 +1,58 @@
+{
+  "stage": 73,
+  "status": "completed",
+  "workflow_run_id": 31088628167,
+  "workflow_job_id": 92573989499,
+  "workflow_conclusion": "success",
+  "tests_passed": 166,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.98,
+  "artifact": {
+    "name": "stage73-velocity-sign-angular-bin-interior-face-flux-attribution-audit",
+    "artifact_id": 8966181833,
+    "size_bytes": 471060,
+    "sha256": "125b1333eec2b617496b5e58c35ba0824e37f7507fab44e23faf2af8713285d9",
+    "summary_sha256": "5cb64245b39b2ea0d33c7004f399c2d93c1954195719fff986378c4dc7ec5b9f",
+    "velocity_group_interior_face_maps_sha256": "bcb64f8edee745f6945e673b2f52a6cc6fac98dbdda95600238902064a7dfcd1"
+  },
+  "source_head_sha": "8efb02c77216b339d3fe9b1ff45a2e344157aded",
+  "decision": "stage73_balanced_vx_sign_vertical_oblique_sector_concentration_stage74_radial_speed_shell_and_opposite_sector_cancellation_audit",
+  "exact_fine_grid_metrics": {
+    "grid": [64, 64],
+    "vx_negative_absolute_share": 0.5,
+    "vx_positive_absolute_share": 0.5,
+    "sign_balance_error": 0.0,
+    "vertical_oblique_absolute_share": 0.7456486709250579,
+    "top_two_angular_bin_absolute_share": 0.39742604368395484,
+    "group_to_total_cancellation_ratio": 0.9698905937819959,
+    "x_component_rms": 0.05949272892868364,
+    "x_component_absolute_sum": 81.97149071645086,
+    "x_component_signed_sum": -0.002404004613340241,
+    "x_component_signed_to_absolute_ratio": -2.9327325785204748e-05,
+    "wall_band_absolute_share": 0.623450653809059,
+    "outer_two_layer_absolute_wall_share": 0.88469267557796,
+    "vertical_side_strip_absolute_wall_share": 0.869484469814403,
+    "maximum_grouped_closure_error": 7.355227538141662e-16,
+    "relative_l2_grouped_closure_error": 3.2202507255072077e-15
+  },
+  "positive_findings": [
+    "Every velocity-sign and angular-bin contribution summed back to the exact Stage-72 x-direction map within the frozen closure guard.",
+    "The positive-vx and negative-vx absolute contributions were exactly balanced at 50 percent each.",
+    "The four fixed vertical-oblique sectors carried 74.56486709250579 percent of the fine-grid angular magnitude."
+  ],
+  "negative_findings": [
+    "The grouped x-direction map remained strongly signed-cancellation dominated; its signed sum was only -2.9327325785204748e-05 of its absolute sum.",
+    "Velocity-group residual magnitude is not an adjoint sensitivity and does not predict a converged q_av response.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered and was not extended across Knudsen number.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned."
+  ],
+  "next_stage": {
+    "stage": 74,
+    "name": "Radial-Speed Shell and Opposite-Sector Cancellation Audit",
+    "scope": "Partition the exact frozen Stage-73 x-direction q_y residual into four equal-radial-node speed shells and fixed opposite angular-sector pairs on the unchanged 16x16, 32x32, and 64x64 grid sequence.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}

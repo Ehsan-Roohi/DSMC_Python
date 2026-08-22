@@ -1,0 +1,158 @@
+{
+  "stage": 39,
+  "record_type": "completed_workflow_reproducibility_record",
+  "repository": "Ehsan-Roohi/DSMC_Python",
+  "branch": "agent/vision-guided-dsmc-pilot",
+  "pull_request": 1,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 39",
+    "run_id": 30718896816,
+    "job_id": 91419210631,
+    "job_name": "collision-model-benchmark-audit",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "c315e4822016a2bf0f1beb663031bfb9858290c2",
+    "tests_passed": 64,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.33
+  },
+  "artifact": {
+    "id": 8825367919,
+    "name": "stage39-collision-model-benchmark-audit",
+    "size_bytes": 41954,
+    "sha256": "c2d44bb727009bb6f7d15255606fad2270e0d80bec5f1ce60643a95a01f43656",
+    "created_at_utc": "2026-08-01T23:08:51Z",
+    "expires_at_utc": "2026-08-31T23:08:51Z",
+    "files": [
+      "summary.json",
+      "fields_and_profiles.npz"
+    ]
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [
+      24,
+      24
+    ],
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "transport": "first_order_upwind",
+    "coupling": "strang_explicit_half_collision",
+    "wall_observable": "linear_extrapolated_wall",
+    "coordinate_variants": [
+      "direct",
+      "reverse_y",
+      "flip_tangential_sign",
+      "reverse_y_and_flip_sign"
+    ],
+    "cfl": 0.2,
+    "max_steps": 16000,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false
+  },
+  "stage38_reproduction": {
+    "within_tolerance": true,
+    "qav_absolute_difference": 0.0,
+    "qav_error_absolute_difference": 0.0,
+    "velocity_rms_absolute_difference": 0.0,
+    "iterations_difference": 0
+  },
+  "rows": [
+    {
+      "scheme": "first_order_strang_shakhov_pr_2_over_3",
+      "collision_model": "Shakhov",
+      "prandtl": 0.6666666666666666,
+      "iterations": 5500,
+      "converged": true,
+      "final_change": 1.3511402530752559e-05,
+      "predicted_qav": 0.0726173364328985,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.008574117123590345,
+      "velocity_observable": "linear_extrapolated_wall",
+      "velocity_relative_rms": 1.0091453484689894,
+      "velocity_sign_agreement": 0.9,
+      "velocity_relative_l1": 0.7591131331922547,
+      "wall_mass_balance_relative_error": 2.3230252114543756e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.14505974877606181,
+      "maximum_temperature": 0.8932652435230649,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 14598144000,
+      "coordinate_variant_metrics": {
+        "direct": {
+          "relative_rms": 1.0091453484689894,
+          "sign_agreement": 0.9,
+          "relative_l1": 0.7591131331922547
+        },
+        "reverse_y": {
+          "relative_rms": 0.9508589709610267,
+          "sign_agreement": 0.7,
+          "relative_l1": 0.9054641936878948
+        },
+        "flip_tangential_sign": {
+          "relative_rms": 1.5486902294967078,
+          "sign_agreement": 0.1,
+          "relative_l1": 1.6030019398867212
+        },
+        "reverse_y_and_flip_sign": {
+          "relative_rms": 1.585144466166444,
+          "sign_agreement": 0.3,
+          "relative_l1": 1.621520518081095
+        }
+      }
+    },
+    {
+      "scheme": "first_order_strang_bgk_pr_1",
+      "collision_model": "BGK",
+      "prandtl": 1.0,
+      "iterations": 5300,
+      "converged": true,
+      "final_change": 1.6589907295028183e-05,
+      "predicted_qav": 0.05892478163650692,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.18160025504851496,
+      "velocity_observable": "linear_extrapolated_wall",
+      "velocity_relative_rms": 1.0750354910948237,
+      "velocity_sign_agreement": 0.8,
+      "velocity_relative_l1": 0.880803716602586,
+      "wall_mass_balance_relative_error": 2.9951285479505826e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.13983856905523995,
+      "maximum_temperature": 0.9060883496555509,
+      "dt": 0.0017034149644037035,
+      "work_proxy": 14067302400,
+      "coordinate_variant_metrics": {
+        "direct": {
+          "relative_rms": 1.0750354910948237,
+          "sign_agreement": 0.8,
+          "relative_l1": 0.880803716602586
+        },
+        "reverse_y": {
+          "relative_rms": 0.9043236170103035,
+          "sign_agreement": 0.8,
+          "relative_l1": 0.8376869256002639
+        },
+        "flip_tangential_sign": {
+          "relative_rms": 1.6547782212345787,
+          "sign_agreement": 0.2,
+          "relative_l1": 1.7357408725285113
+        },
+        "reverse_y_and_flip_sign": {
+          "relative_rms": 1.7539073705025492,
+          "sign_agreement": 0.2,
+          "relative_l1": 1.7676936124481122
+        }
+      }
+    }
+  ],
+  "comparison": {
+    "bgk_to_shakhov_qav_error_ratio": 21.180052993312884,
+    "bgk_to_shakhov_velocity_rms_ratio": 1.065293015248793,
+    "bgk_minus_shakhov_sign_agreement": -0.09999999999999998,
+    "bgk_minus_shakhov_qav": -0.01369255479639158
+  },
+  "decision": "mixed_collision_model_sensitivity_stage40_external_benchmark_audit",
+  "scientific_conclusion": "The canonical BGK limit degrades the Table-6 heat-flux comparison by a factor of 21.180052993312884 and slightly worsens the direct Table-3 velocity RMS. None of the preregistered coordinate or sign transformations materially resolves the wall-velocity discrepancy. The Shakhov result exactly reproduces Stage 38. Collision-model choice and simple coordinate conventions therefore do not justify retuning; the next step is an external source-method fidelity audit."
+}

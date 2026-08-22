@@ -1,0 +1,132 @@
+name: Vision-guided DSMC Stage 150
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage150_channel_sign_transition_localization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage150_channel_sign_transition_localization_audit.py'
+      - 'vision_guided_dsmc/results/stage149_channel_scale_separation_audit_observed.json'
+      - 'vision_guided_dsmc/results/stage147_dual_channel_neighborhood_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage150.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage150_channel_sign_transition_localization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage150_channel_sign_transition_localization_audit.py'
+      - 'vision_guided_dsmc/results/stage149_channel_scale_separation_audit_observed.json'
+      - 'vision_guided_dsmc/results/stage147_dual_channel_neighborhood_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage150.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  channel-sign-transition-localization-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 148-150 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage148_sample_scale_curvature_alternation_audit.py \
+            tests/test_stage149_channel_scale_separation_audit.py \
+            tests/test_stage150_channel_sign_transition_localization_audit.py
+      - name: Download exact completed Stage 149 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage149-channel-scale-separation-audit
+          path: /tmp/stage149_channel_scale_separation_audit
+          run-id: 32407008365
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 149 parent payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage149_channel_scale_separation_audit/summary.json': 'b30599ac2a69a91e3d8db9d698e7b5fe8ef9199fecaad32280cdc7a8d857bd35',
+              '/tmp/stage149_channel_scale_separation_audit/channel_scale_separation.npz': '0234348c649519528e03d1a883d3a16beaca9f160b9ca0d69d4f5e8846cbcd50',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Download exact completed Stage 147 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage147-dual-channel-neighborhood-audit
+          path: /tmp/stage147_dual_channel_neighborhood_audit
+          run-id: 32358081943
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 147 support payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage147_dual_channel_neighborhood_audit/summary.json': 'bf8fa6cc06e510fa2f4fbd76726db8e03faf5237bc95cc897fbfa7d42cf0ba5b',
+              '/tmp/stage147_dual_channel_neighborhood_audit/dual_channel_neighborhood.npz': 'a77b8bc80a291fe9e440d30f7c09e768964e86b9e873a9ab9890074caf8d6c2d',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 150 fixed channel sign-transition localization audit
+        run: |
+          python -m vgdsmc.stage150_channel_sign_transition_localization_audit \
+            --stage149-dir /tmp/stage149_channel_scale_separation_audit \
+            --stage149-record results/stage149_channel_scale_separation_audit_observed.json \
+            --stage147-dir /tmp/stage147_dual_channel_neighborhood_audit \
+            --stage147-record results/stage147_dual_channel_neighborhood_audit_observed.json \
+            --output-dir /tmp/stage150_channel_sign_transition_localization_audit
+      - name: Verify Stage 150 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          from pathlib import Path
+          root = Path('/tmp/stage150_channel_sign_transition_localization_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 150 and summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64] and cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0 and cfg['cold_hot_ratio'] == 0.1 and cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0 and cfg['limiter'] == 'minmod' and cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0 and cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9 and cfg['pair_sectors'] == [5, 6] and cfg['dominant_mirrored_sector'] == 6
+          assert cfg['outer_side_dominance_min'] == 0.75 and cfg['transition_metrics_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False and cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False and cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'): assert value is False
+          agg = summary['aggregate']
+          assert agg['stage149_record_ok'] is True and agg['stage147_record_ok'] is True and agg['parent_route_ok'] is True
+          assert agg['maximum_identity_or_provenance_error'] <= 1e-12
+          assert summary['decision'] in {
+              'stage150_opposing_outer_intervals_no_single_side_dominance_stage151_outer_interval_asymmetry_audit',
+              'stage150_single_outer_interval_dominant_stage151_single_side_continuity_audit',
+              'stage150_no_channel_sign_transition_stage151_residual_scale_audit',
+          }
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          assert 'diagnostics, not solver parameters' in summary['negative_result_guard']
+          with np.load(root / 'channel_sign_transition_localization.npz') as data:
+              assert data['five_point_depth'].shape == (5,)
+              assert data['dominant_outer_increments'].shape == (2,) and data['parent_outer_increments'].shape == (2,)
+              assert data['fine_components'].shape == (2,) and data['coarse_components'].shape == (2,)
+              assert np.isfinite(data['outer_cancellation_fraction']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage150-channel-sign-transition-localization-audit
+          path: /tmp/stage150_channel_sign_transition_localization_audit
+          retention-days: 30

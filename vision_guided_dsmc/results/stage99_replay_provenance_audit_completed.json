@@ -1,0 +1,70 @@
+{
+  "stage": 99,
+  "status": "completed",
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 99",
+    "run_id": 31378863028,
+    "job_id": 93424248816,
+    "job_name": "replay-provenance-audit",
+    "status": "completed",
+    "conclusion": "success",
+    "source_head_sha": "eb65df79a9a8c0feecd5daca1924192ef47ed8d8",
+    "tests_passed": 73,
+    "tests_failed": 0,
+    "test_duration_seconds": 0.34
+  },
+  "artifact": {
+    "id": 9062898563,
+    "name": "stage99-replay-provenance-audit",
+    "size_bytes": 2415,
+    "sha256": "f76a778b9317c3921e3a19dc808b2eabbd4d5a760513bd2999a55a27e278d10c",
+    "summary_sha256": "392faa3b817e06bc463461106c690a9f4fa93b2421064d82b25fae8294f27e17"
+  },
+  "configuration": {
+    "grid": [64, 64],
+    "replay_tolerance": 1e-12,
+    "wall_band_cells": 4,
+    "artifact_only": true,
+    "solver_rerun": false,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "positivity_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "limiter_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false,
+    "validation_claim_permitted": false,
+    "solver_endpoint_claim_permitted": false
+  },
+  "metrics": {
+    "stage96_to_stage97_archive_handoff_max_relative_l2": 0.0,
+    "stage98_push_pr_payloads_bitwise_identical": true,
+    "first_replay_max_relative_l2": 7.559152977340305e-17,
+    "final_replay_max_relative_l2": 1.0763220592237617e-10,
+    "final_replay_to_strict_tolerance_ratio": 107.63220592237617,
+    "final_phi_replay_relative_l2": 5.1712179075037146e-11,
+    "final_phi_maximum_absolute_difference": 3.894008379634606e-12,
+    "final_phi_wall_band_absolute_difference_share": 0.268155893635722,
+    "final_phi_interior_absolute_difference_share": 0.731844106364278,
+    "final_psi_replay_relative_l2": 1.0763220592237617e-10,
+    "final_psi_maximum_absolute_difference": 1.7058929681172674e-12,
+    "final_psi_wall_band_absolute_difference_share": 0.373369548363271,
+    "final_psi_interior_absolute_difference_share": 0.626630451636729
+  },
+  "decision": "stage99_cross_run_iterative_replay_drift_stage100_fused_single_run_directional_audit",
+  "scientific_conclusion": "The Stage-96-to-Stage-97 archived map handoff is bitwise exact and the independent push- and pull-request-triggered Stage-98 payloads are bitwise identical. The first replay closes at roundoff, but the final 25-step replay reaches relative L2 1.0763220592237617e-10, which is 107.63220592237617 times the unchanged 1e-12 gate. The evidence therefore isolates accumulated cross-run iterative floating-point replay drift rather than artifact corruption or event-context divergence. The Stage-98 blocker remains negative and is not bypassed.",
+  "negative_result_guard": "Stage 98 remains blocked by its preregistered 1e-12 parent-map replay gate. Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned, no cross-Knudsen MUSCL extension is allowed, and no accuracy, benchmark, stability, or validation claim is authorized.",
+  "next_stage": {
+    "stage": 100,
+    "name": "Fused single-run directional audit",
+    "scope": "Replay the same frozen 25-step zero-boundary-slope diagnostic once from the exact Stage-67 distributions and compute the parent MUSCL correction map and its x/y directional decomposition from the same in-memory state at each diagnostic step. Preserve the 1e-12 closure/replay gate. Only if same-run closure passes may directional growth/cancellation be interpreted; otherwise stop on a reproducibility blocker. Do not retune any failed parameter or extend Stage-28 MUSCL across Knudsen number.",
+    "retuning_permitted": false,
+    "cross_knudsen_extension_permitted": false,
+    "validation_claim_permitted": false
+  }
+}

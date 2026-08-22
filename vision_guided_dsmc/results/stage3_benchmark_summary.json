@@ -1,0 +1,79 @@
+{
+  "run_date": "2026-07-29",
+  "rerun_status": "Re-executed after fixing NumPy fancy-index diffuse-wall assignment.",
+  "wall_reflection_fix_applied": true,
+  "solver_status": "educational weighted DSMC-like pilot; not production DSMC",
+  "grid": "12x12",
+  "coarse_ppc": 20,
+  "reference_ppc": 60,
+  "warmup_steps": 100,
+  "continuation_steps": 150,
+  "continuation_sample_start": 100,
+  "vision_policy": "robustly scaled temperature-gradient magnitude",
+  "allocation_budget_ratio": 1.25,
+  "allocation_alpha": 0.5,
+  "case_mean_error_ratios": [
+    0.8902998953241081,
+    0.9105935079002259,
+    0.8761559737108978
+  ],
+  "mean_error_ratio": 0.8923497923117439,
+  "mean_error_reduction_percent": 10.765020768825606,
+  "improved_cases": "3/3",
+  "case_errors": [
+    {
+      "seed": 41,
+      "baseline": {
+        "rho_l2": 0.19978884832662333,
+        "T_l2": 0.15341453449284634,
+        "speed_l2": 1.0250377969930289
+      },
+      "adaptive": {
+        "rho_l2": 0.1908223614441297,
+        "T_l2": 0.13714425424041615,
+        "speed_l2": 0.8990813624338968
+      },
+      "mean_error_ratio": 0.8902998953241081
+    },
+    {
+      "seed": 52,
+      "baseline": {
+        "rho_l2": 0.17565293375519642,
+        "T_l2": 0.1569444059113938,
+        "speed_l2": 1.3954497193758697
+      },
+      "adaptive": {
+        "rho_l2": 0.21741280959306872,
+        "T_l2": 0.16070723072338985,
+        "speed_l2": 1.1954283929936838
+      },
+      "mean_error_ratio": 0.9105935079002259
+    },
+    {
+      "seed": 63,
+      "baseline": {
+        "rho_l2": 0.2096199059651975,
+        "T_l2": 0.16898089230799562,
+        "speed_l2": 1.2906517206179104
+      },
+      "adaptive": {
+        "rho_l2": 0.1985023735544451,
+        "T_l2": 0.1747424577113517,
+        "speed_l2": 1.089280734792607
+      },
+      "mean_error_ratio": 0.8761559737108978
+    }
+  ],
+  "conservation": {
+    "max_mass_relative_error": 7.105427357601002e-16,
+    "max_momentum_absolute_error": 8.881784197001252e-15,
+    "max_energy_relative_error": 6.260712258639556e-16
+  },
+  "learned_model_status": {
+    "single_seed_classification": "failed by class collapse",
+    "single_seed_rank_regression_mean_spearman": 0.03599924979235324,
+    "ensemble4_rank_regression_mean_spearman": 0.13252442002442003,
+    "conclusion": "Do not claim a successful learned vision model yet."
+  },
+  "scope": "Deterministic pilot rerun for the listed seeds; not a confidence interval or production DSMC validation."
+}

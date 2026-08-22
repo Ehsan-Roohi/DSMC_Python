@@ -1,0 +1,110 @@
+{
+  "stage": 88,
+  "status": "completed",
+  "workflow_run_id": 31260169074,
+  "workflow_job_id": 93109642208,
+  "workflow_job_name": "full-moment-boundary-counterfactual-audit",
+  "workflow_conclusion": "success",
+  "tests_passed": 310,
+  "tests_failed": 0,
+  "test_duration_seconds": 1.32,
+  "source_head_sha": "72bf29dd2c86dd8e61c591e8893c3618886ecb84",
+  "artifact_id": 9025958614,
+  "artifact_size_bytes": 442641,
+  "artifact_sha256": "f1a33a9a5bbd6d82672e715c4ee2d89672e8d27a5b6bd6e415535646d7ed54b2",
+  "summary_sha256": "83eda4cca1cdda5112bab21dbb57a61bed8ff1ec5e8dbb28b08e5f3754c2ea76",
+  "maps_sha256": "05d722d15aac6ffa6b43649297bb3b504dc6bded60b58e3d1d8f44fd3c92415b",
+  "configuration": {
+    "angular_nodes": 96,
+    "baseline_closure_guard": 1e-10,
+    "boundary_jump_recovery_partial_guard": 0.1,
+    "boundary_jump_recovery_primary_guard": 0.5,
+    "chunk_size": 128,
+    "cold_hot_ratio": 0.1,
+    "collision_parameter_retuning": false,
+    "conservation_guard": 1e-12,
+    "correction_floor_retuning": false,
+    "counterfactual_boundary_slope": "one_sided_first_difference",
+    "counterfactual_face_scope": "wall_adjacent_interior_x_faces_only_all_velocity_nodes",
+    "cross_knudsen_extension_permitted": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "moment_names": ["streamwise_kinetic", "transverse_kinetic", "reduced_internal"],
+    "moment_sum_closure_guard": 1e-12,
+    "normalization_retuning": false,
+    "physical_parameter_retuning": false,
+    "point_count": 3840,
+    "radial_nodes": 40,
+    "radial_scale": 2.0,
+    "solver_rerun_count": 0,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "validation_claim_permitted": false,
+    "velocity_quadrature_retuning": false,
+    "wall_model_retuning": false
+  },
+  "full_moment_counterfactual_metrics": {
+    "baseline_moment_sum_cell_relative_l2_error": 2.4137972634715053e-16,
+    "baseline_stage76_component_relative_l2_closure_error": 0.0,
+    "counterfactual_moment_sum_cell_relative_l2_error": 2.272004920661056e-16,
+    "dominant_cell_change_absolute_share": 0.5735162033544161,
+    "dominant_cell_change_component": "transverse_kinetic",
+    "intercomponent_cell_change_retention_ratio": 0.9999999999999999,
+    "intercomponent_face_change_retention_ratio": 0.9999999999999999,
+    "maximum_counterfactual_change_away_from_wall_adjacent_faces": 0.0,
+    "maximum_global_conservation_ratio": 1.1954838376912355e-17,
+    "maximum_total_boundary_jump_recovery_fraction": 1.1117996630534974,
+    "mean_total_boundary_jump_recovery_fraction": 1.1117996630534972,
+    "minimum_total_boundary_jump_recovery_fraction": 1.111799663053497,
+    "per_component": {
+      "reduced_internal": {
+        "cell_change_absolute_share": 0.19979832772803355,
+        "cell_divergence_change_relative_l2": 1.5300450767304594,
+        "face_change_relative_l2": 0.42991986717040687,
+        "left_boundary_jump_recovery_fraction": 1.1035600970965056,
+        "right_boundary_jump_recovery_fraction": 1.1035600970965052
+      },
+      "streamwise_kinetic": {
+        "cell_change_absolute_share": 0.22668546891755037,
+        "cell_divergence_change_relative_l2": 1.4440718929283527,
+        "face_change_relative_l2": 0.3828416109556097,
+        "left_boundary_jump_recovery_fraction": 1.051604578505711,
+        "right_boundary_jump_recovery_fraction": 1.0516045785057107
+      },
+      "transverse_kinetic": {
+        "cell_change_absolute_share": 0.5735162033544161,
+        "cell_divergence_change_relative_l2": 1.5787116263888779,
+        "face_change_relative_l2": 0.45021317485850665,
+        "left_boundary_jump_recovery_fraction": 1.1405246146997685,
+        "right_boundary_jump_recovery_fraction": 1.1405246146997683
+      }
+    },
+    "total_cell_divergence_change_relative_l2": 1.5414647802105133,
+    "total_face_change_relative_l2": 0.4320803474114976
+  },
+  "decision": "stage88_full_moment_boundary_effect_large_stage89_boundary_reconstruction_admissibility_audit",
+  "scientific_conclusion": "Across all 3840 fixed velocity nodes and all three common-frame heat-flux components, the frozen one-sided boundary-slope counterfactual remains large: the total wall-to-first-face jump recovery is 1.1118 on both sidewalls, the total face-field change is 0.4321 relative L2, and the cell-divergence change is 1.5415 relative L2. The transverse-kinetic component carries 57.35% of the absolute cell change, while the intercomponent change-retention ratios are essentially one, so destructive cancellation among the three retained moments does not explain the response. Global conservative closure remains at 1.20e-17 or better and the perturbation is exactly confined to wall-adjacent interior x-faces. This remains an offline frozen-state diagnostic and does not establish stencil admissibility, solver stability, q_av improvement, or physical validation.",
+  "positive_findings": [
+    "All 3840 fixed velocity nodes and all three common-frame heat-flux moment components are retained; no Stage-87 velocity subspace is privileged in the Stage-88 total.",
+    "The independently accumulated Stage-88 baseline is closed against the exact Stage-76 common-frame component construction before applying the one-sided boundary-slope diagnostic.",
+    "The total boundary-jump recovery is 1.111799663 on both sidewalls and the counterfactual remains exactly confined to the wall-adjacent interior x-faces.",
+    "Cross-moment destructive cancellation is negligible in the absolute-change accounting: both face and cell intercomponent retention ratios are essentially 1.0, with transverse kinetic carrying 57.35% of the absolute cell change."
+  ],
+  "negative_findings": [
+    "This remains an offline frozen-state counterfactual, not a stable solver endpoint, not an error correction, and not evidence that q_av, convergence, or physical accuracy would improve after a rerun.",
+    "A large all-moment response would still not establish that the one-sided reconstruction is admissible or should be adopted; admissibility must be audited separately before any solver experiment.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered, cross-Knudsen extension is prohibited, and no validation claim is permitted.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter is retuned, and no cavity solver is rerun."
+  ],
+  "next_stage": {
+    "stage": 89,
+    "name": "Boundary Reconstruction Admissibility Audit",
+    "scope": "Before any solver experiment, audit the frozen one-sided wall-adjacent reconstructed phi/psi states over all velocity nodes for nonnegativity, neighbor-bound overshoot, and moment consistency; a large frozen response alone does not justify adopting the stencil.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}

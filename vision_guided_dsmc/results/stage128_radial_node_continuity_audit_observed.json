@@ -1,0 +1,70 @@
+{
+  "stage": 128,
+  "record_type": "completed_radial_node_continuity_audit",
+  "source_head": "b2043a318ed677ce519535dbb4e8168295227579",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31940630751,
+  "workflow_job_id": 95149141476,
+  "artifact_id": 9264993674,
+  "artifact_size_bytes": 4815,
+  "artifact_sha256": "52442695ec5c677b1eeb7cc4ed3ca8fb6f1036c5d84f2c45594f344c78e50867",
+  "summary_sha256": "343b1257865c664dd630159ba6eef2a670de22d3b7e449cede30f43d859a102c",
+  "radial_node_continuity_sha256": "c6b1c2c5c786738a85ec849777d9dd84d96751eb568cec5d38a391fd85388657",
+  "tests": {
+    "passed": 17,
+    "failed": 0
+  },
+  "decision": "stage128_fixed_node_sign_continuous_transition_reproduced_stage129_transition_strength_audit",
+  "aggregate": {
+    "maximum_parent_profile_closure_rel_l2": 0.0,
+    "parent_wall_crossing_depths_cells": [
+      14.71694048265934,
+      15.552724000693987
+    ],
+    "transition_adjacent_parent_nodes": [
+      1,
+      9
+    ],
+    "reproducing_fixed_node_count": 2,
+    "sign_continuous_reproducing_fixed_nodes": [
+      9
+    ]
+  },
+  "key_metrics": {
+    "radial_node_1": {
+      "wall_crossing_depths_cells": [
+        14.560002844155536,
+        14.499442420099664
+      ],
+      "maximum_parent_crossing_offset_cells": 1.053281580594323,
+      "cross_wall_profile_cosine": 0.9899557022678195,
+      "cross_wall_depth_side_agreement_fraction": 1.0,
+      "mid_inner_net_signs": [
+        -1,
+        1
+      ],
+      "mid_inner_net_sign_continuous": false,
+      "transition_reproduced": true,
+      "minimum_same_sign_l1": 1.6145087291050614e-08
+    },
+    "radial_node_9": {
+      "wall_crossing_depths_cells": [
+        14.038803831792146,
+        15.552724000693987
+      ],
+      "maximum_parent_crossing_offset_cells": 0.6781366508671933,
+      "cross_wall_profile_cosine": 0.9740457379472902,
+      "cross_wall_depth_side_agreement_fraction": 0.9642857142857143,
+      "mid_inner_net_signs": [
+        1,
+        1
+      ],
+      "mid_inner_net_sign_continuous": true,
+      "transition_reproduced": true,
+      "minimum_same_sign_l1": 1.5760984166514858e-08
+    }
+  },
+  "scientific_conclusion": "The Stage-127 bilateral wall-normal side switch survives a fixed-radial-node audit. Both transition-adjacent radial nodes reproduce one crossing per wall within the inherited two-cell parent-offset guard, and radial node 9 is the decisive sign-continuous witness: its crossings occur at 14.038803831792146 and 15.552724000693987 cells, its cross-wall profile cosine is 0.9740457379472902, its depth-side agreement is 0.9642857142857143, and its mid/inner band-net signs remain +1/+1. Therefore the Stage-127 switch cannot be attributed solely to changing the parent dominant radial node or to changing the sign used for same-sign conditioning. This is still an artifact-level attribution result, not a causal explanation of Stage-90 nonconvergence and not a solver-validation result. The next justified fixed-design question is whether the sign-continuous node-9 transition has material strength rather than being a near-zero crossing.",
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}

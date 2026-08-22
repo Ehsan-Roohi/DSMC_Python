@@ -1,0 +1,57 @@
+{
+  "configuration": {
+    "angular_sectors": 8,
+    "boundary_slope": "zero",
+    "cold_hot_ratio": 0.1,
+    "collision_parameter_retuning": false,
+    "correction_floor": 0.05,
+    "correction_floor_retuning": false,
+    "cross_knudsen_extension_permitted": false,
+    "diagnostic_steps": 25,
+    "dominant_radial_shell": 1,
+    "grid": [64,64],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "limiter_retuning": false,
+    "normalization_retuning": false,
+    "pair_points_per_radial_node": 24,
+    "pair_sectors": [5,6],
+    "physical_parameter_retuning": false,
+    "positivity_floor_retuning": false,
+    "radial_nodes_per_shell": 10,
+    "radial_scale": 2.0,
+    "rule": [40,96],
+    "solver_endpoint_claim_permitted": false,
+    "source_relaxation": 1.0,
+    "source_relaxation_retuning": false,
+    "tolerance": 2e-05,
+    "transport_parameter_retuning": false,
+    "validation_claim_permitted": false,
+    "velocity_quadrature_retuning": false,
+    "wall_band_cells": 4,
+    "wall_model_retuning": false
+  },
+  "derivation": "Computed from exact Stage-67 converged_full_distributions.npz and exact Stage-111 axis_conditioned_asymmetry_maps.npz using the frozen Stage-114 shell-1 x same-sign-change operator, sectors 5+6, and wall-distance bands; no solver was advanced and no parameter was retuned.",
+  "input_type": "exact_parent_artifact_derived_fixed_snapshot",
+  "max_stage115_pair_share_reconstruction_abs_error": 1.1102230246251565e-16,
+  "node_speed_mean": [0.3924064760822672,0.4805372556098497,0.5815326670802542,0.6970974750260314,0.8292961076463957,0.9806390559728263,1.1541955668176536,1.353742025407465,1.5839594033269488,1.8506990872971454],
+  "pair_point_count_per_radial_node": [24,24,24,24,24,24,24,24,24,24],
+  "phi": {
+    "near_1_4": {"pair_share":0.6510314144608041,"expected_pair_share":0.6510314144608041,"error":0.0,"radial_node_share":[0.21371605764871188,0.17965503520618586,0.11326645530728933,0.06643411456766438,0.0986876358887307,0.11405361307451027,0.09529354621371325,0.0640467237633014,0.036568495975685594,0.01827832235420739]},
+    "mid_5_14": {"pair_share":0.5810588010807775,"expected_pair_share":0.5810588010807775,"error":0.0,"radial_node_share":[0.2144201412538175,0.17916623319928596,0.10884704412089542,0.06634050871276397,0.10192712870905454,0.11674980083760761,0.09578093950257865,0.0628338146807691,0.03567073638434235,0.018263652598884867]},
+    "inner_15_28": {"pair_share":0.5121025570471427,"expected_pair_share":0.5121025570471426,"error":1.1102230246251565e-16,"radial_node_share":[0.21127002955342616,0.17995380064800487,0.11196511050636103,0.06211528624002562,0.1007244490285459,0.11763543623590074,0.09703731114728781,0.06409398862090684,0.036672638561686094,0.018531949457854822]}
+  },
+  "provenance": {
+    "stage111": {"artifact_id":9149082510,"artifact_sha256":"a83c09039e956a47f4d18a86db5f2541fe622b9405bb9b09266c4c2d54f1cd7e","maps_sha256":"78b8173d81eaf2523791201690d6464295b8aa65413d9ccb3eb2c2215ac85407","summary_sha256":"93cff62b97e29e7ad5600b7b0c26b5b39bd3f71517e70c15447c95be239f5a77","workflow_job_id":94092631513,"workflow_run_id":31590035358},
+    "stage115": {"artifact_id":9181151145,"artifact_sha256":"8245baedf9ad29db6c8b0d290e8507069479c867f449fc67d2b215a65edef3a1","decision":"stage115_common_adjacent_pair_support_stage116_pair_resolved_radial_node_audit","profiles_sha256":"932a643786f94b08c6156fbf985d9c39b094f98532a2480190a4ded791bcf02a","summary_sha256":"9c36830cc56cae1745075f57a0a0992656e09486bf5c90a93eb93e7f251b30e6","workflow_job_id":94416925424,"workflow_run_id":31690647300},
+    "stage67": {"artifact_id":8931272132,"artifact_sha256":"5b871e94bdca02bce33846657f8f4dc263d68af9e671d7eb137ca7c83da198d4","distributions_sha256":"d4002a2765137ba517abec2d0483a3e5adcf13f415c53259018556bd14d612d1","summary_sha256":"e04043a1913b2fa9ae57fe1561aa26c70627830d648e91204093c8f1fb57b3d1","workflow_job_id":92257254811,"workflow_run_id":30991124477}
+  },
+  "psi": {
+    "near_1_4": {"pair_share":0.5930558103366239,"expected_pair_share":0.593055810336624,"error":1.1102230246251565e-16,"radial_node_share":[0.020220927726609075,0.03866896727255674,0.08431671559572303,0.13260697094199606,0.1632973395487255,0.16607413800848253,0.1458323626469628,0.11416166237339842,0.08136687779702896,0.053454038088516856]},
+    "mid_5_14": {"pair_share":0.5359852243412089,"expected_pair_share":0.5359852243412089,"error":0.0,"radial_node_share":[0.019730405008333507,0.040996329744504414,0.08836551239591575,0.1373173109278946,0.16653464696530718,0.1660131905883319,0.14255046471551666,0.10987501355617171,0.07798312519396491,0.050634000904059326]},
+    "inner_15_28": {"pair_share":0.48865368647035845,"expected_pair_share":0.48865368647035845,"error":0.0,"radial_node_share":[0.01918723282457541,0.03972275396281816,0.0870591776873747,0.1362040663848014,0.16640941719371435,0.16752611786304347,0.14571633278493898,0.11291474836682565,0.07841452707504544,0.04684562585686245]}
+  },
+  "radial_node_point_count": [96,96,96,96,96,96,96,96,96,96],
+  "sector_point_count": [120,120,120,120,120,120,120,120],
+  "stage": 116
+}

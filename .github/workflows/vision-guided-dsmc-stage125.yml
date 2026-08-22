@@ -1,0 +1,41 @@
+# Fixed-design artifact diagnostic; no solver rerun or parameter retuning.
+name: Vision-guided DSMC Stage 125
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage125_*'
+      - 'vision_guided_dsmc/tests/test_stage125_*'
+      - 'vision_guided_dsmc/results/stage124_within_band_cancellation_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage125.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  dominant-node-spatial-sign-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage124_within_band_cancellation_audit.py tests/test_stage125_dominant_node_spatial_sign_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage124-within-band-cancellation-audit
+          path: /tmp/stage124
+          github-token: ${{ github.token }}
+          run-id: 31898392223
+      - run: |
+          python -m vgdsmc.stage125_dominant_node_spatial_sign_audit \
+            --stage124-dir /tmp/stage124 \
+            --stage124-record results/stage124_within_band_cancellation_audit_observed.json \
+            --output-dir /tmp/stage125
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage125-dominant-node-spatial-sign-audit
+          path: /tmp/stage125
+          retention-days: 30

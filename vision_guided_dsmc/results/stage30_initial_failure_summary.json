@@ -1,0 +1,17 @@
+{
+  "stage": 30,
+  "workflow_run_id": 30681878690,
+  "job_id": 91320402566,
+  "workflow_status": "failure",
+  "artifact_uploaded": false,
+  "test_command": "pytest -q tests/test_reduced_spherical_solver.py tests/test_velocity_quadrature_audit.py",
+  "tests_passed": 15,
+  "tests_failed": 1,
+  "failed_test": "tests/test_reduced_spherical_solver.py::test_small_reduced_solver_run_is_finite",
+  "observed_wall_mass_balance_relative_error": 0.02440164509412026,
+  "required_wall_mass_balance_relative_error": 2.0e-13,
+  "scientific_run_executed": false,
+  "failure_classification": "implementation diagnostic used stale diffuse-wall incoming states from before the final transport/collision update",
+  "scientific_interpretation": "No Cartesian-versus-spherical cavity conclusion can be drawn from this failed run. The failure is recorded explicitly and no physical parameter was retuned.",
+  "next_action": "recompute all diffuse-wall incoming states from the final distribution, retain the strict mass-balance test, and rerun Stage 30 unchanged"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "superseded",
+  "reason": "This wall-corrected pilot compared an adaptive 1.25x particle budget with an untouched 1.0x base simulation and therefore mixed allocation quality with total particle cost. It also used an empirical Knudsen gate that is not part of the current matched-cost benchmark.",
+  "replacement": "results/stage5_physical_equal_budget_summary.json",
+  "do_not_cite_as_primary_result": true,
+  "historical_mean_error_ratio": 0.9563422058055749,
+  "historical_mean_improvement_percent": 4.3657794194425055,
+  "note": "Retained only to document the development path. The equal-particle-budget comparison is the scientifically preferred current result."
+}

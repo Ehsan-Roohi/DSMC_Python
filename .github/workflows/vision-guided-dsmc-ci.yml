@@ -1,0 +1,191 @@
+name: Vision-guided DSMC CI
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-ci.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-ci.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[full]'
+      - run: pytest -q
+      - name: Import raw DVM moment table
+        run: |
+          cat > /tmp/cavity_dvm_moments.dat <<'EOF'
+          TITLE="DVM cavity fixture"
+          VARIABLES="X","Y","RHO","U","V","T","QX","QY"
+          ZONE I=2, J=2, F=POINT
+          0 0 1.00 0.00 0.00 1.00 0.0 0.0
+          1 0 1.01 0.10 0.00 1.01 0.1 0.0
+          0 1 1.02 0.00 0.10 1.02 0.0 0.1
+          1 1 1.03 0.10 0.10 1.03 0.1 0.1
+          EOF
+          vgdsmc-import-dvm \
+            --input /tmp/cavity_dvm_moments.dat \
+            --output /tmp/imported_dvm_reference.npz \
+            --case DVM65 --knudsen 0.075 --lid-speed 0.1 --wall-temperature 1.0
+      - name: Verify imported DVM reference
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          with np.load('/tmp/imported_dvm_reference.npz') as data:
+              assert data['T'].shape == (2, 2)
+              assert {'x','y','rho','u','v','T'}.issubset(data.files)
+              assert np.all(data['rho'] > 0)
+          meta = json.load(open('/tmp/imported_dvm_reference.json'))
+          assert meta['case'] == 'DVM65'
+          assert meta['shape'] == [2, 2]
+          PY
+      - run: vgdsmc-generate --output /tmp/pilot --nx 6 --ny 6 --ppc 3 --reference-ppc 6 --steps 10 --sample-start 4
+      - name: Run deterministic BGK-DVM baseline
+        run: |
+          vgdsmc-dvm-reference \
+            --output /tmp/bgk_reference.npz \
+            --nx 6 --ny 6 --nv 8 \
+            --max-steps 700 --tolerance 5e-6
+      - name: Run corrected three-velocity Shakhov-DVM reference
+        run: |
+          vgdsmc-shakhov-reference \
+            --output /tmp/shakhov_reference.npz \
+            --nx 6 --ny 6 --nv 6 \
+            --max-steps 900 --tolerance 8e-6
+      - name: Verify deterministic kinetic references
+        run: |
+          python - <<'PY'
+          import numpy as np
+          for path, tolerance in [('/tmp/bgk_reference.npz', 5e-6), ('/tmp/shakhov_reference.npz', 8e-6)]:
+              with np.load(path) as data:
+                  assert {'T', 'rho', 'u', 'v'}.issubset(data.files)
+                  assert data['T'].shape == (6, 6)
+                  assert np.isfinite(data['T']).all()
+                  assert float(data['T'][:, 0].mean()) > float(data['T'][:, -1].mean())
+                  assert float(data['residual_history'][-1]) < tolerance
+          with np.load('/tmp/shakhov_reference.npz') as data:
+              assert {'qx', 'qy', 'w'}.issubset(data.files)
+              assert np.isfinite(data['qx']).all()
+          PY
+      - name: Run physical DSMC to Shakhov supervision pipeline
+        run: |
+          vgdsmc-physical-reference-pipeline \
+            --reference-model shakhov \
+            --output-dir /tmp/physical_pipeline \
+            --nx 4 --ny 4 --ppc 6 \
+            --dsmc-steps 30 --nv 6 \
+            --dvm-max-steps 900 --kn 0.10
+      - name: Verify physical supervised artifact
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          with np.load('/tmp/physical_pipeline/supervised_case.npz') as data:
+              assert data['x'].shape == (4, 4, 4)
+              assert data['context'].shape == (2,)
+              assert data['score'].shape == (4, 4)
+              assert set(np.unique(data['label'])) == {0, 1, 2}
+              assert np.isfinite(data['score']).all()
+          summary = json.load(open('/tmp/physical_pipeline/pipeline_summary.json'))
+          assert summary['reference_model'] == 'shakhov'
+          assert summary['dvm_left_temperature'] > summary['dvm_right_temperature']
+          assert summary['dvm_final_residual'] < 8e-6
+          PY
+      - name: Build five-seed Shakhov-supervised dataset
+        run: |
+          vgdsmc-build-dvm-dataset \
+            --output-dir /tmp/dvm_dataset \
+            --nx 6 --ny 6 --ppc 5 \
+            --dsmc-steps 25 --nv 6 --dvm-max-steps 900 \
+            --seeds 11 22 33 44 55
+      - name: Train ensemble-target coordinate-conditioned score model
+        run: |
+          vgdsmc-train-ensemble-score \
+            --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
+            --output-dir /tmp/ensemble_score_training \
+            --epochs 80 --batch-size 6 --validation-seed-count 2
+      - name: Verify ensemble-regression artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          metrics = json.load(open('/tmp/ensemble_score_training/metrics.json'))
+          assert metrics['case_count'] == 45
+          assert metrics['condition_count'] == 9
+          assert metrics['input_channels'] == 10
+          assert metrics['train_seeds'] == [11, 22, 33]
+          assert metrics['validation_seeds'] == [44, 55]
+          assert math.isfinite(metrics['ensemble_group_mae'])
+          assert math.isfinite(metrics['ensemble_group_spearman'])
+          assert math.isfinite(metrics['mae_ratio_to_global_constant'])
+          assert Path('/tmp/ensemble_score_training/ensemble_score_model.pt').exists()
+          assert Path('/tmp/ensemble_score_training/validation_predictions.npz').exists()
+          PY
+      - name: Train low-frequency rank-aware score model
+        run: |
+          vgdsmc-train-lowfreq-score \
+            --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
+            --output-dir /tmp/lowfreq_score_training \
+            --epochs 100 --batch-size 6 \
+            --validation-seed-count 2 --smoothing-passes 2
+      - name: Verify low-frequency regression artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          metrics = json.load(open('/tmp/lowfreq_score_training/metrics.json'))
+          assert metrics['case_count'] == 45
+          assert metrics['condition_count'] == 9
+          assert metrics['input_channels'] == 10
+          assert metrics['train_seeds'] == [11, 22, 33]
+          assert metrics['validation_seeds'] == [44, 55]
+          assert math.isfinite(metrics['rank_validation_mae'])
+          assert math.isfinite(metrics['rank_validation_spearman'])
+          assert math.isfinite(metrics['top_quartile_iou'])
+          assert math.isfinite(metrics['mae_ratio_to_constant_rank'])
+          assert Path('/tmp/lowfreq_score_training/lowfreq_score_model.pt').exists()
+          assert Path('/tmp/lowfreq_score_training/validation_predictions.npz').exists()
+          PY
+      - name: Run Stage 17 low-amplitude matched-budget closed loop
+        run: |
+          vgdsmc-lowfreq-closed-loop \
+            --model /tmp/lowfreq_score_training/lowfreq_score_model.pt \
+            --output-dir /tmp/stage17_closed_loop \
+            --nx 6 --ny 6 --ppc 20 \
+            --warm-steps 40 --continuation-steps 60 \
+            --nv 6 --dvm-max-steps 900 \
+            --amplitudes 0.05 0.10 0.20 \
+            --seeds 66 77 88
+      - name: Verify Stage 17 paired closed-loop artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          summary = json.load(open('/tmp/stage17_closed_loop/summary.json'))
+          assert summary['stage'] == 17
+          assert summary['configuration']['seeds'] == [66, 77, 88]
+          assert len(summary['rows']) == 27
+          assert set(summary['amplitude_summaries']) == {'0.050', '0.100', '0.200'}
+          for row in summary['rows']:
+              assert row['uniform_particles'] == row['adaptive_particles']
+              assert row['particle_ratio'] == 1.0
+              assert math.isfinite(row['error_ratio'])
+          for metrics in summary['amplitude_summaries'].values():
+              assert metrics['run_count'] == 9
+              assert math.isfinite(metrics['mean'])
+              assert metrics['ci95_low'] <= metrics['mean'] <= metrics['ci95_high']
+          assert Path('/tmp/stage17_closed_loop/allocation_maps.npz').exists()
+          PY

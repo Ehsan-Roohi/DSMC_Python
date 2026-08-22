@@ -1,0 +1,159 @@
+name: Vision-guided DSMC Stage 112
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage112_x_axis_spatial_localization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage112_x_axis_spatial_localization_audit.py'
+      - 'vision_guided_dsmc/results/stage111_axis_conditioned_asymmetry_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage112.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  x-axis-spatial-localization-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 112 and retained fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage112_x_axis_spatial_localization_audit.py \
+            tests/test_stage111_axis_conditioned_asymmetry_audit.py \
+            tests/test_stage110_same_sign_slope_asymmetry_audit.py \
+            tests/test_stage109_limiter_intervention_mode_decomposition_audit.py \
+            tests/test_stage108_limiter_severity_correction_amplitude_coupling_audit.py \
+            tests/test_stage107_limiter_activation_colocation_audit.py \
+            tests/test_stage106_gradient_magnitude_coupling_audit.py \
+            tests/test_stage105_directional_gradient_alignment_audit.py \
+            tests/test_stage104_interior_gradient_scale_audit.py \
+            tests/test_stage103_shell1_spatial_localization_audit.py \
+            tests/test_stage102_radial_speed_shell_audit.py \
+            tests/test_stage101_interior_velocity_sector_audit.py \
+            tests/test_stage100_fused_single_run_directional_audit.py \
+            tests/test_stage99_replay_provenance_audit.py \
+            tests/test_stage98_directional_operator_growth_audit.py \
+            tests/test_stage97_muscl_correction_spatial_localization_audit.py \
+            tests/test_stage96_muscl_correction_growth_audit.py \
+            tests/test_stage90_single_condition_reconstruction_solver_ab_audit.py
+      - name: Download exact completed Stage 111 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage111-axis-conditioned-asymmetry-audit
+          path: /tmp/stage111_axis_conditioned_asymmetry_audit
+          run-id: 31590035358
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 111 payload provenance
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage111_axis_conditioned_asymmetry_audit/summary.json': '93cff62b97e29e7ad5600b7b0c26b5b39bd3f71517e70c15447c95be239f5a77',
+              '/tmp/stage111_axis_conditioned_asymmetry_audit/axis_conditioned_asymmetry_maps.npz': '78b8173d81eaf2523791201690d6464295b8aa65413d9ccb3eb2c2215ac85407',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 112 frozen x-axis spatial localization audit
+        run: |
+          python -m vgdsmc.stage112_x_axis_spatial_localization_audit \
+            --stage111-artifact-dir /tmp/stage111_axis_conditioned_asymmetry_audit \
+            --stage111-record-path results/stage111_axis_conditioned_asymmetry_audit_observed.json \
+            --output-dir /tmp/stage112_x_axis_spatial_localization_audit
+      - name: Verify Stage 112 fixed design and negative-result guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage112_x_axis_spatial_localization_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 112
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['tolerance'] == 2.0e-5
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['diagnostic_steps'] == 25
+          assert cfg['wall_band_cells'] == 4
+          assert cfg['dominant_radial_shell'] == 1
+          assert cfg['radial_shell_count'] == 4
+          assert cfg['radial_nodes_per_shell'] == 10
+          assert cfg['interior_extent'] == 56
+          assert cfg['spatial_bands_per_axis'] == 4
+          assert cfg['band_size'] == 14
+          assert cfg['spatial_tile_count'] == 16
+          assert cfg['single_tile_share_guard'] == 0.25
+          assert cfg['contiguous_2x2_share_guard'] == 0.50
+          assert cfg['outer_x_pair_share_guard'] == 0.70
+          assert cfg['outer_to_inner_ratio_guard'] == 2.0
+          assert cfg['left_right_relative_imbalance_guard'] == 0.15
+          assert cfg['mode_closure_tolerance'] == 1.0e-12
+          assert cfg['stage111_run_id'] == 31590035358
+          assert cfg['stage111_job_id'] == 94092631513
+          assert cfg['stage111_artifact_id'] == 9149082510
+          assert cfg['full_solver_endpoint_rerun'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['one_sided_boundary_slope_promoted'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['validation_claim_permitted'] is False
+          assert cfg['solver_endpoint_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['stage111_authorization']['decision'] == 'stage111_x_axis_asymmetry_coupled_stage112_axis_specific_spatial_audit'
+          assert summary['stage111_authorization']['workflow_run_id'] == 31590035358
+          assert summary['stage111_authorization']['workflow_job_id'] == 94092631513
+          assert summary['stage111_authorization']['artifact_id'] == 9149082510
+          assert summary['stage111_authorization']['tests_passed'] == 194
+          assert summary['stage111_authorization']['tests_failed'] == 0
+          allowed = {
+              'stage112_nonfinite_spatial_localization_blocker_without_retuning',
+              'stage112_symmetric_outer_x_quarter_localization_stage113_x_wall_distance_profile_audit',
+              'stage112_x_axis_coupling_spatially_diffuse_stage113_x_gradient_lengthscale_audit',
+          }
+          decision = summary['decision']
+          assert decision in allowed or (
+              decision.startswith('stage112_common_single_tile_') and decision.endswith('_stage113_local_coordinate_audit')
+          ) or (
+              decision.startswith('stage112_common_contiguous_2x2_') and decision.endswith('_stage113_local_coordinate_audit')
+          )
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'no cross-Knudsen MUSCL extension is permitted' in summary['negative_result_guard']
+          with np.load(root / 'x_axis_spatial_localization_maps.npz') as data:
+              expected = {
+                  'tile_index',
+                  'phi_x_asymmetry_growth_product', 'phi_x_asymmetry_growth_product_share',
+                  'psi_x_asymmetry_growth_product', 'psi_x_asymmetry_growth_product_share',
+                  'common_x_asymmetry_growth_product', 'common_x_asymmetry_growth_product_share',
+              }
+              assert set(data.files) == expected
+              assert data['tile_index'].shape == (56, 56)
+              assert set(np.unique(data['tile_index'])) == set(range(16))
+              for name in expected - {'tile_index'}:
+                  assert data[name].shape == (56, 56)
+                  assert np.isfinite(data[name]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage112-x-axis-spatial-localization-audit
+          path: /tmp/stage112_x_axis_spatial_localization_audit
+          retention-days: 30

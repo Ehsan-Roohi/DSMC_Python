@@ -1,0 +1,138 @@
+name: Vision-guided DSMC Stage 135
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage135_fixed_lobe_amplitude_origin_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage135_fixed_lobe_amplitude_origin_audit.py'
+      - 'vision_guided_dsmc/results/stage134_additive_baseline_origin_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage135.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  fixed-lobe-amplitude-origin-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 134-135 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage134_additive_baseline_origin_audit.py \
+            tests/test_stage135_fixed_lobe_amplitude_origin_audit.py
+      - name: Download exact completed Stage 132 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage132-crossing-phase-transition-width-audit
+          path: /tmp/stage132_crossing_phase_transition_width_audit
+          run-id: 32001930265
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 134 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage134-additive-baseline-origin-audit
+          path: /tmp/stage134_additive_baseline_origin_audit
+          run-id: 32059776540
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 132 and Stage 134 payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage132_crossing_phase_transition_width_audit/summary.json': 'bbcfe2e0a60411891e81d0535d4e341346ebea3283ede3c8e7fb7f96fce70443',
+              '/tmp/stage132_crossing_phase_transition_width_audit/crossing_phase_transition_width.npz': '59c00c09bf0e8109946bf720f279bb151314c271f1fc67ae4b2378cb6abcc198',
+              '/tmp/stage134_additive_baseline_origin_audit/summary.json': 'a3d02ccb3e2fa364f67749f82b54f259bf230189ee172accac8563ef9684b702',
+              '/tmp/stage134_additive_baseline_origin_audit/additive_baseline_origin.npz': '95959e271dc6d55d7cb1a984d8cd797777fd24b2a9c2418f941254640ef2caa4',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 135 fixed lobe amplitude origin audit
+        run: |
+          python -m vgdsmc.stage135_fixed_lobe_amplitude_origin_audit \
+            --stage132-dir /tmp/stage132_crossing_phase_transition_width_audit \
+            --stage134-dir /tmp/stage134_additive_baseline_origin_audit \
+            --stage134-record results/stage134_additive_baseline_origin_audit_observed.json \
+            --output-dir /tmp/stage135_fixed_lobe_amplitude_origin_audit
+      - name: Verify Stage 135 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage135_fixed_lobe_amplitude_origin_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 135
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['dominant_mirrored_sector'] == 6
+          assert cfg['plateau_depth_cells'] == 5.0
+          assert cfg['lobe_l1_share_min'] == 0.70
+          assert cfg['sign_coherence_min'] == 0.95
+          assert cfg['phase_shift_applied'] is False
+          assert cfg['width_refit_applied'] is False
+          assert cfg['amplitude_refit_applied'] is False
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['aggregate']['maximum_parent_closure'] <= 1.0e-12
+          assert summary['aggregate']['maximum_stage134_lobe_shift_closure'] <= 1.0e-12
+          allowed = {
+              'stage135_right_negative_lobe_dominant_stage136_right_lobe_depth_support_audit',
+              'stage135_left_positive_lobe_dominant_stage136_left_lobe_depth_support_audit',
+              'stage135_mixed_lobe_amplitude_origin_stage136_paired_lobe_residual_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root / 'fixed_lobe_amplitude_origin.npz') as data:
+              assert data['relative_depth'].shape == (26,)
+              assert data['dominant_cross_wall_difference'].shape == (26,)
+              assert data['parent_cross_wall_difference'].shape == (26,)
+              assert data['left_lobe_mask'].shape == (26,)
+              assert data['right_lobe_mask'].shape == (26,)
+              assert data['dominant_lobe_mean_shifts'].shape == (2,)
+              assert data['parent_lobe_mean_shifts'].shape == (2,)
+              assert data['dominant_lobe_l1'].shape == (2,)
+              assert data['parent_lobe_l1'].shape == (2,)
+              assert data['dominant_lobe_sign_coherence'].shape == (2,)
+              assert data['parent_lobe_sign_coherence'].shape == (2,)
+              for key in data.files:
+                  assert np.isfinite(data[key]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage135-fixed-lobe-amplitude-origin-audit
+          path: /tmp/stage135_fixed_lobe_amplitude_origin_audit
+          retention-days: 30
+
+# Stage 135 workflow registration refresh.

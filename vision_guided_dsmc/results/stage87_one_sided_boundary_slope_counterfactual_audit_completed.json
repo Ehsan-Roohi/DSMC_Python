@@ -1,0 +1,71 @@
+{
+  "stage": 87,
+  "status": "completed",
+  "workflow_run_id": 31254047473,
+  "workflow_job_id": 93094637633,
+  "workflow_job_name": "one-sided-boundary-slope-counterfactual-audit",
+  "workflow_conclusion": "success",
+  "tests_passed": 305,
+  "tests_failed": 0,
+  "test_duration_seconds": 1.33,
+  "source_head_sha": "6c97dc185b985743e75400241c509f4f308ecb02",
+  "artifact_id": 9022285440,
+  "artifact_size_bytes": 255092,
+  "artifact_sha256": "d12bb5d76c47c0506952f191e381759cf0bd27f4eb45f79621a2fdd1e16d50e5",
+  "summary_sha256": "c36126bcc089f2c02f6943a2680a213f6c1cd9b08299d40befeab38d22dd53b8",
+  "maps_sha256": "125812e60c5bbae6c853a3a22263eac19abcba8c81084fbe27f57e77cce0010b",
+  "configuration": {
+    "grid": [64, 64],
+    "kn0": 10.0,
+    "cold_hot_ratio": 0.1,
+    "radial_nodes": 40,
+    "angular_nodes": 96,
+    "point_count": 3840,
+    "radial_scale": 2.0,
+    "limiter": "minmod",
+    "counterfactual_boundary_slope": "one_sided_first_difference",
+    "counterfactual_face_scope": "wall_adjacent_interior_x_faces_only",
+    "solver_rerun_count": 0,
+    "physical_parameter_retuning": false,
+    "collision_parameter_retuning": false,
+    "correction_floor_retuning": false,
+    "source_relaxation_retuning": false,
+    "transport_parameter_retuning": false,
+    "wall_model_retuning": false,
+    "normalization_retuning": false,
+    "velocity_quadrature_retuning": false,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "cross_knudsen_extension_permitted": false,
+    "validation_claim_permitted": false
+  },
+  "counterfactual_metrics": {
+    "baseline_stage86_relative_l2_closure_error": 1.127124023809648e-16,
+    "maximum_counterfactual_change_away_from_wall_adjacent_faces": 0.0,
+    "maximum_boundary_jump_recovery_fraction": 1.1246528885099571,
+    "minimum_boundary_jump_recovery_fraction": 1.1098431077804711,
+    "mean_boundary_jump_recovery_fraction": 1.1179236040830278,
+    "counterfactual_face_change_relative_l2": 0.40117211895573346,
+    "counterfactual_cell_divergence_change_relative_l2": 1.528072782184637
+  },
+  "decision": "stage87_one_sided_boundary_slope_large_frozen_effect_stage88_full_moment_boundary_counterfactual_audit",
+  "scientific_conclusion": "The exact Stage-67 frozen endpoint and exact Stage-86 retained pair maps close to 1.13e-16 relative L2 before perturbation. Replacing only the boundary-cell zero slope by the one-sided first difference at the wall-adjacent interior x faces recovers 1.110-1.125 times the frozen wall-to-first-face jump for all four retained dominant-node/opposite-sector cases, with no change on any other interior x face. The effect is therefore large inside that frozen subspace, but this is not a stable solver endpoint, does not establish a boundary-model error, and does not imply that q_av, convergence, or physical accuracy would improve after a solver change.",
+  "positive_findings": [
+    "The Stage-87 baseline reproduces the exact retained Stage-86 pair maps to 1.13e-16 relative L2 and the counterfactual is exactly confined to the wall-adjacent interior x faces.",
+    "The frozen dominant-node/opposite-sector wall-to-first-face jump response is large and consistent across all four retained side/pair cases."
+  ],
+  "negative_findings": [
+    "This is an offline frozen-state counterfactual, not a stable solver endpoint, not an error correction, and not evidence that q_av would improve in a rerun.",
+    "The one-sided boundary difference remains a diagnostic perturbation rather than an adopted boundary reconstruction.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered, cross-Knudsen extension is prohibited, and no validation claim is permitted.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned, and no cavity solver was rerun."
+  ],
+  "next_stage": {
+    "stage": 88,
+    "name": "Full-Moment Boundary Counterfactual Audit",
+    "scope": "Propagate the identical frozen one-sided boundary-slope counterfactual across all 3840 velocity nodes and all three retained common-frame heat-flux moment components, verify component and conservative moment closure, quantify cross-moment cancellation, and retain the exact Stage-67/87 provenance before considering any solver experiment.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}

@@ -1,0 +1,67 @@
+name: Vision-guided DSMC Stage 28
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage28.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage28.yml'
+jobs:
+  second-order-transport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 28 transport and positivity utilities
+        run: pytest -q tests/test_second_order_transport.py tests/test_linear_sidewall_validation.py
+      - name: Run fixed-physics MUSCL SSP-RK2 comparison
+        run: |
+          vgdsmc-stage28-second-order \
+            --output-dir /tmp/stage28_second_order \
+            --nx 20 --ny 20 --nv 17 --velocity-extent 5.0 \
+            --max-steps 7000 --tolerance 2e-5 --limiter-theta 1.5
+      - name: Verify fixed design and finite outputs
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage28_second_order/summary.json'))
+          assert summary['stage'] == 28
+          assert summary['configuration']['physics_frozen'] is True
+          assert summary['configuration']['grid'] == [20, 20]
+          assert summary['configuration']['nv'] == 17
+          assert summary['configuration']['kn0'] == 1.0
+          assert summary['configuration']['time_integrator'].startswith('SSP-RK2')
+          assert set(summary['decision']) == {
+              'qav_error_reduced_by_at_least_10pct',
+              'velocity_error_reduced_by_at_least_10pct',
+              'velocity_sign_improved',
+          }
+          for section in ('first_order_baseline', 'second_order'):
+              for key in ('predicted_qav', 'qav_relative_error',
+                          'wall_velocity_relative_rms',
+                          'wall_velocity_sign_agreement'):
+                  assert math.isfinite(summary[section][key])
+          arrays = np.load('/tmp/stage28_second_order/fields_and_profiles.npz')
+          assert np.isfinite(arrays['T']).all()
+          assert np.isfinite(arrays['table_velocity']).all()
+          assert np.isfinite(arrays['bottom_heat_flux']).all()
+          assert float(arrays['T'].min()) > 0.0
+          assert Path('/tmp/stage28_second_order/summary.json').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage28-second-order-transport
+          path: /tmp/stage28_second_order
+          retention-days: 30

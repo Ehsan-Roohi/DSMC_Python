@@ -1,0 +1,57 @@
+{
+  "stage": 72,
+  "status": "completed",
+  "workflow_run_id": 31074807690,
+  "workflow_job_id": 92530390942,
+  "workflow_conclusion": "success",
+  "tests_passed": 154,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.60,
+  "artifact": {
+    "name": "stage72-directional-transport-component-audit",
+    "artifact_id": 8958793397,
+    "size_bytes": 236007,
+    "sha256": "b8f71d66e4cc5abf1ee99c2bcc8157b8b75695b10f37e6a76f9f1a2b995c4def",
+    "summary_sha256": "879bbc210b361f1f045a66d49c95c223b97189396c4336726b953022c9addcb7",
+    "directional_transport_component_maps_sha256": "65153d7fcacd81cc39f14915414b64bee9991e92d9b73db3b6fc81fe3d00f35d"
+  },
+  "source_head_sha": "1086520d4985428bdcaafb8bc442f8934de83bd1",
+  "decision": "stage72_x_direction_near_wall_side_strip_dominance_stage73_velocity_sign_angular_bin_interior_face_flux_attribution_audit",
+  "exact_fine_grid_metrics": {
+    "grid": [64, 64],
+    "x_component_absolute_share": 0.6077477460898555,
+    "y_component_absolute_share": 0.3922522539101445,
+    "component_cancellation_ratio": 0.9751669900485217,
+    "x_component_rms": 0.059492728928683646,
+    "y_component_rms": 0.03766085808282982,
+    "x_component_absolute_sum": 81.97149071645087,
+    "y_component_absolute_sum": 52.90599956441212,
+    "x_wall_band_absolute_share": 0.6234506538090588,
+    "x_outer_two_layer_absolute_wall_share": 0.88469267557796,
+    "x_vertical_side_strip_absolute_wall_share": 0.8694844698144033,
+    "reproduced_stage71_wall_band_absolute_share": 0.6047289196255864,
+    "stage71_wall_band_absolute_share_error": 1.1102230246251565e-16,
+    "maximum_directional_closure_error": 6.487865800153259e-16,
+    "relative_l2_directional_closure_error": 1.8170629451966045e-15
+  },
+  "positive_findings": [
+    "The x- and y-direction components summed back to every Stage-71 q_y map within the frozen closure guard.",
+    "At 64x64 the x-direction component carried 60.77477460898555 percent of the pre-cancellation directional magnitude.",
+    "The exact Stage-67 distributions and conservative 64-to-32-to-16 restriction were retained without a cavity rerun."
+  ],
+  "negative_findings": [
+    "The total directional map remained strongly cancellation dominated; the signed total was only -4.6711851381087884e-05 of its absolute sum.",
+    "Residual magnitude is not an adjoint sensitivity and does not predict a converged q_av response.",
+    "The failed Stage-28 MUSCL endpoint remains negative and was not extended across Knudsen number.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned."
+  ],
+  "next_stage": {
+    "stage": 73,
+    "name": "Velocity-Sign and Angular-Bin Interior-Face Flux Attribution Audit",
+    "scope": "Decompose the dominant frozen x-direction q_y transport-operator difference by velocity sign and eight fixed angular sectors at interior x faces on the unchanged 16x16, 32x32, and 64x64 grid sequence.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}

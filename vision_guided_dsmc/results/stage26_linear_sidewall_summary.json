@@ -1,0 +1,53 @@
+{
+  "stage": 26,
+  "workflow_run_id": 30671842002,
+  "workflow_status": "success",
+  "design": {
+    "wall_model": "bottom hot, top cold, side walls linear hot-to-cold",
+    "cold_hot_ratio": 0.1,
+    "grid": [20, 20],
+    "nv": 17,
+    "velocity_extent": 5.0,
+    "relaxation_scale": "2*Kn0/sqrt(pi)",
+    "literature_tables": [3, 6]
+  },
+  "rows": [
+    {
+      "kn0": 0.1,
+      "iterations": 2400,
+      "converged": true,
+      "final_change": 1.3408694159333656e-5,
+      "predicted_qav": 0.09064625496943853,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.2589757634644241,
+      "wall_velocity_relative_rms": 3.1864738557289796,
+      "wall_velocity_sign_agreement": 0.8
+    },
+    {
+      "kn0": 1.0,
+      "iterations": 4500,
+      "converged": true,
+      "final_change": 1.9772160615716405e-5,
+      "predicted_qav": 0.20054999531498643,
+      "literature_qav": 0.148,
+      "qav_relative_error": 0.3550675359120706,
+      "wall_velocity_relative_rms": 3.976456906998153,
+      "wall_velocity_sign_agreement": 0.0
+    },
+    {
+      "kn0": 10.0,
+      "iterations": 6000,
+      "converged": false,
+      "final_change": 1.1437638906097725e-4,
+      "predicted_qav": 0.2517022270773678,
+      "literature_qav": 0.178,
+      "qav_relative_error": 0.4140574554908303,
+      "wall_velocity_relative_rms": 19.993630266669015,
+      "wall_velocity_sign_agreement": 0.0
+    }
+  ],
+  "mean_qav_relative_error": 0.3427002516224416,
+  "mean_wall_velocity_relative_rms": 9.052187009798716,
+  "all_converged": false,
+  "conclusion": "The corrected wall model and Kn mapping are not sufficient for quantitative validation. Spatial/velocity discretization attribution is required before changing physical parameters."
+}

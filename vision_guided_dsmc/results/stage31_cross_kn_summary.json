@@ -1,0 +1,125 @@
+{
+  "stage": 31,
+  "workflow_run_id": 30685915862,
+  "workflow_job_id": 91331535352,
+  "workflow_status": "success",
+  "tests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "artifact": {
+    "name": "stage31-cross-knudsen-extension",
+    "id": 8814042209,
+    "size_bytes": 26529,
+    "sha256": "ce655a9fb9d054e8d6bc688369b7770e70772a2b296065e13e6d1ebcc6e10f3d"
+  },
+  "configuration": {
+    "grid": [12, 12],
+    "kn0_sequence": [0.1, 10.0],
+    "cold_hot_ratio": 0.1,
+    "max_steps": 9000,
+    "tolerance": 3e-5,
+    "transport": "first-order upwind",
+    "collision": "Shakhov",
+    "wall_model": "bottom hot, top cold, side walls linear hot-to-cold",
+    "quadratures": [
+      "cartesian_midpoint_nv19",
+      "spherical_matched_r16_mu12_phi24"
+    ],
+    "physical_parameter_retuning": false
+  },
+  "rows": [
+    {
+      "kn0": 0.1,
+      "scheme": "cartesian_midpoint_nv19",
+      "point_count": 6859,
+      "iterations": 1500,
+      "converged": true,
+      "final_change": 1.6169951894916962e-5,
+      "predicted_qav": 0.09341977639698092,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.2974968944025128,
+      "wall_velocity_relative_rms": 1.5022669214416067,
+      "wall_velocity_sign_agreement": 0.9,
+      "wall_mass_balance_relative_error": 2.115387206824397e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.19617933102652174,
+      "maximum_temperature": 0.8487419344462869,
+      "work_proxy": 1481544000
+    },
+    {
+      "kn0": 0.1,
+      "scheme": "spherical_matched_r16_mu12_phi24",
+      "point_count": 4608,
+      "iterations": 1400,
+      "converged": true,
+      "final_change": 1.9574297504987292e-5,
+      "predicted_qav": 0.09166984195087928,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.27319224931776787,
+      "wall_velocity_relative_rms": 3.1935337629690843,
+      "wall_velocity_sign_agreement": 0.2,
+      "wall_mass_balance_relative_error": 1.4951902034636747e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.17644813794814773,
+      "maximum_temperature": 0.8534379314862851,
+      "work_proxy": 928972800
+    },
+    {
+      "kn0": 10.0,
+      "scheme": "cartesian_midpoint_nv19",
+      "point_count": 6859,
+      "iterations": 9000,
+      "converged": false,
+      "final_change": 4.251292751991653e-5,
+      "predicted_qav": 0.24600051548302201,
+      "literature_qav": 0.178,
+      "qav_relative_error": 0.3820253678821462,
+      "wall_velocity_relative_rms": 22.584520485930454,
+      "wall_velocity_sign_agreement": 0.0,
+      "wall_mass_balance_relative_error": 2.0366685756945853e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.23334122218332506,
+      "maximum_temperature": 0.6280013903794917,
+      "work_proxy": 8889264000
+    },
+    {
+      "kn0": 10.0,
+      "scheme": "spherical_matched_r16_mu12_phi24",
+      "point_count": 4608,
+      "iterations": 4500,
+      "converged": true,
+      "final_change": 2.7755827372466513e-5,
+      "predicted_qav": 0.18468389772143382,
+      "literature_qav": 0.178,
+      "qav_relative_error": 0.03754998719906642,
+      "wall_velocity_relative_rms": 0.14467929367009996,
+      "wall_velocity_sign_agreement": 1.0,
+      "wall_mass_balance_relative_error": 1.9025978131598267e-16,
+      "minimum_distribution": 1.1055820566082868e-30,
+      "minimum_temperature": 0.20590509932939727,
+      "maximum_temperature": 0.6447235302261275,
+      "work_proxy": 2985984000
+    }
+  ],
+  "comparisons": [
+    {
+      "kn0": 0.1,
+      "spherical_qav_error_ratio_to_cartesian": 0.9183028611658016,
+      "spherical_velocity_error_ratio_to_cartesian": 2.12580981274919,
+      "spherical_sign_agreement_change": -0.7,
+      "spherical_materially_better_on_both_literature_metrics": false
+    },
+    {
+      "kn0": 10.0,
+      "spherical_qav_error_ratio_to_cartesian": 0.09829186843594767,
+      "spherical_velocity_error_ratio_to_cartesian": 0.006406126433378617,
+      "spherical_sign_agreement_change": 1.0,
+      "spherical_materially_better_on_both_literature_metrics": true
+    }
+  ],
+  "all_cases_converged": false,
+  "spherical_materially_better_at_both_new_knudsen_numbers": false,
+  "decision": "record_partial_or_negative_cross_kn_extension_and_audit_remaining_model_error",
+  "scientific_conclusion": "The spherical quadrature is strongly supported at Kn0=10 but not at Kn0=0.1. At Kn0=0.1 it slightly reduces heat-flux error while more than doubling the wall-velocity RMS error and reducing sign agreement from 0.9 to 0.2. The next stage must audit near-continuum wall observables and spatial convergence with physics frozen, rather than retune Knudsen or collision parameters."
+}

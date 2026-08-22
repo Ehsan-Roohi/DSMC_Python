@@ -1,0 +1,132 @@
+name: Vision-guided DSMC Stage 136
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage136_right_lobe_depth_support_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage136_right_lobe_depth_support_audit.py'
+      - 'vision_guided_dsmc/results/stage135_fixed_lobe_amplitude_origin_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage136.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage136_right_lobe_depth_support_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage136_right_lobe_depth_support_audit.py'
+      - 'vision_guided_dsmc/results/stage135_fixed_lobe_amplitude_origin_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage136.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  right-lobe-depth-support-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 134-136 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage134_additive_baseline_origin_audit.py \
+            tests/test_stage135_fixed_lobe_amplitude_origin_audit.py \
+            tests/test_stage136_right_lobe_depth_support_audit.py
+      - name: Download exact completed Stage 135 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage135-fixed-lobe-amplitude-origin-audit
+          path: /tmp/stage135_fixed_lobe_amplitude_origin_audit
+          run-id: 32070772876
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 135 payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage135_fixed_lobe_amplitude_origin_audit/summary.json': 'e959a53f3ecfee13073b32dfd530dc67d8930897a69cde8cdec33bf539197354',
+              '/tmp/stage135_fixed_lobe_amplitude_origin_audit/fixed_lobe_amplitude_origin.npz': '3d8500ff85a4dbb5dd59d5ec5742ab49c35e2fb6b620b394d2fba46f0bf224b1',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 136 right-lobe depth-support audit
+        run: |
+          python -m vgdsmc.stage136_right_lobe_depth_support_audit \
+            --stage135-dir /tmp/stage135_fixed_lobe_amplitude_origin_audit \
+            --stage135-record results/stage135_fixed_lobe_amplitude_origin_audit_observed.json \
+            --output-dir /tmp/stage136_right_lobe_depth_support_audit
+      - name: Verify Stage 136 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage136_right_lobe_depth_support_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 136
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['dominant_mirrored_sector'] == 6
+          assert cfg['right_support_min_depth_cells'] == 5.0
+          assert cfg['near_sample_count'] == 3
+          assert cfg['near_localization_share_min'] == 0.75
+          assert cfg['broad_effective_count_min'] == 4.5
+          assert cfg['common_profile_cosine_min'] == 0.95
+          assert cfg['phase_shift_applied'] is False
+          assert cfg['width_refit_applied'] is False
+          assert cfg['amplitude_refit_applied'] is False
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['aggregate']['maximum_parent_closure'] <= 1.0e-12
+          assert summary['aggregate']['parent_record_ok'] is True
+          allowed = {
+              'stage136_crossing_localized_right_lobe_stage137_crossing_local_shape_audit',
+              'stage136_distributed_common_right_lobe_support_stage137_right_lobe_decay_shape_audit',
+              'stage136_distributed_mixed_right_lobe_support_stage137_channel_specific_depth_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root / 'right_lobe_depth_support.npz') as data:
+              assert data['right_depth'].shape == (7,)
+              assert data['dominant_right_difference'].shape == (7,)
+              assert data['parent_right_difference'].shape == (7,)
+              assert data['dominant_normalized_magnitude'].shape == (7,)
+              assert data['parent_normalized_magnitude'].shape == (7,)
+              for key in data.files:
+                  assert np.isfinite(data[key]).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage136-right-lobe-depth-support-audit
+          path: /tmp/stage136_right_lobe_depth_support_audit
+          retention-days: 30
+
+# Explicit Stage 136 launch touch; no scientific guard or numerical parameter changed.
+# Pull-request observability was added so the exact fixed-design run can be audited by automation.

@@ -1,0 +1,53 @@
+name: Vision-guided DSMC Stage 119
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage119_*'
+      - 'vision_guided_dsmc/tests/test_stage119_*'
+      - '.github/workflows/vision-guided-dsmc-stage119.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  exact-directional-moment-kernel-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage119_exact_directional_moment_kernel_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67
+          github-token: ${{ github.token }}
+          run-id: 30991124477
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage111-axis-conditioned-asymmetry-audit
+          path: /tmp/stage111
+          github-token: ${{ github.token }}
+          run-id: 31590035358
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage118-distribution-role-weighting-audit
+          path: /tmp/stage118
+          github-token: ${{ github.token }}
+          run-id: 31781982668
+      - run: >-
+          python -m vgdsmc.stage119_exact_directional_moment_kernel_audit
+          --stage67-dir /tmp/stage67
+          --stage111-dir /tmp/stage111
+          --stage118-dir /tmp/stage118
+          --stage118-record results/stage118_distribution_role_weighting_audit_observed.json
+          --output-dir /tmp/stage119
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage119-exact-directional-moment-kernel-audit
+          path: /tmp/stage119
+          retention-days: 30

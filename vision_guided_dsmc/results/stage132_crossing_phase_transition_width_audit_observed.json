@@ -1,0 +1,43 @@
+{
+  "stage": 132,
+  "record_type": "completed_crossing_phase_transition_width_audit",
+  "source_head": "c2c9b03b83e1c3fa546feee90ab36bb166193ecd",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 32001930265,
+  "workflow_job_id": 95303770402,
+  "artifact_id": 9284552744,
+  "artifact_size_bytes": 4867,
+  "artifact_sha256": "6e150457904e188df33bd04cf73228045d5ac67500aed7be2f35b7c71acc16b1",
+  "summary_sha256": "bbcfe2e0a60411891e81d0535d4e341346ebea3283ede3c8e7fb7f96fce70443",
+  "crossing_phase_transition_width_sha256": "59c00c09bf0e8109946bf720f279bb151314c271f1fc67ae4b2378cb6abcc198",
+  "tests": {"passed": 18, "failed": 0},
+  "decision": "stage132_common_mirrored_crossing_phase_width_stage133_crossing_amplitude_scale_audit",
+  "aggregate": {
+    "maximum_parent_closure": 5.720506550380753e-16,
+    "maximum_phase_offset_cells": 0.36758638589245574,
+    "maximum_transition_width_ratio": 1.1085009125795517
+  },
+  "key_metrics": {
+    "dominant_dynamic_range_ratio": 1.0574271486826397,
+    "dominant_zero_phase_offset_cells": 0.36758638589245574,
+    "dominant_midpoint_phase_offset_cells": 0.2975823944981735,
+    "dominant_width_25_75_ratio": 1.0710627226870308,
+    "dominant_width_10_90_ratio": 1.1085009125795517,
+    "parent_dynamic_range_ratio": 1.0395064254899036,
+    "parent_zero_phase_offset_cells": 0.004471049784456893,
+    "parent_midpoint_phase_offset_cells": 0.16331965485672845,
+    "parent_width_25_75_ratio": 1.0948334128933752,
+    "parent_width_10_90_ratio": 1.085704100762103,
+    "inherited_stage131_mirrored_transition_positive_scale_wall1_to_wall0": 1.6433544971907839,
+    "inherited_stage131_mirrored_transition_relative_l2_residual": 0.25332396415340747
+  },
+  "scientific_conclusion": "After the fixed Stage-131 sector-5/6 mirror exchange and crossing alignment, both the common dominant sector-6 channel and the parent asymmetry have sub-half-cell cross-wall phase offsets and transition-width ratios within the preregistered 1.15 guard. The remaining Stage-131 crossing-adjacent mismatch is therefore not materially explained by wall-normal phase or transition width at this resolution. A fixed local amplitude-scale audit is the next justified diagnostic. This artifact-only result does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "routing": {
+    "next_stage_justified": true,
+    "next_stage": 133,
+    "next_stage_name": "crossing_amplitude_scale_audit",
+    "design": "Use only the exact completed Stage-132 artifact. On the fixed |relative depth| <= 4-cell transition core, compare the mirrored dominant-sector and parent profiles between the two walls using preregistered positive scale-only and positive affine scale-plus-offset fits. Quantify how much of the local mismatch is removed by amplitude/baseline rescaling without shifting the crossing, changing widths, rerunning the solver, or changing any physical/numerical parameter."
+  },
+  "design_guard": "Stage 28 remains a failed MUSCL endpoint and Stage 90 remains nonconverged. No physical, collision/source, floor, wall, reconstruction, transport, limiter, normalization, source-relaxation, or velocity-quadrature parameter is retuned; no solver endpoint or cross-Knudsen extension is advanced."
+}

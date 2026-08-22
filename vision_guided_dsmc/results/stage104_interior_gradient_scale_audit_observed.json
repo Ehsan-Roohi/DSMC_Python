@@ -1,0 +1,67 @@
+{
+  "artifact_id": 9090545022,
+  "artifact_sha256": "b90a22fd86fcbdbebfad219d5ac9f8fef7cc493386b04c57f9ce30935da13f4d",
+  "decision": "stage104_mesoscale_shell1_gradient_stage105_directional_gradient_alignment_audit",
+  "finite": true,
+  "interior_gradient_scale_maps_sha256": "88e45ddb944f498e34c305d2d2585475213937f825d9938a7c334451e11bdc64",
+  "metrics": {
+    "phi": {
+      "characteristic_gradient_length_cells": 4.498730763468906,
+      "gradient_energy": 0.000322569755466644,
+      "lag_increment_ratio": {
+        "1": 0.3213257537971556,
+        "2": 0.3957011431299963,
+        "4": 0.507951572076844,
+        "7": 0.6678655580379814,
+        "14": 0.7954180560097476
+      },
+      "maximum_growth": 0.0071595747588722065,
+      "minimum_growth": 0.0003421203386944499,
+      "positive_growth_magnitude_share": 1.0,
+      "relative_growth_l1": 3.848062709330669,
+      "relative_growth_l2": 4.291272972870235,
+      "x_gradient_energy_share": 0.5718402895152358
+    },
+    "psi": {
+      "characteristic_gradient_length_cells": 5.126475023288882,
+      "gradient_energy": 1.2236221848639287e-05,
+      "lag_increment_ratio": {
+        "1": 0.28174788114331356,
+        "2": 0.3522865510508603,
+        "4": 0.4726279277100591,
+        "7": 0.6551148231223888,
+        "14": 0.8291058082749173
+      },
+      "maximum_growth": 0.0014143341597386565,
+      "minimum_growth": 5.254678701143174e-05,
+      "positive_growth_magnitude_share": 1.0,
+      "relative_growth_l1": 3.289903206512784,
+      "relative_growth_l2": 3.9117449673013778,
+      "x_gradient_energy_share": 0.5875857976164134
+    }
+  },
+  "negative_result_guard": "Stage 104 is a frozen spatial-scale diagnostic only. Stage 103 remains spatially diffuse; Stage 102 remains a velocity-shell localization result rather than causality; Stage 101 remains angularly diffuse; Stage 100 supports only same-run attribution; Stage 99 remains a negative cross-run reproducibility result; Stage 98 remains a negative cross-run replay result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned, no cross-Knudsen MUSCL extension is permitted, and no stability, accuracy, benchmark, heat-flux-improvement, or validation claim is authorized.",
+  "record_type": "completed_interior_gradient_scale_audit",
+  "scientific_conclusion": "The diffuse moderate-speed shell-1 MUSCL-correction growth varies on a reproducible mesoscopic spatial scale rather than at the one- or two-cell grid scale: the characteristic gradient lengths are 4.498730763468906 cells for phi and 5.126475023288882 cells for psi, both inside the preregistered (2, 7]-cell mesoscale branch. Growth is positive throughout the frozen 56x56 interior, and the x-gradient energy shares are only moderately biased at 57.18402895152358% and 58.75857976164134%. This supports the preregistered Stage-105 directional gradient-alignment audit. It does not establish a causal instability mechanism, recover the failed MUSCL endpoint, improve q_av, or validate the solver.",
+  "source_head": "743ba8285945d38b220b3a190cd3395344736c92",
+  "stage": 104,
+  "stage103_authorization": {
+    "decision": "stage103_spatially_diffuse_shell1_growth_stage104_interior_gradient_scale_audit",
+    "maximum_stage102_shell_history_closure_relative": 4.260836009253759e-16,
+    "final_effective_tile_count": {
+      "phi": 12.615689341792569,
+      "psi": 12.428148335411885
+    },
+    "best_common_contiguous_2x2_score": 0.2924914872131572
+  },
+  "summary_sha256": "5ff1e7f4bae6ec0cf473ae61272143c9616dc83942052cccdcd90320008cfc95",
+  "tests": {
+    "failed": 0,
+    "passed": 120,
+    "total": 120
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93649171038,
+  "workflow_run_id": 31448978626,
+  "workflow_status": "completed"
+}

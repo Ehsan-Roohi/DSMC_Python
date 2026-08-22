@@ -1,0 +1,68 @@
+{
+  "artifact_id": 9085375562,
+  "artifact_sha256": "f768105bac2a7f87c722687fd942b280701a236817c414282b1cd88129e1f6fa",
+  "best_common_contiguous_2x2": {
+    "distributions": {
+      "phi": {
+        "final_share": 0.3161236706737745,
+        "weighted_abs_growth": 4.980356470088767
+      },
+      "psi": {
+        "final_share": 0.2924914872131572,
+        "weighted_abs_growth": 4.412826484774292
+      }
+    },
+    "score": 0.2924914872131572,
+    "tiles": [10, 11, 14, 15],
+    "top_left_column": 2,
+    "top_left_row": 2
+  },
+  "decision": "stage103_spatially_diffuse_shell1_growth_stage104_interior_gradient_scale_audit",
+  "executed_steps": 25,
+  "final_effective_tile_count": {
+    "phi": 12.615689341792569,
+    "psi": 12.428148335411885
+  },
+  "finite": true,
+  "maximum_single_tile": {
+    "phi": {
+      "final_abs_share": 0.13765087897926698,
+      "tile": 15,
+      "weighted_abs_growth": 5.805517634533012
+    },
+    "psi": {
+      "final_abs_share": 0.12686999359990384,
+      "tile": 15,
+      "weighted_abs_growth": 5.541132834475414
+    }
+  },
+  "maximum_stage102_shell_history_closure_relative": 4.260836009253759e-16,
+  "negative_result_guard": "Stage 103 is a spatial-localization diagnostic only. Stage 102 is a localization result, not proof of causality; Stage 101 found diffuse angular growth; Stage 100 supports same-run directional attribution but not nonlinear MUSCL stability; Stage 99 remains a negative cross-run reproducibility result; Stage 98 remains a negative cross-run replay result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned, no cross-Knudsen MUSCL extension is permitted, and no stability, accuracy, benchmark, or validation claim is authorized.",
+  "record_type": "completed_shell1_spatial_localization_audit",
+  "scientific_conclusion": "Within the frozen 56x56 four-cell-excluded cavity interior, the moderate-speed shell-1 correction growth is spatially diffuse rather than concentrated in a single equal-area tile or contiguous 2x2 tile block. The largest common 2x2 block (tiles 10, 11, 14, 15) contains only 31.61236706737745% of final phi magnitude and 29.24914872131572% of final psi magnitude, below the preregistered 50% common-block localization guard, despite weighted-absolute growth of 4.980356470088767x and 4.412826484774292x. The strongest single tile is tile 15, but its final shares are only 13.765087897926698% and 12.686999359990384%, below the 25% single-tile guard. Effective tile counts remain broad at 12.615689341792569 for phi and 12.428148335411885 for psi. The Stage-102 shell history is reproduced with maximum relative closure 4.260836009253759e-16. This justifies a frozen interior gradient-scale audit, not parameter retuning or a solver-accuracy claim.",
+  "shell1_spatial_localization_histories_sha256": "a13c1130f92613ad97b60beafb1899269409e6dae6b51991a61633f6ec6c0867",
+  "source_head": "f6b264bc7d36934c86450c5cbc02c1cc0b9c3f12",
+  "stage": 103,
+  "stage102_authorization": {
+    "decision": "stage102_common_dominant_radial_shell_1_stage103_shell_spatial_localization_audit",
+    "dominant_shell_final_share": {
+      "phi": 0.6868366436435663,
+      "psi": 0.7906971429576537
+    },
+    "dominant_shell_growth": {
+      "phi": 4.8480627093306685,
+      "psi": 4.2899032065127845
+    },
+    "maximum_shell_parent_closure_relative": 2.7918767842786395e-16
+  },
+  "summary_sha256": "a19d325d7b72938da7673b9a66b2669623840d0e00cfbbe7696da885608eb914",
+  "tests": {
+    "failed": 0,
+    "passed": 107,
+    "total": 107
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93640121182,
+  "workflow_run_id": 31445957648,
+  "workflow_status": "completed"
+}

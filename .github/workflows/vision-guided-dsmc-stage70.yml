@@ -1,0 +1,165 @@
+name: Vision-guided DSMC Stage 70
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage70_independent_wall_face_flux_discretization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage70_independent_wall_face_flux_discretization_audit.py'
+      - 'vision_guided_dsmc/results/stage69_frozen_grid_transfer_residual_scaling_audit_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage70.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage70_independent_wall_face_flux_discretization_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage70_independent_wall_face_flux_discretization_audit.py'
+      - 'vision_guided_dsmc/results/stage69_frozen_grid_transfer_residual_scaling_audit_completed.json'
+      - '.github/workflows/vision-guided-dsmc-stage70.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  independent-wall-face-flux-discretization-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 70 and retained audit endpoints
+        run: |
+          pytest -q \
+            tests/test_stage70_independent_wall_face_flux_discretization_audit.py \
+            tests/test_stage69_frozen_grid_transfer_residual_scaling_audit.py \
+            tests/test_stage68_independent_transport_operator_residual_audit.py \
+            tests/test_stage67_frozen_full_distribution_residual_decomposition.py \
+            tests/test_stage66_frozen_collision_source_observable_audit.py \
+            tests/test_stage65_local_clipping_activation_map_audit.py \
+            tests/test_stage64_source_step_consistency_audit.py \
+            tests/test_stage63_collision_target_equivalence_audit.py \
+            tests/test_stage62_finite_kn_normalization_audit.py \
+            tests/test_stage60_transport_wall_equation_audit.py
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 69 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage69-frozen-grid-transfer-residual-scaling-audit
+          path: /tmp/stage69_frozen_grid_transfer_residual_scaling_audit
+          run-id: 31027231271
+          github-token: ${{ github.token }}
+      - name: Run Stage 70 independent wall-face flux discretization audit
+        run: |
+          python -m vgdsmc.stage70_independent_wall_face_flux_discretization_audit \
+            --stage67-artifact-dir /tmp/stage67_frozen_full_distribution_residual_decomposition \
+            --stage69-artifact-dir /tmp/stage69_frozen_grid_transfer_residual_scaling_audit \
+            --output-dir /tmp/stage70_independent_wall_face_flux_discretization_audit
+      - name: Verify provenance, wall fluxes, scaling, and scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage70_independent_wall_face_flux_discretization_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 70
+          endpoint = summary['retained_stage69_endpoint']
+          assert endpoint['workflow_run_id'] == 31027231271
+          assert endpoint['workflow_job_id'] == 92378691275
+          assert endpoint['artifact_id'] == 8942482076
+          assert endpoint['tests_passed'] == 107
+          assert endpoint['tests_failed'] == 0
+          assert endpoint['artifact_sha256'] == '8040126435a35726fe995360e5c5c3a807f6bfa6ed27d139405a53f1a5775e78'
+          assert endpoint['summary_sha256'] == '512e8cc0ed5cee547c08968b965a8c45c74352ea7ffe9e21d12d15417512bac8'
+          assert endpoint['moment_maps_sha256'] == 'aacceab9597ba7f4607911f1e983fdb4d9f310529ce18c5ddbeb4e08ad3607be'
+
+          cfg = summary['configuration']
+          assert cfg['grids'] == [16, 32, 64]
+          assert cfg['fine_grid'] == 64
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'one_sided_minmod_linear_face_extrapolation'
+          assert cfg['positivity'] == 'analytic_zero_floor_slope_rescaling_diagnostic'
+          assert cfg['restriction'] == 'conservative_cell_average_from_exact_stage67_64x64_distribution'
+          assert cfg['material_heat_flux_ratio'] == 0.10
+          assert cfg['reported_qav_conversion'] == 'bottom_inward_energy_flux_divided_by_sqrt2'
+          assert cfg['solver_rerun_count'] == 0
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          assert summary['finite'] is True
+          assert summary['provenance_consistent'] is True
+          assert summary['mass_flux_closure']['within_guard'] is True
+          assert summary['mass_flux_closure']['maximum_absolute_mass_flux'] <= 1.0e-12
+          reproduction = summary['qav_reproduction']
+          assert reproduction['within_guard'] is True
+          assert math.isclose(reproduction['reconstructed_retained_qav'], 0.22492706104514767, rel_tol=1e-12, abs_tol=1e-12)
+          assert reproduction['absolute_error'] <= 1.0e-12
+
+          scaling = summary['wall_face_scaling']
+          assert scaling['monotonic_decrease'] is True
+          np.testing.assert_allclose(
+              scaling['absolute_relative_qav_difference_sequence'],
+              [0.028275538847321164, 0.014834862093361363, 0.007590384487112345],
+              rtol=1e-11, atol=1e-13,
+          )
+          assert math.isclose(scaling['fine_grid_retained_qav'], 0.22492706104514767, rel_tol=1e-12, abs_tol=1e-12)
+          assert math.isclose(scaling['fine_grid_bounded_qav'], 0.22321977817025881, rel_tol=1e-12, abs_tol=1e-12)
+          assert math.isclose(scaling['fine_grid_signed_qav_difference'], -0.0017072828748888602, rel_tol=1e-11, abs_tol=1e-13)
+          assert math.isclose(scaling['observed_orders']['32_to_64'], 0.9667466438194621, rel_tol=1e-11, abs_tol=1e-13)
+
+          positivity = summary['positivity_diagnostic']
+          assert positivity['bounded_arm_adopted'] is False
+          assert positivity['bounded_vs_raw_material'] is False
+          assert positivity['maximum_raw_outgoing_negative_weight_fraction'] < 2.0e-6
+          assert positivity['maximum_raw_outgoing_negative_unweighted_fraction'] > 0.09
+          assert positivity['maximum_bounded_vs_raw_wall_energy_relative_rms'] < 0.001
+
+          structure = summary['stage68_boundary_face_structure']
+          assert structure['boundary_cell_slopes_are_zero'] is True
+          assert structure['stage68_second_order_boundary_outgoing_equals_retained_cell_center'] is True
+          assert 'near-wall interior faces' in structure['implication']
+          assert summary['decision'] == 'stage70_wall_face_heat_flux_difference_below_materiality_stage71_wall_layer_interior_face_transport_attribution_audit'
+          assert 'does not predict a converged solver response' in summary['interpretation_guard']
+          assert 'before any response or solver run' in summary['scientifically_justified_next_scope']
+
+          with np.load(root / 'wall_face_flux_profiles.npz') as profiles:
+              arms = {'retained_cell_center', 'raw_linear_face', 'bounded_linear_face'}
+              expected = set()
+              for grid in (16, 32, 64):
+                  for wall in ('left', 'right', 'bottom', 'top'):
+                      for arm in arms:
+                          expected.add(f'grid{grid}_{wall}_{arm}_mass_flux')
+                          expected.add(f'grid{grid}_{wall}_{arm}_energy_flux')
+                      expected.add(f'grid{grid}_{wall}_bounded_minus_retained_energy_flux')
+                      expected.add(f'grid{grid}_{wall}_bounded_minus_raw_energy_flux')
+              assert set(profiles.files) == expected
+              for name in profiles.files:
+                  grid = int(name.split('_', 1)[0].replace('grid', ''))
+                  assert profiles[name].shape == (grid,)
+                  assert np.all(np.isfinite(profiles[name]))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage70-independent-wall-face-flux-discretization-audit
+          path: /tmp/stage70_independent_wall_face_flux_discretization_audit
+          retention-days: 30

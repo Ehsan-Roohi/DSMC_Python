@@ -1,0 +1,268 @@
+{
+  "artifact": {
+    "histories_sha256": "042a224491e951ff93daffba9d29b7ee9bfdd9bb8f9b5b02037f55c0f441e051",
+    "id": 9058218680,
+    "name": "stage98-directional-operator-growth-audit",
+    "sha256": "9ac24cb7de61f96c25023abeaf296aece1dd946a63c86bb84a5a21539edf0c19",
+    "size_bytes": 732707,
+    "summary_sha256": "abf70769ee9b2a206373c98e94d77a814c7368a12f57e166545770e9ece7179e"
+  },
+  "canonical_event": "push",
+  "canonical_workflow_job_id": 93369020668,
+  "canonical_workflow_run_id": 31360755010,
+  "configuration": {
+    "angular_nodes": 96,
+    "boundary_slope": "zero",
+    "cold_hot_ratio": 0.1,
+    "collision_parameter_retuning": false,
+    "correction_floor": 0.05,
+    "correction_floor_retuning": false,
+    "cross_knudsen_extension_permitted": false,
+    "decomposition_closure_tolerance": 1e-12,
+    "diagnostic_steps": 25,
+    "directional_dominance_share": 0.6666666666666666,
+    "failed_muscl_endpoint_rehabilitated": false,
+    "fixed_diagnostic_replay": true,
+    "full_solver_endpoint_rerun": false,
+    "grid": [
+      64,
+      64
+    ],
+    "kn0": 10.0,
+    "limiter": "minmod",
+    "limiter_retuning": false,
+    "material_cancellation_ratio": 0.5,
+    "material_directional_growth_ratio": 2.0,
+    "normalization_retuning": false,
+    "one_sided_boundary_slope_promoted": false,
+    "parent_map_replay_tolerance": 1e-12,
+    "physical_parameter_retuning": false,
+    "point_count": 3840,
+    "positivity_floor": 1e-30,
+    "positivity_floor_retuning": false,
+    "radial_nodes": 40,
+    "radial_scale": 2.0,
+    "solver_endpoint_claim_permitted": false,
+    "solver_endpoint_search": false,
+    "source_relaxation": 1.0,
+    "source_relaxation_retuning": false,
+    "stage67_run_id": 30991124477,
+    "stage97_artifact_id": 9051881261,
+    "stage97_artifact_sha256": "b90d32d172d0ac34c23c878acc4215bec4c0511a7f4d4d2f38b20984903af643",
+    "stage97_run_id": 31351436518,
+    "tolerance": 2e-05,
+    "transport_parameter_retuning": false,
+    "validation_claim_permitted": false,
+    "velocity_quadrature_retuning": false,
+    "wall_model_retuning": false
+  },
+  "decision": "stage98_decomposition_or_replay_mismatch_blocker_without_retuning",
+  "directional_growth": {
+    "phi": {
+      "decomposition_closure_relative_l2": {
+        "final": 3.5624704988941874e-17,
+        "final_to_first_ratio": 0.32012031245446365,
+        "first": 1.112853624182608e-16,
+        "maximum": 1.136515378144702e-16,
+        "maximum_to_first_ratio": 1.0212622338175639,
+        "minimum": 3.5624704988941874e-17
+      },
+      "l2_cancellation_ratio": {
+        "final": 0.8119727279366479,
+        "final_to_first_ratio": 1.0667002028097872,
+        "first": 0.7612005001947468,
+        "maximum": 0.8119727279366479,
+        "maximum_to_first_ratio": 1.0667002028097872,
+        "minimum": 0.7612005001947468
+      },
+      "net_l2": {
+        "final": 16.394198246570785,
+        "final_to_first_ratio": 2.0662453009688644,
+        "first": 7.9342942674248444,
+        "maximum": 16.394198246570785,
+        "maximum_to_first_ratio": 2.0662453009688644,
+        "minimum": 7.9342942674248444
+      },
+      "net_weighted_abs": {
+        "final": 9.028582296622726,
+        "final_to_first_ratio": 2.9969051799967446,
+        "first": 3.0126352868570017,
+        "maximum": 9.028582296622726,
+        "maximum_to_first_ratio": 2.9969051799967446,
+        "minimum": 3.0126352868570017
+      },
+      "weighted_abs_cancellation_ratio": {
+        "final": 0.9649674693753075,
+        "final_to_first_ratio": 1.0099223589260096,
+        "first": 0.9554867865302944,
+        "maximum": 0.9649674693753075,
+        "maximum_to_first_ratio": 1.0099223589260096,
+        "minimum": 0.937698803184719
+      },
+      "x_directional_abs_share": {
+        "final": 0.47350615861984763,
+        "final_to_first_ratio": 0.9670351120388518,
+        "first": 0.48964732792538346,
+        "maximum": 0.49716888180021734,
+        "maximum_to_first_ratio": 1.015361165977771,
+        "minimum": 0.463621559519334
+      },
+      "x_l2": {
+        "final": 8.218570546332057,
+        "final_to_first_ratio": 2.369848325806562,
+        "first": 3.4679732271620893,
+        "maximum": 8.218570546332057,
+        "maximum_to_first_ratio": 2.369848325806562,
+        "minimum": 3.4397408607946454
+      },
+      "x_weighted_abs": {
+        "final": 4.430293721532975,
+        "final_to_first_ratio": 2.8696389488692295,
+        "first": 1.543850568127644,
+        "maximum": 4.430293721532975,
+        "maximum_to_first_ratio": 2.8696389488692295,
+        "minimum": 1.543850568127644
+      },
+      "y_directional_abs_share": {
+        "final": 0.5264938413801524,
+        "final_to_first_ratio": 1.0316274807378218,
+        "first": 0.5103526720746165,
+        "maximum": 0.536378440480666,
+        "maximum_to_first_ratio": 1.0509956542409251,
+        "minimum": 0.5028311181997825
+      },
+      "y_l2": {
+        "final": 11.972006898591564,
+        "final_to_first_ratio": 1.7212479022150164,
+        "first": 6.955422797137581,
+        "maximum": 11.972006898591564,
+        "maximum_to_first_ratio": 1.7212479022150164,
+        "minimum": 6.955422797137581
+      },
+      "y_weighted_abs": {
+        "final": 4.926065516636549,
+        "final_to_first_ratio": 3.0613142817612156,
+        "first": 1.609134202909254,
+        "maximum": 4.926065516636549,
+        "maximum_to_first_ratio": 3.0613142817612156,
+        "minimum": 1.609134202909254
+      }
+    },
+    "psi": {
+      "decomposition_closure_relative_l2": {
+        "final": 3.714974109876213e-17,
+        "final_to_first_ratio": 0.3559547835540573,
+        "first": 1.0436646117756235e-16,
+        "maximum": 1.0908298691102266e-16,
+        "maximum_to_first_ratio": 1.045191967613388,
+        "minimum": 3.714974109876213e-17
+      },
+      "l2_cancellation_ratio": {
+        "final": 0.8128770519821266,
+        "final_to_first_ratio": 1.1108822043170659,
+        "first": 0.731740097035632,
+        "maximum": 0.8128770519821266,
+        "maximum_to_first_ratio": 1.1108822043170659,
+        "minimum": 0.731740097035632
+      },
+      "net_l2": {
+        "final": 0.9192377512681498,
+        "final_to_first_ratio": 2.3000881066206227,
+        "first": 0.39965327789931016,
+        "maximum": 0.9192377512681498,
+        "maximum_to_first_ratio": 2.3000881066206227,
+        "minimum": 0.39965327789931016
+      },
+      "net_weighted_abs": {
+        "final": 1.8172621117147865,
+        "final_to_first_ratio": 2.8202097158764197,
+        "first": 0.6443712683792548,
+        "maximum": 1.8172621117147865,
+        "maximum_to_first_ratio": 2.8202097158764197,
+        "minimum": 0.6437034195772127
+      },
+      "weighted_abs_cancellation_ratio": {
+        "final": 0.9660219851241675,
+        "final_to_first_ratio": 1.0007909446163041,
+        "first": 0.9652585190951475,
+        "maximum": 0.9660219851241675,
+        "maximum_to_first_ratio": 1.0007909446163041,
+        "minimum": 0.9461848527321328
+      },
+      "x_directional_abs_share": {
+        "final": 0.4913712497068871,
+        "final_to_first_ratio": 0.9298638802684428,
+        "first": 0.528433526813659,
+        "maximum": 0.5403303038921015,
+        "maximum_to_first_ratio": 1.0225132897039624,
+        "minimum": 0.48974290480539673
+      },
+      "x_l2": {
+        "final": 0.4725308955132202,
+        "final_to_first_ratio": 2.1219413554905975,
+        "first": 0.2226880089266039,
+        "maximum": 0.4725308955132202,
+        "maximum_to_first_ratio": 2.1219413554905975,
+        "minimum": 0.2122984718320875
+      },
+      "x_weighted_abs": {
+        "final": 0.9243582119546649,
+        "final_to_first_ratio": 2.6203386068616195,
+        "first": 0.3527628870307602,
+        "maximum": 0.9243582119546649,
+        "maximum_to_first_ratio": 2.6203386068616195,
+        "minimum": 0.3527628870307602
+      },
+      "y_directional_abs_share": {
+        "final": 0.5086287502931128,
+        "final_to_first_ratio": 1.0785939612210862,
+        "first": 0.47156647318634115,
+        "maximum": 0.5102570951946034,
+        "maximum_to_first_ratio": 1.0820470160799016,
+        "minimum": 0.4596696961078985
+      },
+      "y_l2": {
+        "final": 0.6583138601932822,
+        "final_to_first_ratio": 2.0350969948262,
+        "first": 0.32348033625272155,
+        "maximum": 0.6583138601932822,
+        "maximum_to_first_ratio": 2.0350969948262,
+        "minimum": 0.32348033625272155
+      },
+      "y_weighted_abs": {
+        "final": 0.9568226925163705,
+        "final_to_first_ratio": 3.0394571266705146,
+        "first": 0.31480052280404897,
+        "maximum": 0.9568226925163705,
+        "maximum_to_first_ratio": 3.0394571266705146,
+        "minimum": 0.31480052280404897
+      }
+    }
+  },
+  "duplicate_pull_request_run": {
+    "artifact_id": 9058393518,
+    "artifact_sha256": "9f617c9f26825087ba29ae944081a6a2ab8918d15722286636e900d511be08ae",
+    "artifact_size_bytes": 732707,
+    "conclusion": "success",
+    "histories_sha256": "042a224491e951ff93daffba9d29b7ee9bfdd9bb8f9b5b02037f55c0f441e051",
+    "payload_bitwise_identical_to_push": true,
+    "summary_sha256": "abf70769ee9b2a206373c98e94d77a814c7368a12f57e166545770e9ece7179e",
+    "tests_failed": 0,
+    "tests_passed": 62,
+    "workflow_job_id": 93369028989,
+    "workflow_run_id": 31360757869
+  },
+  "maximum_decomposition_closure_relative_l2": 1.136515378144702e-16,
+  "maximum_parent_map_replay_relative_l2": 1.0763220592237617e-10,
+  "negative_result_guard": "Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned, no cross-Knudsen extension is allowed, and no stable-solver, accuracy, benchmark, or validation claim is authorized.",
+  "next_scientifically_justified_stage": "Stage 99 artifact-only replay-provenance audit: distinguish archive-handoff integrity, push/PR event-context identity, and accumulated cross-run iterative replay drift without loosening the 1e-12 gate or retuning any physical/numerical parameter.",
+  "parent_replay_to_preregistered_tolerance_ratio": 107.63220592237617,
+  "scientific_conclusion": "Stage 98 is a completed negative reproducibility result. The x/y decomposition itself closes at 1.136515378144702e-16 relative L2, but the exact Stage-97 parent-map replay after the frozen 25-step iteration differs by 1.0763220592237617e-10 relative L2, exceeding the unchanged 1e-12 preregistered replay gate by 107.63220592237617. Both push- and pull-request-triggered Stage-98 runs produced bitwise-identical summary and history payloads, so the blocker is retained rather than bypassed. Directional observations remain diagnostic only.",
+  "source_head": "77f271936d435b0a4e6bc5b311e6816bfdbcb5bc",
+  "stage": 98,
+  "test_elapsed_seconds": 0.38,
+  "tests_failed": 0,
+  "tests_passed": 62,
+  "workflow_conclusion": "success",
+  "workflow_status": "completed"
+}

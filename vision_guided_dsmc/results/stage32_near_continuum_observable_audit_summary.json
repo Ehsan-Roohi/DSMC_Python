@@ -1,0 +1,64 @@
+{
+  "stage": 32,
+  "workflow_run_id": 30687822020,
+  "workflow_job_id": 91337007915,
+  "workflow_status": "success",
+  "tests": {"passed": 15, "failed": 0},
+  "artifact": {
+    "id": 8815124482,
+    "name": "stage32-near-continuum-observable-audit",
+    "size_bytes": 38333,
+    "sha256": "cfca0aa4c1666b5a5fc48ed1e33ef39f40c811b8b96e14cedec38eb800ef5c23"
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grids": [[12,12],[18,18],[24,24]],
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "transport": "first-order upwind",
+    "collision": "Shakhov",
+    "max_steps": 9000,
+    "tolerance": 3e-5,
+    "physical_parameter_retuning": false
+  },
+  "rows": [
+    {
+      "grid": [12,12], "iterations": 1400, "converged": true,
+      "final_change": 1.9574297504987292e-5,
+      "predicted_qav": 0.09166984195087928, "literature_qav": 0.072,
+      "qav_relative_error": 0.27319224931776787,
+      "wall_mass_balance_relative_error": 1.4951902034636747e-16,
+      "linear_extrapolated_wall_relative_rms": 1.8932031060725223,
+      "linear_extrapolated_wall_sign_agreement": 0.5,
+      "linear_extrapolated_wall_relative_l1": 1.8317516562195162
+    },
+    {
+      "grid": [18,18], "iterations": 2400, "converged": true,
+      "final_change": 1.894428517144539e-5,
+      "predicted_qav": 0.08862321311157804, "literature_qav": 0.072,
+      "qav_relative_error": 0.2308779598830285,
+      "wall_mass_balance_relative_error": 1.8809904088058432e-16,
+      "linear_extrapolated_wall_relative_rms": 0.7999375194789188,
+      "linear_extrapolated_wall_sign_agreement": 0.8,
+      "linear_extrapolated_wall_relative_l1": 0.5180308022033231
+    },
+    {
+      "grid": [24,24], "iterations": 3200, "converged": true,
+      "final_change": 1.2261756367201032e-5,
+      "predicted_qav": 0.0871157583435301, "literature_qav": 0.072,
+      "qav_relative_error": 0.20994108810458473,
+      "wall_mass_balance_relative_error": 1.6910969547113663e-16,
+      "linear_extrapolated_wall_relative_rms": 0.44355087667737597,
+      "linear_extrapolated_wall_sign_agreement": 0.9,
+      "linear_extrapolated_wall_relative_l1": 0.35796974780483015
+    }
+  ],
+  "finest_grid_profile_change_from_18x18": {
+    "boundary_mixture": 0.3088764955332465,
+    "adjacent_cell_center": 0.6018155812281643,
+    "linear_extrapolated_wall": 0.40775182140316557
+  },
+  "decision": "spatial_refinement_materially_reduces_near_continuum_error",
+  "conclusion": "At Kn0=0.1 the spherical quadrature discrepancy is strongly spatial and observable dependent. The linear-extrapolated wall observable improves monotonically from relative RMS 1.8932 to 0.44355 and sign agreement from 0.5 to 0.9, while Table-6 heat-flux error falls from 27.319% to 20.994%. The 24x24 profile is not grid converged, so a fixed-physics asymptotic spatial extrapolation is required before attributing the remaining error to the collision model."
+}

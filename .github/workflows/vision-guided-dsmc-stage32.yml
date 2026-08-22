@@ -1,0 +1,110 @@
+name: Vision-guided DSMC Stage 32
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage32_near_continuum_observable_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/reduced_spherical_solver.py'
+      - 'vision_guided_dsmc/vgdsmc/velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage32_near_continuum_observable_audit.py'
+      - 'vision_guided_dsmc/tests/test_reduced_spherical_solver.py'
+      - 'vision_guided_dsmc/pyproject.toml'
+      - '.github/workflows/vision-guided-dsmc-stage32.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage32_near_continuum_observable_audit.py'
+      - 'vision_guided_dsmc/vgdsmc/reduced_spherical_solver.py'
+      - 'vision_guided_dsmc/vgdsmc/velocity_quadrature_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage32_near_continuum_observable_audit.py'
+      - 'vision_guided_dsmc/tests/test_reduced_spherical_solver.py'
+      - 'vision_guided_dsmc/pyproject.toml'
+      - '.github/workflows/vision-guided-dsmc-stage32.yml'
+
+jobs:
+  near-continuum-observable-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 32 observable definitions and arbitrary-quadrature solver
+        run: pytest -q tests/test_stage32_near_continuum_observable_audit.py tests/test_reduced_spherical_solver.py
+      - name: Run fixed-physics Kn0 0.1 wall-observable and spatial-convergence audit
+        run: |
+          vgdsmc-stage32-observable-audit \
+            --output-dir /tmp/stage32_observable_audit \
+            --max-steps 9000 --tolerance 3e-5
+      - name: Verify Stage 32 reproducibility and scientific endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+          summary = json.load(open('/tmp/stage32_observable_audit/summary.json'))
+          assert summary['stage'] == 32
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 0.1
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grids'] == [[12, 12], [18, 18], [24, 24]]
+          assert cfg['quadrature'] == 'spherical_matched_r16_mu12_phi24'
+          assert cfg['velocity_point_count'] == 4608
+          assert cfg['transport'] == 'first-order upwind'
+          assert cfg['collision'] == 'Shakhov'
+          assert cfg['physical_parameter_retuning'] is False
+          assert cfg['observable_definitions'] == [
+              'boundary_mixture',
+              'adjacent_cell_center',
+              'linear_extrapolated_wall',
+          ]
+          assert len(summary['rows']) == 3
+          for row in summary['rows']:
+              for key in (
+                  'final_change', 'predicted_qav', 'literature_qav',
+                  'qav_relative_error', 'wall_mass_balance_relative_error',
+                  'minimum_distribution', 'minimum_temperature',
+                  'maximum_temperature', 'work_proxy',
+              ):
+                  assert math.isfinite(row[key])
+              assert row['minimum_distribution'] > 0.0
+              assert row['minimum_temperature'] > 0.0
+              assert row['wall_mass_balance_relative_error'] < 1e-10
+              assert set(row['observables']) == {
+                  'boundary_mixture',
+                  'adjacent_cell_center',
+                  'linear_extrapolated_wall',
+              }
+              for metrics in row['observables'].values():
+                  assert math.isfinite(metrics['relative_rms'])
+                  assert math.isfinite(metrics['relative_l1'])
+                  assert 0.0 <= metrics['sign_agreement'] <= 1.0
+          assert set(summary['finest_grid_profile_changes_from_penultimate']) == {
+              'boundary_mixture',
+              'adjacent_cell_center',
+              'linear_extrapolated_wall',
+          }
+          assert summary['best_finest_grid_observable'] in cfg['observable_definitions']
+          assert summary['decision'] in {
+              'adopt_interior_or_extrapolated_wall_observable_and_cross_validate',
+              'spatial_refinement_materially_reduces_near_continuum_error',
+              'observable_and_spatial_resolution_do_not_explain_kn0p1_error_audit_model_limit',
+          }
+          arrays = np.load('/tmp/stage32_observable_audit/fields_and_profiles.npz')
+          for grid in ('12x12', '18x18', '24x24'):
+              assert f'T_{grid}' in arrays.files
+              assert np.isfinite(arrays[f'T_{grid}']).all()
+              for observable in cfg['observable_definitions']:
+                  key = f'table_velocity_{observable}_{grid}'
+                  assert key in arrays.files
+                  assert np.isfinite(arrays[key]).all()
+          assert Path('/tmp/stage32_observable_audit/summary.json').exists()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage32-near-continuum-observable-audit
+          path: /tmp/stage32_observable_audit
+          retention-days: 30

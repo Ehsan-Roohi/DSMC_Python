@@ -1,0 +1,76 @@
+{
+  "artifact_id": 9124996033,
+  "artifact_size_bytes": 148321,
+  "artifact_sha256": "572ba5cccb2a9b705da68cb10ce2fcbb9d86462dbe6124ccbbce48bac90f4e75",
+  "decision": "stage108_continuous_limiter_severity_coupling_stage109_limiter_intervention_mode_decomposition_audit",
+  "finite": true,
+  "limiter_severity_correction_amplitude_coupling_maps_sha256": "a90346c97afa828e7aeebb081855d58d2414dc30d94f2c7f0f05518a92b7c9cf",
+  "metrics": {
+    "joint": {
+      "lower_quartile_cell_count": 784,
+      "mean_amplitude_lower_severity_quartile": 0.0002810747480364292,
+      "mean_amplitude_upper_severity_quartile": 0.0009021120911543658,
+      "pearson": 0.569780911548909,
+      "severity_lower_quartile_threshold": 0.027389353121199868,
+      "severity_upper_quartile_threshold": 0.036906237106157085,
+      "spearman": 0.6201800581558593,
+      "upper_quartile_cell_count": 784,
+      "upper_severity_quartile_amplitude_share": 0.4163910757395886,
+      "upper_to_lower_mean_amplitude_ratio": 3.2095095609138315,
+      "upper_to_lower_median_amplitude_ratio": 2.620559457613547
+    },
+    "phi": {
+      "lower_quartile_cell_count": 784,
+      "mean_amplitude_lower_severity_quartile": 0.0006814756818333285,
+      "mean_amplitude_upper_severity_quartile": 0.001802046632110866,
+      "pearson": 0.48388636961755227,
+      "severity_lower_quartile_threshold": 0.03243605853875025,
+      "severity_upper_quartile_threshold": 0.04553117357502007,
+      "spearman": 0.5510597486592914,
+      "upper_quartile_cell_count": 784,
+      "upper_severity_quartile_amplitude_share": 0.3822824071000136,
+      "upper_to_lower_mean_amplitude_ratio": 2.6443300621717567,
+      "upper_to_lower_median_amplitude_ratio": 1.976482751937128
+    },
+    "psi": {
+      "lower_quartile_cell_count": 784,
+      "mean_amplitude_lower_severity_quartile": 0.00011570498149813776,
+      "mean_amplitude_upper_severity_quartile": 0.0004402063756691209,
+      "pearson": 0.6063924572471394,
+      "severity_lower_quartile_threshold": 0.027389353121199868,
+      "severity_upper_quartile_threshold": 0.036906237106157085,
+      "spearman": 0.6163037240611526,
+      "upper_quartile_cell_count": 784,
+      "upper_severity_quartile_amplitude_share": 0.43312906987791217,
+      "upper_to_lower_mean_amplitude_ratio": 3.804558541640715,
+      "upper_to_lower_median_amplitude_ratio": 3.580284194784411
+    }
+  },
+  "negative_result_guard": "Stage 107 is precursor association only; Stage 106 remains gradient-magnitude organization; Stage 105 remains directional alignment without strong single-axis dominance; Stage 104 remains mesoscopic; Stage 103 remains spatially diffuse; Stage 102 remains velocity-shell localization; Stage 101 remains angularly diffuse; Stage 100 is same-run attribution only; Stage 99 remains a negative cross-run reproducibility result; Stage 98 remains a negative cross-run replay result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; and the Stage-89 one-sided boundary slope is not promoted. No failed parameter is retuned, no cross-Knudsen MUSCL extension is permitted, and no stability, accuracy, benchmark, heat-flux-improvement, or validation claim is authorized.",
+  "record_type": "completed_limiter_severity_correction_amplitude_coupling_audit",
+  "scientific_conclusion": "Stage 108 confirms a continuous association between stronger frozen pre-replay shell-1 minmod intervention and larger later 25-step correction-growth amplitude. Spearman coupling is 0.5510597486592914 for phi, 0.6163037240611526 for psi, and 0.6201800581558593 jointly; upper-to-lower severity-quartile mean-amplitude ratios are 2.6443300621717567, 3.804558541640715, and 3.2095095609138315. This remains association only and does not establish limiter causality, nonlinear MUSCL stability, endpoint convergence, Table 3/Table 6 improvement, heat-flux accuracy, or validation. The preregistered next step is Stage 109, which decomposes limiter intervention into sign-reversal/zeroing and same-sign amplitude-limiting modes while preserving the exact failed-parameter freeze.",
+  "source_head": "46606ef8a987a61841765afe4c382f3e4a1001ee",
+  "stage": 108,
+  "stage104_authorization": {
+    "decision": "stage104_mesoscale_shell1_gradient_stage105_directional_gradient_alignment_audit",
+    "phi_characteristic_gradient_length_cells": 4.498730763468906,
+    "psi_characteristic_gradient_length_cells": 5.126475023288882
+  },
+  "stage107_authorization": {
+    "decision": "stage107_limiter_intervention_colocated_stage108_limiter_severity_correction_amplitude_coupling_audit",
+    "joint_inside_to_outside_enrichment": 1.3346874604241914,
+    "joint_pair_gradient_weight_share": 0.8173353366166918,
+    "joint_upper_quartile_overlap_coefficient": 0.7413127413127413
+  },
+  "summary_sha256": "8c81a3b2434c13d210e541b1f922fe468a158a78d73060ec03b22b3cbfa2816f",
+  "tests": {
+    "failed": 0,
+    "passed": 160,
+    "runtime_seconds": 0.72,
+    "total": 160
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93917354542,
+  "workflow_run_id": 31533014130,
+  "workflow_status": "completed"
+}

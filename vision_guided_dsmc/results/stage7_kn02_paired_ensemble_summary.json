@@ -1,0 +1,52 @@
+{
+  "method": "four-reference ensemble; ten independent warm seeds; three common-random-number continuation pairs per seed",
+  "condition": {
+    "knudsen": 0.2,
+    "t_left": 320.0,
+    "t_right": 280.0
+  },
+  "base_seeds": [301, 302, 303, 304, 305, 306, 307, 308, 309, 310],
+  "reference_seeds": [9001, 9002, 9003, 9004],
+  "statistical_unit": "independent warm seed (cluster)",
+  "independent_warm_seeds": 10,
+  "paired_continuations_per_seed": 3,
+  "paired_comparisons": 30,
+  "adaptive_to_uniform_particle_ratio": 1.0,
+  "improved_warm_seeds": 4,
+  "cluster_ratios": [
+    1.0583006591426176,
+    1.1361047726126465,
+    0.9534978966483919,
+    1.0044712062212269,
+    1.0163076207908965,
+    1.256188228206688,
+    0.951855345011573,
+    0.9793540484924498,
+    1.0461888431772906,
+    0.9805193030919886
+  ],
+  "mean_cluster_ratio": 1.0382787923395769,
+  "median_cluster_ratio": 1.0103894135060618,
+  "mean_improvement_percent": -3.8278792339576873,
+  "ratio_standard_error": 0.029927443839144335,
+  "t_95_ci_ratio": [0.9705829143754324, 1.1059746703037214],
+  "cluster_bootstrap_95_ci_ratio": [0.9896383449395041, 1.099961727772563],
+  "mean_paired_error_difference": 0.0048363542215000025,
+  "difference_standard_error": 0.003968849152803256,
+  "t_95_ci_difference": [-0.004141182562140963, 0.01381389100514097],
+  "cluster_bootstrap_95_ci_difference": [-0.0016297739032254408, 0.012952515590686317],
+  "two_sided_sign_test_p": 0.75390625,
+  "clusters": [
+    {"base_seed": 301, "mean_uniform_error": 0.13585951975936153, "mean_adaptive_error": 0.14378021931213178, "cluster_ratio": 1.0583006591426176, "cluster_difference": 0.00792069955277025},
+    {"base_seed": 302, "mean_uniform_error": 0.12800998157835045, "mean_adaptive_error": 0.1454327510132209, "cluster_ratio": 1.1361047726126465, "cluster_difference": 0.01742276943487045},
+    {"base_seed": 303, "mean_uniform_error": 0.14406062297975106, "mean_adaptive_error": 0.13736150100104963, "cluster_ratio": 0.9534978966483919, "cluster_difference": -0.006699121978701428},
+    {"base_seed": 304, "mean_uniform_error": 0.14093100817469364, "mean_adaptive_error": 0.14156113977520812, "cluster_ratio": 1.0044712062212269, "cluster_difference": 0.0006301316005144775},
+    {"base_seed": 305, "mean_uniform_error": 0.13031111720600208, "mean_adaptive_error": 0.13243618149023564, "cluster_ratio": 1.0163076207908965, "cluster_difference": 0.002125064284233563},
+    {"base_seed": 306, "mean_uniform_error": 0.1312363377873569, "mean_adaptive_error": 0.1648575426414343, "cluster_ratio": 1.256188228206688, "cluster_difference": 0.03362120485407738},
+    {"base_seed": 307, "mean_uniform_error": 0.14569371839583453, "mean_adaptive_error": 0.13867934458968603, "cluster_ratio": 0.951855345011573, "cluster_difference": -0.0070143738061484995},
+    {"base_seed": 308, "mean_uniform_error": 0.14653557034932466, "mean_adaptive_error": 0.14351020406976128, "cluster_ratio": 0.9793540484924498, "cluster_difference": -0.003025366279563374},
+    {"base_seed": 309, "mean_uniform_error": 0.13466582495512483, "mean_adaptive_error": 0.14088588362531754, "cluster_ratio": 1.0461888431772906, "cluster_difference": 0.006220058670192707},
+    {"base_seed": 310, "mean_uniform_error": 0.14565824470471447, "mean_adaptive_error": 0.14282072058746897, "cluster_ratio": 0.9805193030919886, "cluster_difference": -0.002837524117245499}
+  ],
+  "scientific_status": "The earlier three-seed Kn=0.20 improvement did not persist. This clustered paired ensemble shows no statistically resolved benefit and a 3.83 percent worse mean ratio."
+}

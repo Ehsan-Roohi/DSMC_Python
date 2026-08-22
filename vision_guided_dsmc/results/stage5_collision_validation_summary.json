@@ -1,0 +1,48 @@
+{
+  "frequency": {
+    "config": {
+      "particles": 80,
+      "temperature": 300.0,
+      "fnum": 550.0,
+      "dt": 1e-09,
+      "cell_volume": 1e-18,
+      "trials": 5000,
+      "seed": 1
+    },
+    "expected_collisions_per_sweep": 0.5007698613188718,
+    "measured_collisions_per_sweep": 0.527,
+    "standard_error": 0.010156516674834597,
+    "relative_error": 0.052379627264400874,
+    "z_score": 2.582591996931408,
+    "maximum_initial_candidate_probability": 0.01965567398855492
+  },
+  "anisotropic_relaxation": {
+    "config": {
+      "particles": 200,
+      "temperatures": [600.0, 150.0, 150.0],
+      "fnum": 3000.0,
+      "dt": 1e-09,
+      "cell_volume": 1e-18,
+      "sweeps": 100,
+      "seed": 42
+    },
+    "initial_directional_temperatures": [
+      608.992992500638,
+      141.23493958404626,
+      131.99286147397103
+    ],
+    "final_directional_temperatures": [
+      283.0076854941289,
+      316.45824525663727,
+      282.7548628078888
+    ],
+    "initial_anisotropy": 1.6220433745476657,
+    "final_anisotropy": 0.11460866495607377,
+    "anisotropy_ratio": 0.07065696685702647,
+    "total_temperature_relative_change": 5.154575296872435e-16,
+    "velocity_energy_relative_change": 0.0,
+    "mean_velocity_absolute_change": 1.5845103007450234e-14,
+    "accepted_collisions": 1762
+  },
+  "scope": "Deterministic kernel validation; the frequency comparison uses the exact unordered-pair expectation for the sampled initial velocities."
+}

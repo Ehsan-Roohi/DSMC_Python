@@ -1,0 +1,87 @@
+{
+  "stage": 29,
+  "workflow_run_id": 30679897120,
+  "workflow_job_id": 91314678571,
+  "workflow_status": "success",
+  "test_result": {
+    "passed": 8,
+    "failed": 0,
+    "duration_seconds": 0.13
+  },
+  "artifact": {
+    "id": 8812156639,
+    "name": "stage29-velocity-quadrature-audit",
+    "size_bytes": 4344,
+    "sha256": "ab78ddb5e9f4675669ba2c2d74cc48d689972c34dbb72d8dfe85ccfe77853ae0",
+    "expires_at": "2026-08-31T02:53:21Z"
+  },
+  "conditions": {
+    "temperatures": [0.1, 0.5, 1.0],
+    "tangential_shifts": [-0.005, 0.005],
+    "velocity_extent": 5.0,
+    "physical_parameter_retuning": false
+  },
+  "schemes": [
+    {
+      "name": "cartesian_midpoint_nv17",
+      "family": "cartesian_midpoint",
+      "point_count": 4913,
+      "composite_max_error": 0.41892941659484917,
+      "max_equilibrium_error": 0.37149766155151936,
+      "max_shifted_tangential_error": 0.41892941659484917,
+      "shifted_sign_agreement": 1.0,
+      "cold_wall_mass_flux_relative_error": 0.37149766155151936,
+      "cold_wall_energy_flux_relative_error": 0.14780263807075192
+    },
+    {
+      "name": "cartesian_midpoint_nv19",
+      "family": "cartesian_midpoint",
+      "point_count": 6859,
+      "composite_max_error": 0.2989360418174374,
+      "max_equilibrium_error": 0.28252705444489745,
+      "max_shifted_tangential_error": 0.2989360418174374,
+      "shifted_sign_agreement": 1.0,
+      "cold_wall_mass_flux_relative_error": 0.28252705444489745,
+      "cold_wall_energy_flux_relative_error": 0.10709630914057405
+    },
+    {
+      "name": "gauss_hermite_order12_tref1",
+      "family": "tensor_gauss_hermite",
+      "point_count": 1728,
+      "composite_max_error": 2.922043635026619,
+      "max_equilibrium_error": 2.922043635026619,
+      "max_shifted_tangential_error": 1.0451136938308443,
+      "shifted_sign_agreement": 1.0,
+      "cold_wall_mass_flux_relative_error": 0.03271122340560965,
+      "cold_wall_energy_flux_relative_error": 0.5367443728792616
+    },
+    {
+      "name": "spherical_reduced_r12_mu10_phi16",
+      "family": "spherical_product",
+      "point_count": 1920,
+      "composite_max_error": 0.020999442944838114,
+      "max_equilibrium_error": 0.020999442944838114,
+      "max_shifted_tangential_error": 0.015292181076437896,
+      "shifted_sign_agreement": 1.0,
+      "cold_wall_mass_flux_relative_error": 0.011056456398694287,
+      "cold_wall_energy_flux_relative_error": 0.005254666441551346
+    },
+    {
+      "name": "spherical_matched_r16_mu12_phi24",
+      "family": "spherical_product",
+      "point_count": 4608,
+      "composite_max_error": 0.01070889371392366,
+      "max_equilibrium_error": 0.00532071245976319,
+      "max_shifted_tangential_error": 0.01070889371392366,
+      "shifted_sign_agreement": 1.0,
+      "cold_wall_mass_flux_relative_error": 0.00532071245976319,
+      "cold_wall_energy_flux_relative_error": 0.004896588813777037
+    }
+  ],
+  "cartesian_baseline": "cartesian_midpoint_nv19",
+  "best_non_cartesian": "spherical_matched_r16_mu12_phi24",
+  "best_non_cartesian_materially_better": true,
+  "composite_error_ratio_to_cartesian_nv19": 0.03582499942895237,
+  "decision": "integrate_best_non_cartesian_rule_into_reduced_kinetic_solver",
+  "scientific_conclusion": "The matched spherical-product rule reduced the audited worst-case equilibrium/half-space observable error from 0.2989360418174374 to 0.01070889371392366 while preserving all tested tangential-flux signs. This is a quadrature audit only, not cavity validation."
+}

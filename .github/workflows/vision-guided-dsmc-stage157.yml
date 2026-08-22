@@ -1,0 +1,108 @@
+# Explicit fixed-design Stage 157 launch from the completed Stage 156 record.
+name: Vision-guided DSMC Stage 157
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/results/stage156_support_amplitude_balance_audit_observed.json'
+      - 'vision_guided_dsmc/vgdsmc/stage157_fixed_ratio_curvature_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage157_fixed_ratio_curvature_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage157.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/results/stage156_support_amplitude_balance_audit_observed.json'
+      - 'vision_guided_dsmc/vgdsmc/stage157_fixed_ratio_curvature_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage157_fixed_ratio_curvature_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage157.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  fixed-ratio-curvature-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+
+      - name: Test Stage 157 fixed-design guards
+        run: pytest -q tests/test_stage157_fixed_ratio_curvature_audit.py
+
+      - name: Verify exact completed Stage 156 record
+        run: |
+          python - <<'PY'
+          import json
+          record = json.load(open('results/stage156_support_amplitude_balance_audit_observed.json'))
+          assert record['stage'] == 156
+          assert record['source_head'] == '18ecaf6ef83163c36abceba5b7e3388234c6b8cd'
+          assert record['workflow_run_id'] == 32556022646
+          assert record['workflow_job_id'] == 96990145397
+          assert record['artifact_id'] == 9472845908
+          assert record['artifact_sha256'] == 'e868f0c54740f93b2a416a2f048e084a3b19f3bf524236767e7890e346c534ed'
+          assert record['summary_sha256'] == '1bb79510d483433efb786a4733b519564c68f7418d634c83d5e66275d4dd6af2'
+          assert record['support_amplitude_balance_sha256'] == '403021664787b14aca813b5004139b481a73d1b8de5de8c56f104a7349d2cdac'
+          assert record['decision'] == 'stage156_material_monotone_curved_stage157_fixed_ratio_curvature_audit'
+          assert record['workflow_status'] == 'completed'
+          assert record['workflow_conclusion'] == 'success'
+          km = record['key_metrics']
+          assert km['amplitude_ratio_parent_to_dominant'][0] > km['amplitude_ratio_parent_to_dominant'][1] > km['amplitude_ratio_parent_to_dominant'][2]
+          assert record['aggregate']['midpoint_log_residual_abs'] > 0.10
+          PY
+
+      - name: Run Stage 157 fixed ratio-curvature audit
+        run: |
+          python -m vgdsmc.stage157_fixed_ratio_curvature_audit \
+            --stage156-record results/stage156_support_amplitude_balance_audit_observed.json \
+            --output-dir /tmp/stage157_fixed_ratio_curvature_audit
+
+      - name: Verify Stage 157 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          root = '/tmp/stage157_fixed_ratio_curvature_audit'
+          summary = json.load(open(root + '/summary.json'))
+          assert summary['stage'] == 157 and summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64] and cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0 and cfg['cold_hot_ratio'] == 0.1 and cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0 and cfg['limiter'] == 'minmod' and cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0 and cfg['correction_floor'] == 0.05
+          assert cfg['ratio_rate_acceleration_min'] == 1.5
+          assert cfg['single_channel_share_min'] == 0.80
+          assert cfg['curvature_metrics_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False and cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          agg = summary['aggregate']
+          assert agg['stage156_record_ok'] is True and agg['parent_route_ok'] is True
+          assert agg['ratio_rate_acceleration_factor'] >= 1.5
+          assert agg['parent_curvature_share'] < 0.80
+          assert agg['dominant_curvature_share'] < 0.80
+          assert agg['support_spacing_error'] <= 1e-12
+          assert agg['maximum_identity_or_provenance_error'] <= 1e-12
+          assert summary['decision'] == 'stage157_material_mixed_channel_curvature_stop'
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root + '/fixed_ratio_curvature.npz') as data:
+              rates = data['ratio_decay_rate_per_cell']
+              assert rates[1] > rates[0] > 0.0
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage157-fixed-ratio-curvature-audit
+          path: /tmp/stage157_fixed_ratio_curvature_audit
+          retention-days: 30

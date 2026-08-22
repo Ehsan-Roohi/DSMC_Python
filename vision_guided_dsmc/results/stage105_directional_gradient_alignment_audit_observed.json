@@ -1,0 +1,59 @@
+{
+  "artifact_id": 9101336753,
+  "artifact_sha256": "f7daf8c85cc9f5d20ddd812fe71fa59a03e88e3e1501017cd41b9f89daacdd7b",
+  "decision": "stage105_common_gradient_alignment_without_axis_dominance_stage106_gradient_magnitude_coupling_audit",
+  "directional_gradient_alignment_maps_sha256": "27d5a557fc6c4442b7a0b29deb527f9540fb5f715b9e60b5ea8202df5ec63ee8",
+  "finite": true,
+  "metrics": {
+    "global_gradient_cosine": 0.8411302931782049,
+    "gradient_energy": {
+      "phi": 0.000322569755466644,
+      "psi": 1.2236221848639285e-05
+    },
+    "positive_dot_magnitude_share": 0.9838913709480999,
+    "principal_axis_angle_degrees": {
+      "phi": -5.29746093412228e-08,
+      "psi": 1.45472244001845e-06
+    },
+    "principal_axis_angle_difference_degrees": 1.5076970493596728e-06,
+    "principal_axis_anisotropy": {
+      "phi": 0.1436805790304716,
+      "psi": 0.17517159523282702
+    },
+    "strongly_aligned_magnitude_share": 0.9212124591935322,
+    "strongly_opposed_magnitude_share": 0.008770262375918197,
+    "x_gradient_energy_share": {
+      "phi": 0.5718402895152358,
+      "psi": 0.5875857976164135
+    },
+    "x_gradient_same_sign_product_share": 0.9731357798580335,
+    "y_gradient_same_sign_product_share": 0.9764604500678894
+  },
+  "negative_result_guard": "Stage 104 remains a mesoscopic scale diagnostic rather than causality; Stage 103 remains spatially diffuse; Stage 102 remains a velocity-shell localization result; Stage 101 remains angularly diffuse; Stage 100 is same-run attribution only; Stage 99 remains a negative cross-run reproducibility result; Stage 98 remains a negative cross-run replay result; Stage 90 remains nonconverged in both reconstruction arms; Stage 28 remains a failed MUSCL endpoint; and the Stage-89 one-sided boundary slope is not promoted. No failed parameter is retuned, no cross-Knudsen MUSCL extension is permitted, and no stability, accuracy, benchmark, heat-flux-improvement, or validation claim is authorized.",
+  "parent_closure_relative": 1.38446811071588e-16,
+  "record_type": "completed_directional_gradient_alignment_audit",
+  "scientific_conclusion": "The Stage-104 mesoscopic shell-1 growth gradients are strongly aligned across phi and psi: the global gradient cosine is 0.8411302931782049, and 92.121246% of pair-gradient magnitude lies above the fixed cosine-0.80 alignment guard. Positive-dot magnitude share is 98.389137%, with same-sign x/y gradient-product shares of 97.313578% and 97.646045%. However principal-axis anisotropies are only 0.1436805790304716 and 0.17517159523282702, below the fixed 0.25 guard, so the result does not support a single strongly preferred cavity axis. This authorizes only the fixed Stage-106 gradient-magnitude coupling audit and does not establish causality, endpoint convergence, accuracy, or validation.",
+  "source_head": "b2f8eac5020a5b46673ea69720ea6d9280cf9b59",
+  "stage": 105,
+  "stage104_authorization": {
+    "characteristic_gradient_length_cells": {
+      "phi": 4.498730763468906,
+      "psi": 5.126475023288882
+    },
+    "decision": "stage104_mesoscale_shell1_gradient_stage105_directional_gradient_alignment_audit",
+    "positive_growth_magnitude_share": {
+      "phi": 1.0,
+      "psi": 1.0
+    }
+  },
+  "summary_sha256": "82a80cfac05cee2e3f4cd86799c5a91315ffeff7b49770b661ef9d53a08ec2cf",
+  "tests": {
+    "failed": 0,
+    "passed": 133,
+    "total": 133
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93692732878,
+  "workflow_run_id": 31463907070,
+  "workflow_status": "completed"
+}

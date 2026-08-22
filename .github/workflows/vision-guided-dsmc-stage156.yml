@@ -1,0 +1,113 @@
+# Explicit fixed-design Stage 156 launch from the completed Stage 155 record.
+name: Vision-guided DSMC Stage 156
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/results/stage155_support_sign_geometry_audit_observed.json'
+      - 'vision_guided_dsmc/vgdsmc/stage156_support_amplitude_balance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage156_support_amplitude_balance_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage156.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/results/stage155_support_sign_geometry_audit_observed.json'
+      - 'vision_guided_dsmc/vgdsmc/stage156_support_amplitude_balance_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage156_support_amplitude_balance_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage156.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  support-amplitude-balance-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+
+      - name: Test Stage 156 fixed-design guards
+        run: pytest -q tests/test_stage156_support_amplitude_balance_audit.py
+
+      - name: Verify exact completed Stage 155 record
+        run: |
+          python - <<'PY'
+          import json
+          record = json.load(open('results/stage155_support_sign_geometry_audit_observed.json'))
+          assert record['stage'] == 155
+          assert record['source_head'] == 'da7cf0e31248e16551c220b2f0f7dcfc535112c6'
+          assert record['workflow_run_id'] == 32530742702
+          assert record['workflow_job_id'] == 96981721936
+          assert record['artifact_id'] == 9471028257
+          assert record['artifact_sha256'] == '7853a7835a2db4afbfd0598b7a88a36803598253dfc53e163802c94c915c93a9'
+          assert record['summary_sha256'] == '87fcccabcb168cd881239839ec4a4940e948dcafbbb9b239decbd006d4c5515c'
+          assert record['support_sign_geometry_sha256'] == 'f099657d7796b366cefa0771d0892e574d9ab9ccc4f91264e2854a029bc19ea9'
+          assert record['decision'] == 'stage155_opposition_coefficient_imposed_stage156_support_amplitude_balance_audit'
+          assert record['workflow_status'] == 'completed'
+          assert record['workflow_conclusion'] == 'success'
+          km = record['key_metrics']
+          assert km['raw_cross_channel_sign_products'] == [1, 1, 1]
+          assert km['coefficient_cross_channel_sign_products'] == [-1, -1, -1]
+          assert km['contribution_cross_channel_sign_products'] == [-1, -1, -1]
+          assert km['amplitude_ratio_parent_to_dominant'][0] > km['amplitude_ratio_parent_to_dominant'][1] > km['amplitude_ratio_parent_to_dominant'][2]
+          PY
+
+      - name: Run Stage 156 fixed support amplitude-balance audit
+        run: |
+          python -m vgdsmc.stage156_support_amplitude_balance_audit \
+            --stage155-record results/stage155_support_sign_geometry_audit_observed.json \
+            --output-dir /tmp/stage156_support_amplitude_balance_audit
+
+      - name: Verify Stage 156 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          import numpy as np
+          root = '/tmp/stage156_support_amplitude_balance_audit'
+          summary = json.load(open(root + '/summary.json'))
+          assert summary['stage'] == 156 and summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64] and cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0 and cfg['cold_hot_ratio'] == 0.1 and cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0 and cfg['limiter'] == 'minmod' and cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0 and cfg['correction_floor'] == 0.05
+          assert cfg['material_endpoint_decline_min'] == 0.25
+          assert cfg['log_midpoint_residual_max'] == 0.10
+          assert cfg['amplitude_metrics_used_for_solver'] is False
+          assert cfg['solver_rerun'] is False and cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          agg = summary['aggregate']
+          assert agg['stage155_record_ok'] is True and agg['parent_route_ok'] is True
+          assert agg['monotone_decrease'] is True
+          assert agg['endpoint_decline_fraction'] >= 0.25
+          assert agg['midpoint_log_residual_abs'] > 0.10
+          assert agg['cancellation_fraction_reconstruction_error'] <= 1e-12
+          assert summary['decision'] == 'stage156_material_monotone_curved_stage157_fixed_ratio_curvature_audit'
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root + '/support_amplitude_balance.npz') as data:
+              ratios = data['amplitude_ratio_parent_to_dominant']
+              assert ratios[0] > ratios[1] > ratios[2]
+              assert np.allclose(
+                  data['predicted_cancellation_fraction'],
+                  data['observed_cancellation_fraction'],
+              )
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage156-support-amplitude-balance-audit
+          path: /tmp/stage156_support_amplitude_balance_audit
+          retention-days: 30

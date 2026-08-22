@@ -1,0 +1,111 @@
+{
+  "artifact_id": 9084348663,
+  "artifact_sha256": "1a0879d38770eb92962a4d18665e3738bb20415658b03426d308f8a36c3b690a",
+  "best_common_shell_pair": {
+    "distributions": {
+      "phi": {
+        "final_share": 0.9808632397358253,
+        "weighted_abs_growth": 4.587731027980613
+      },
+      "psi": {
+        "final_share": 0.9014185571857507,
+        "weighted_abs_growth": 4.474224053791492
+      }
+    },
+    "score": 0.9014185571857507,
+    "shells": [
+      0,
+      1
+    ]
+  },
+  "decision": "stage102_common_dominant_radial_shell_1_stage103_shell_spatial_localization_audit",
+  "executed_steps": 25,
+  "finite": true,
+  "interior_radial_speed_shell_histories_sha256": "caf7177a57ff72685747190d3eac45778a434c2dbeec5cfc6b8ccf0a65d26a75",
+  "maximum_shell_parent_closure_relative": 2.7918767842786395e-16,
+  "negative_result_guard": "This is a positive radial-speed localization result only. It does not establish a causal instability mechanism, nonlinear MUSCL stability, improvement of the failed endpoint, or validation of Tables 3/6. Stage 101 remains angularly diffuse, Stage 100 is same-run attribution only, Stage 99 remains a negative cross-run reproducibility result, Stage 98 remains a negative cross-run replay result, Stage 90 remains nonconverged in both reconstruction arms, Stage 28 remains a failed MUSCL endpoint, and the Stage-89 one-sided boundary slope is not promoted. No failed physical or numerical parameter is retuned and no cross-Knudsen MUSCL extension is permitted.",
+  "record_type": "completed_radial_speed_shell_audit",
+  "scientific_conclusion": "Within the frozen four-cell-excluded cavity interior, the Stage-102 MUSCL-correction growth is concentrated in moderate-speed radial shell 1 for both reduced distributions. Shell 1 carries 68.68366436435663% of final phi weighted-absolute magnitude and 79.06971429576537% of final psi magnitude, while growing 4.8480627093306685x and 4.2899032065127845x respectively over the 25-step window. The common shell pair 0+1 contains 98.08632397358253% of final phi and 90.14185571857507% of final psi magnitude. Shell decomposition closes against the parent interior correction history at 2.7918767842786395e-16. This justifies a fixed physical-space localization audit of shell 1, not retuning or a solver-accuracy claim.",
+  "shell_observations": {
+    "phi": [
+      {
+        "final_abs_share": 0.294026596092259,
+        "final_signed_to_abs_ratio": 0.007677313336628907,
+        "index": 0,
+        "maximum_speed": 0.3157284350938447,
+        "minimum_speed": 0.001763844492451425,
+        "weighted_abs_growth": 4.076399705320367
+      },
+      {
+        "final_abs_share": 0.6868366436435663,
+        "final_signed_to_abs_ratio": 0.0017719055713963376,
+        "index": 1,
+        "maximum_speed": 1.8506990872971463,
+        "minimum_speed": 0.3924064760822672,
+        "weighted_abs_growth": 4.8480627093306685
+      },
+      {
+        "final_abs_share": 0.019136760264174612,
+        "final_signed_to_abs_ratio": 0.005986633794003534,
+        "index": 2,
+        "maximum_speed": 10.193511687002355,
+        "minimum_speed": 2.161345422092254,
+        "weighted_abs_growth": 3.3860641240303964
+      },
+      {
+        "final_abs_share": 0.0,
+        "final_signed_to_abs_ratio": 0.0,
+        "index": 3,
+        "maximum_speed": 2267.773614464574,
+        "minimum_speed": 12.669115465672489,
+        "weighted_abs_growth": 0.0
+      }
+    ],
+    "psi": [
+      {
+        "final_abs_share": 0.11072141422809698,
+        "final_signed_to_abs_ratio": 0.011516984839994278,
+        "index": 0,
+        "maximum_speed": 0.3157284350938447,
+        "minimum_speed": 0.001763844492451425,
+        "weighted_abs_growth": 6.454778947265352
+      },
+      {
+        "final_abs_share": 0.7906971429576537,
+        "final_signed_to_abs_ratio": 0.00047918099110652145,
+        "index": 1,
+        "maximum_speed": 1.8506990872971463,
+        "minimum_speed": 0.3924064760822672,
+        "weighted_abs_growth": 4.2899032065127845
+      },
+      {
+        "final_abs_share": 0.09858144281424928,
+        "final_signed_to_abs_ratio": 0.003062346832162486,
+        "index": 2,
+        "maximum_speed": 10.193511687002355,
+        "minimum_speed": 2.161345422092254,
+        "weighted_abs_growth": 3.176363133652465
+      },
+      {
+        "final_abs_share": 0.0,
+        "final_signed_to_abs_ratio": 0.0,
+        "index": 3,
+        "maximum_speed": 2267.773614464574,
+        "minimum_speed": 12.669115465672489,
+        "weighted_abs_growth": 0.0
+      }
+    ]
+  },
+  "source_head": "f18becec9e602b4105b7e9d1fd9e07fbde008ee1",
+  "stage": 102,
+  "summary_sha256": "8f909a0db0390a235aeb8436c53a99bbfe791739d4b991e1584015484393ca66",
+  "tests": {
+    "failed": 0,
+    "passed": 98,
+    "total": 98
+  },
+  "workflow_conclusion": "success",
+  "workflow_job_id": 93596839081,
+  "workflow_run_id": 31431835887,
+  "workflow_status": "completed"
+}

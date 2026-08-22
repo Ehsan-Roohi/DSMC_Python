@@ -1,0 +1,117 @@
+name: Vision-guided DSMC Stage 61
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage61_characteristic_transport_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage61_characteristic_transport_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage61.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage61_characteristic_transport_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage61_characteristic_transport_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage61.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  characteristic-transport-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 61 and retained Stage 60 endpoint
+        run: |
+          pytest -q \
+            tests/test_stage61_characteristic_transport_audit.py \
+            tests/test_stage60_transport_wall_equation_audit.py
+      - name: Download exact completed Stage 60 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage60-transport-wall-equation-audit
+          path: /tmp/stage60_transport_wall_equation_audit
+          run-id: 30897895198
+          github-token: ${{ github.token }}
+      - name: Run Stage 61 characteristic transport audit
+        run: |
+          python -m vgdsmc.stage61_characteristic_transport_audit \
+            --stage60-artifact-dir /tmp/stage60_transport_wall_equation_audit \
+            --output-dir /tmp/stage61_characteristic_transport_audit
+      - name: Verify provenance, frozen design and guarded decision
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('/tmp/stage61_characteristic_transport_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 61
+          retained = summary['retained_stage60_endpoint']
+          assert retained['workflow_run_id'] == 30897895198
+          assert retained['workflow_job_id'] == 91955054751
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 12
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8891954081
+          assert retained['artifact_sha256'] == (
+              '1f40ad0d84fb6388eaa8ecb6299861efaaec041dd16b062ce1d5f1ce803aad31'
+          )
+          assert retained['summary_sha256'] == (
+              '38201cc72f824c27b588bdc3c2b7a82973d2a0de886e7b07ebcd02f4af1790a3'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['spatial_grids'] == [[8, 8], [16, 16], [32, 32]]
+          assert cfg['velocity_rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['kn0_investigation_scope'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['collision_operator'] == 'disabled_diagnostic_limit'
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['external_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          assert len(summary['rows']) == 3
+          for row, grid in zip(summary['rows'], cfg['spatial_grids']):
+              assert row['grid'] == grid
+              assert row['wall_faces'] == 2 * grid[0] + 2 * grid[1]
+              assert row['wall_operator_eigenvalue_defect'] >= 0.0
+              assert row['wall_operator_eigen_residual'] >= 0.0
+              assert row['exact_maximum_wall_mass_balance_error'] >= 0.0
+              assert row['phi_discrete_residual_relative_error'] >= 0.0
+              assert row['psi_discrete_residual_relative_error'] >= 0.0
+              assert row['distribution_weighted_relative_l1'] >= 0.0
+              assert row['temperature_relative_rms'] >= 0.0
+              assert row['heat_flux_relative_rms'] >= 0.0
+              assert row['bottom_heat_flux_average_relative_error'] >= 0.0
+
+          allowed = {
+              'stage61_nonfinite_characteristic_or_upwind_blocker',
+              'stage61_characteristic_wall_fixed_point_blocker',
+              'stage61_first_order_upwind_algebraic_residual_blocker',
+              'stage61_transport_error_not_monotonic_decision_blocker',
+              'stage61_material_collision_off_transport_diffusion_stage62_64x64_confirmation',
+              'stage61_collision_off_transport_diffusion_below_material_threshold_finite_kn_audit_next',
+          }
+          assert summary['decision'] in allowed
+          assert len(summary['positive_findings']) >= 3
+          assert len(summary['negative_findings']) >= 4
+          assert 'cannot validate' in summary['interpretation_guard']
+          assert summary['scientifically_justified_next_scope']
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage61-characteristic-transport-audit
+          path: /tmp/stage61_characteristic_transport_audit
+          retention-days: 30

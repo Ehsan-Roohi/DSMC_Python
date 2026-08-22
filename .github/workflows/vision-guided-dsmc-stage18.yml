@@ -1,0 +1,65 @@
+name: Vision-guided DSMC Stage 18
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage18.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage18.yml'
+jobs:
+  focused-closed-loop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[full]'
+      - name: Build five-seed supervised dataset
+        run: |
+          vgdsmc-build-dvm-dataset \
+            --output-dir /tmp/dvm_dataset \
+            --nx 6 --ny 6 --ppc 5 \
+            --dsmc-steps 25 --nv 6 --dvm-max-steps 900 \
+            --seeds 11 22 33 44 55
+      - name: Train low-frequency model
+        run: |
+          vgdsmc-train-lowfreq-score \
+            --cases /tmp/dvm_dataset/case_*/supervised_case.npz \
+            --output-dir /tmp/lowfreq_score_training \
+            --epochs 100 --batch-size 6 \
+            --validation-seed-count 2 --smoothing-passes 2
+      - name: Run focused five-percent closed loop
+        run: |
+          vgdsmc-focused-closed-loop \
+            --model /tmp/lowfreq_score_training/lowfreq_score_model.pt \
+            --output-dir /tmp/stage18_focused \
+            --amplitude 0.05 \
+            --nx 6 --ny 6 --ppc 20 \
+            --warm-steps 40 --continuation-steps 60 \
+            --nv 6 --dvm-max-steps 900 \
+            --seeds 66 77 88 99 111 122 133 144 155 166
+      - name: Verify focused paired result
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          summary = json.load(open('/tmp/stage18_focused/summary.json'))
+          assert summary['stage'] == 18
+          assert summary['configuration']['seeds'] == [66, 77, 88, 99, 111, 122, 133, 144, 155, 166]
+          assert len(summary['rows']) == 30
+          metrics = summary['amplitude_summaries']['0.050']
+          assert metrics['run_count'] == 30
+          assert math.isfinite(metrics['mean'])
+          assert metrics['ci95_low'] <= metrics['mean'] <= metrics['ci95_high']
+          for row in summary['rows']:
+              assert row['uniform_particles'] == row['adaptive_particles'] == 720
+              assert row['particle_ratio'] == 1.0
+          assert Path('/tmp/stage18_focused/allocation_maps.npz').exists()
+          PY

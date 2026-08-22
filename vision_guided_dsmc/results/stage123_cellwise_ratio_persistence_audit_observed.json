@@ -1,0 +1,66 @@
+{
+  "stage": 123,
+  "record_type": "completed_cellwise_ratio_persistence_audit",
+  "source_head": "cf1dd2b8bdf10a2de003f1b7acaa062332ba6d39",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31897076543,
+  "workflow_job_id": 95041915435,
+  "artifact_id": 9250136297,
+  "artifact_size_bytes": 552207,
+  "artifact_sha256": "299e02034eec88fe9c362d4dc3dd4775f31fc7ffea4e873ec19bb5c91f5df065",
+  "summary_sha256": "cb172427f16dd2ce772be839a9227ffa36ed9e2868e496e27dece97687e0a6fe",
+  "cellwise_ratio_persistence_sha256": "6536a7ac5bcdf5d872b189f3c5f78414b50b6a85034d1f4004d4a7b4c723f1b7",
+  "tests": {"passed": 6, "failed": 0},
+  "decision": "stage123_band_ratio_aggregation_only_stage124_within_band_cancellation_audit",
+  "aggregate": {
+    "minimum_valid_cell_fraction": 1.0,
+    "minimum_passing_cell_fraction_of_valid": 0.5688775510204082,
+    "minimum_band_median_prediction_cosine": 0.9721192812059037,
+    "minimum_band_p10_prediction_cosine": 0.6807034463835926,
+    "minimum_band_median_prediction_overlap": 0.8863662071546248,
+    "maximum_band_median_prediction_total_variation": 0.11363379284537514,
+    "maximum_band_p90_prediction_total_variation": 0.4186185301322127,
+    "maximum_stage122_parent_profile_closure_rel_l2": 1.5519828091252025e-15
+  },
+  "key_metrics": {
+    "near_1_4": {
+      "cell_count": 448,
+      "passing_cell_count": 356,
+      "passing_cell_fraction_of_valid": 0.7946428571428571,
+      "median_prediction_cosine": 0.9737118721909656,
+      "p10_prediction_cosine": 0.9236964672136018,
+      "median_prediction_overlap": 0.8925542678483563,
+      "median_prediction_total_variation": 0.10744573215164364,
+      "p90_prediction_total_variation": 0.18870444336598322,
+      "phi_parent_profile_closure_rel_l2": 6.012195642475682e-16,
+      "psi_parent_profile_closure_rel_l2": 6.224026200534367e-16
+    },
+    "mid_5_14": {
+      "cell_count": 1120,
+      "passing_cell_count": 854,
+      "passing_cell_fraction_of_valid": 0.7625,
+      "median_prediction_cosine": 0.9847969830240235,
+      "p10_prediction_cosine": 0.8589556249464853,
+      "median_prediction_overlap": 0.9196914606639193,
+      "median_prediction_total_variation": 0.08030853933608073,
+      "p90_prediction_total_variation": 0.24637319862675305,
+      "phi_parent_profile_closure_rel_l2": 7.640696760623984e-16,
+      "psi_parent_profile_closure_rel_l2": 8.329516467728659e-16
+    },
+    "inner_15_28": {
+      "cell_count": 1568,
+      "passing_cell_count": 892,
+      "passing_cell_fraction_of_valid": 0.5688775510204082,
+      "median_prediction_cosine": 0.9721192812059037,
+      "p10_prediction_cosine": 0.6807034463835926,
+      "median_prediction_overlap": 0.8863662071546248,
+      "median_prediction_total_variation": 0.11363379284537514,
+      "p90_prediction_total_variation": 0.4186185301322127,
+      "phi_parent_profile_closure_rel_l2": 1.5519828091252025e-15,
+      "psi_parent_profile_closure_rel_l2": 1.437000738642719e-15
+    }
+  },
+  "scientific_conclusion": "The Stage-122 band-level common-|c_x| ratio fails the preregistered individual-cell persistence test even though all cells are valid and the band aggregates reconstruct their Stage-122 parents to about 1.6e-15 relative L2. The weakest band has only 56.887755% passing cells, with p10 cosine 0.680703 and p90 total variation 0.418619. The stable band aggregate therefore must not be promoted to a cellwise mechanism. A fixed within-band aggregation/cancellation audit is the scientifically justified next step.",
+  "design_guard": "No model, wall, collision/source, reconstruction, transport, positivity/correction floor, normalization, source-relaxation, velocity-grid, or failed MUSCL parameter was changed. Stage 90 remains nonconverged, Stage 28 remains a failed MUSCL endpoint, Stage 89 remains unpromoted, no solver endpoint is advanced, and no cross-Knudsen extension is permitted."
+}

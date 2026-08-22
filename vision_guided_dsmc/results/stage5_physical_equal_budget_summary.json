@@ -1,0 +1,73 @@
+{
+  "kernel": "Argon VHS + SBT/TAS adaptive subcells",
+  "comparison": "vision allocation versus uniform allocation at identical particle budget",
+  "source_kernel": "SBT/TAS probability adapted from Parallel_TAS.py",
+  "vhs_normalization": "Bird form with reduced mass and Gamma(5/2-omega)",
+  "withdrawn_results": [
+    "The earlier 7.84% nondimensional result used a broken diffuse-wall writeback.",
+    "The earlier 5.81% physical result used the same advanced-indexing bug and is invalid."
+  ],
+  "cases": [
+    {
+      "knudsen": 0.05,
+      "temperature_ratio": 1.2222222222222223,
+      "uniform_equal_budget_error": 0.15009423004873057,
+      "adaptive_error": 0.1517586902565889,
+      "adaptive_to_uniform_error_ratio": 1.0110894349990531,
+      "improvement_percent": -1.1089434999053127,
+      "base_to_budget_particle_ratio": 1.25,
+      "adaptive_to_uniform_particle_ratio": 1.0,
+      "target_particles": 800,
+      "adapted": true,
+      "relative_temperature_noise": 0.23147302964303249,
+      "priority_std": 0.21190164371641537,
+      "uniform_collisions": 4677.0,
+      "adaptive_collisions": 4644.0,
+      "warm_collisions": 4051.0,
+      "dt": 2.698102599091156e-11
+    },
+    {
+      "knudsen": 0.1,
+      "temperature_ratio": 1.3076923076923077,
+      "uniform_equal_budget_error": 0.14479185554839322,
+      "adaptive_error": 0.12650378213753438,
+      "adaptive_to_uniform_error_ratio": 0.8736940462459473,
+      "improvement_percent": 12.630595375405274,
+      "base_to_budget_particle_ratio": 1.25,
+      "adaptive_to_uniform_particle_ratio": 1.0,
+      "target_particles": 800,
+      "adapted": true,
+      "relative_temperature_noise": 0.2628923529220128,
+      "priority_std": 0.19152129135792717,
+      "uniform_collisions": 4593.0,
+      "adaptive_collisions": 4566.0,
+      "warm_collisions": 3975.0,
+      "dt": 5.316256997753002e-11
+    },
+    {
+      "knudsen": 0.2,
+      "temperature_ratio": 1.1428571428571428,
+      "uniform_equal_budget_error": 0.14151330638501292,
+      "adaptive_error": 0.13777057446503496,
+      "adaptive_to_uniform_error_ratio": 0.9735520848492144,
+      "improvement_percent": 2.6447915150785595,
+      "base_to_budget_particle_ratio": 1.25,
+      "adaptive_to_uniform_particle_ratio": 1.0,
+      "target_particles": 800,
+      "adapted": true,
+      "relative_temperature_noise": 0.27311684836040867,
+      "priority_std": 0.18657046105513228,
+      "uniform_collisions": 2975.0,
+      "adaptive_collisions": 3078.0,
+      "warm_collisions": 2561.0,
+      "dt": 6.849840354582706e-11
+    }
+  ],
+  "improved_cases": 2,
+  "within_two_percent_cases": 3,
+  "mean_error_ratio": 0.952778522031405,
+  "mean_improvement_percent": 4.722147796859499,
+  "mean_base_to_budget_particle_ratio": 1.25,
+  "adaptive_to_uniform_particle_ratio": 1.0,
+  "scientific_status": "Promising pilot only: two of three cases improve at matched cost; multi-seed ensembles and a production DSMC collision kernel remain required."
+}

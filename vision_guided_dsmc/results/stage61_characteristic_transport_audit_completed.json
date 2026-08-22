@@ -1,0 +1,178 @@
+{
+  "checks": {
+    "characteristic_wall_fixed_point_pass": true,
+    "finite_pass": true,
+    "first_order_upwind_algebraic_residual_pass": true,
+    "spatial_error_monotonic_pass": true
+  },
+  "configuration": {
+    "cold_hot_ratio": 0.1,
+    "collision_operator": "disabled_diagnostic_limit",
+    "collision_parameter_retuning": false,
+    "corner_characteristic_convention": "equal_split_between_the_two_walls_for_exact_corner_hits",
+    "cross_knudsen_extension_permitted": false,
+    "external_validation_claim_permitted": false,
+    "kn0_investigation_scope": 10.0,
+    "normalization_retuning": false,
+    "physical_parameter_retuning": false,
+    "radial_scale": 2.0,
+    "spatial_grids": [
+      [
+        8,
+        8
+      ],
+      [
+        16,
+        16
+      ],
+      [
+        32,
+        32
+      ]
+    ],
+    "transport_retuning": false,
+    "upwind_boundary_condition": "fixed_to_characteristic_wall_emission_to_isolate_interior_transport",
+    "velocity_quadrature_retuning": false,
+    "velocity_rule": [
+      40,
+      96
+    ],
+    "wall_density_solution": "dominant_eigenvector_of_characteristic_diffuse_transfer_operator",
+    "wall_model_retuning": false,
+    "wall_temperature_discretization": "same_piecewise_constant_face_profile_in_both_arms"
+  },
+  "decision": "stage61_collision_off_transport_diffusion_below_material_threshold_finite_kn_audit_next",
+  "finest_grid_material_transport_bias": false,
+  "interpretation_guard": "Stage 61 can quantify a collision-off first-order transport bias and its spatial trend. It cannot validate the finite-Kn solver, justify parameter retuning, adopt the conservative projection, or authorize cross-Knudsen extension.",
+  "monotonic_error_metrics": {
+    "bottom_heat_flux_average_relative_error": true,
+    "distribution_weighted_relative_l1": true,
+    "heat_flux_relative_rms": true,
+    "temperature_relative_rms": true
+  },
+  "negative_findings": [
+    "This is a collision-off diagnostic limit, not a Kn0=10 cavity solution and not external validation.",
+    "The wall temperature is face-discretized and exact corner rays use a documented equal-split convention; both are retained limitations of the comparison.",
+    "Because the upwind arm holds the characteristic wall emission fixed, any diffuse-wall density feedback induced by the discrete outgoing field is measured as wall imbalance but is not iterated away in this stage.",
+    "A transport-diffusion discrepancy cannot by itself prove the cause of the greater-than-25% finite-Kn heat-flux error confirmed in Stage 59."
+  ],
+  "positive_findings": [
+    "The characteristic arm is independent of the interior finite-volume transport stencil and uses only straight-line ray tracing plus the same frozen velocity quadrature.",
+    "The paired upwind arm is solved to its algebraic steady state under exactly the same wall-face inflow, isolating interior first-order transport diffusion from collision and wall-density feedback.",
+    "All grid levels and all pass/fail thresholds were fixed before execution; no failed physical or numerical parameter is retuned."
+  ],
+  "recorded_scientific_conclusion": "The collision-off characteristic/upwind comparison is finite, algebraically closed and monotonic on 8x8, 16x16 and 32x32 grids. At 32x32 the first-order upwind bottom-wall average heat-flux bias is 1.0383577186540085%, below the preregistered 10% material threshold, while the full distribution weighted relative L1 error is 3.491412106165172%. Therefore collision-off first-order transport diffusion is not large enough by itself to explain the greater-than-25% finite-Kn heat-flux discrepancy retained from Stage 59. No physical, collision, transport, wall, normalization or velocity-quadrature parameter was retuned, and cross-Knudsen extension remains prohibited.",
+  "retained_stage60_endpoint": {
+    "artifact_id": 8891954081,
+    "artifact_sha256": "1f40ad0d84fb6388eaa8ecb6299861efaaec041dd16b062ce1d5f1ce803aad31",
+    "artifact_size_bytes": 2802,
+    "decision": "stage60_transport_and_diffuse_wall_equations_close_discrepancy_not_explained_characteristic_audit_next",
+    "source_head_sha": "12e4ed729c05ea6602aa80f89d8d649600198e1b",
+    "summary_sha256": "38201cc72f824c27b588bdc3c2b7a82973d2a0de886e7b07ebcd02f4af1790a3",
+    "tests_failed": 0,
+    "tests_passed": 12,
+    "workflow_conclusion": "success",
+    "workflow_job_id": 91955054751,
+    "workflow_run_id": 30897895198
+  },
+  "rows": [
+    {
+      "bottom_heat_flux_average_relative_error": 0.03535201514896726,
+      "corner_tie_fraction": 0.0,
+      "distribution_weighted_relative_l1": 0.08916419592261525,
+      "exact_bottom_heat_flux_average": 0.18450594755470015,
+      "exact_maximum_wall_mass_balance_error": 9.923283639869501e-16,
+      "finite": true,
+      "fixed_inflow_upwind_maximum_wall_mass_balance_error": 1.0235828006479562e-15,
+      "grid": [
+        8,
+        8
+      ],
+      "heat_flux_relative_rms": 0.04935179314497373,
+      "phi_discrete_residual_relative_error": 2.2585201617631854e-17,
+      "psi_discrete_residual_relative_error": 2.356485809428103e-17,
+      "temperature_relative_rms": 0.012369203405831265,
+      "upwind_bottom_heat_flux_average": 0.19102860460772847,
+      "velocity_relative_rms": 0.9999999999999307,
+      "wall_faces": 32,
+      "wall_operator_dominant_eigenvalue": 0.9999999999999991,
+      "wall_operator_eigen_residual": 1.195242372869369e-15,
+      "wall_operator_eigenvalue_defect": 8.881784197001252e-16
+    },
+    {
+      "bottom_heat_flux_average_relative_error": 0.02013784321318193,
+      "corner_tie_fraction": 0.0,
+      "distribution_weighted_relative_l1": 0.056548881605503275,
+      "exact_bottom_heat_flux_average": 0.18319823837119065,
+      "exact_maximum_wall_mass_balance_error": 2.1757396382844948e-15,
+      "finite": true,
+      "fixed_inflow_upwind_maximum_wall_mass_balance_error": 2.097475622518866e-15,
+      "grid": [
+        16,
+        16
+      ],
+      "heat_flux_relative_rms": 0.02952517879443329,
+      "phi_discrete_residual_relative_error": 2.269483080125859e-17,
+      "psi_discrete_residual_relative_error": 2.3713179461370068e-17,
+      "temperature_relative_rms": 0.008981803524501328,
+      "upwind_bottom_heat_flux_average": 0.1868874557724408,
+      "velocity_relative_rms": 1.0000000000005675,
+      "wall_faces": 64,
+      "wall_operator_dominant_eigenvalue": 1.0,
+      "wall_operator_eigen_residual": 1.5016050646640995e-15,
+      "wall_operator_eigenvalue_defect": 0.0
+    },
+    {
+      "bottom_heat_flux_average_relative_error": 0.010383577186540085,
+      "corner_tie_fraction": 0.0,
+      "distribution_weighted_relative_l1": 0.03491412106165172,
+      "exact_bottom_heat_flux_average": 0.18291946268502712,
+      "exact_maximum_wall_mass_balance_error": 3.4216727369212243e-15,
+      "finite": true,
+      "fixed_inflow_upwind_maximum_wall_mass_balance_error": 3.570441116787364e-15,
+      "grid": [
+        32,
+        32
+      ],
+      "heat_flux_relative_rms": 0.016335038235526955,
+      "phi_discrete_residual_relative_error": 2.2946961475401455e-17,
+      "psi_discrete_residual_relative_error": 2.3847270985726645e-17,
+      "temperature_relative_rms": 0.004539496212923442,
+      "upwind_bottom_heat_flux_average": 0.18481882104473754,
+      "velocity_relative_rms": 1.000000000000714,
+      "wall_faces": 128,
+      "wall_operator_dominant_eigenvalue": 0.9999999999999993,
+      "wall_operator_eigen_residual": 1.1177291662901521e-15,
+      "wall_operator_eigenvalue_defect": 6.661338147750939e-16
+    }
+  ],
+  "scientifically_justified_next_scope": "Audit the finite-Kn relaxation-frequency and collision-transport normalization at Kn0=10, because collision-off first-order diffusion at 32x32 is below the 10% material threshold.",
+  "stage": 61,
+  "thresholds": {
+    "exact_wall_mass_balance": 1e-10,
+    "material_transport_error": 0.1,
+    "upwind_algebraic_residual": 1e-12,
+    "wall_eigenvalue_and_residual": 1e-10
+  },
+  "workflow": {
+    "artifact": {
+      "created_at": "2026-08-04T14:05:39Z",
+      "expires_at": "2026-09-03T14:05:39Z",
+      "id": 8895505466,
+      "name": "stage61-characteristic-transport-audit",
+      "sha256": "e478c02ba435c0bd70dd154b21713c4ad856880bff34fbe396357f26cb1f0889",
+      "size_bytes": 2741,
+      "summary_sha256": "0da47d675f25fd100016665e9aba79d367a474fde88bc33733973be7dad78ad1"
+    },
+    "conclusion": "success",
+    "head_sha": "70d173a896c9f84eae99621f0d817f86090cc74a",
+    "job_id": 91997890514,
+    "job_name": "characteristic-transport-audit",
+    "name": "Vision-guided DSMC Stage 61",
+    "run_id": 30911134793,
+    "status": "completed",
+    "test_duration_seconds": 0.27,
+    "tests_failed": 0,
+    "tests_passed": 13
+  }
+}

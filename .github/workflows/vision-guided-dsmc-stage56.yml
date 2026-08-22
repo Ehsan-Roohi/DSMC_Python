@@ -1,0 +1,166 @@
+name: Vision-guided DSMC Stage 56
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage56_conservative_projection_pilot.py'
+      - 'vision_guided_dsmc/tests/test_stage56_conservative_projection_pilot.py'
+      - '.github/workflows/vision-guided-dsmc-stage56.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage56_conservative_projection_pilot.py'
+      - 'vision_guided_dsmc/tests/test_stage56_conservative_projection_pilot.py'
+      - '.github/workflows/vision-guided-dsmc-stage56.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  conservative-projection-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 56 and retained projected-polar infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage56_conservative_projection_pilot.py \
+            tests/test_stage55_unclipped_quadrature_closure_audit.py \
+            tests/test_stage54_projected_collision_moment_audit.py \
+            tests/test_stage53_radial_mapping_tail_audit.py \
+            tests/test_stage52_velocity_resolution_audit.py \
+            tests/test_stage51_heat_flux_definition_audit.py \
+            tests/test_stage50_projected_polar_cross_kn_extension.py \
+            tests/test_stage49_projected_polar_64x64_confirmation.py \
+            tests/test_stage48_projected_polar_56x56_confirmation.py \
+            tests/test_stage47_projected_polar_48x48_confirmation.py \
+            tests/test_stage46_projected_polar_40x40_confirmation.py \
+            tests/test_stage45_projected_polar_32x32_confirmation.py \
+            tests/test_stage44_projected_polar_finer_grid_sequence.py \
+            tests/test_stage43_projected_polar_resolution_sequence.py \
+            tests/test_stage42_projected_polar_heated_cavity_pilot.py \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Download exact completed Stage 53 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage53-radial-mapping-tail-audit
+          path: /tmp/stage53_radial_mapping_tail_audit
+          run-id: 30803098842
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download exact completed Stage 55 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage55-unclipped-quadrature-closure-audit
+          path: /tmp/stage55_unclipped_quadrature_closure_audit
+          run-id: 30822272403
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run frozen Stage 56 conservative projection pilot
+        run: |
+          python -m vgdsmc.stage56_conservative_projection_pilot \
+            --stage53-artifact-dir /tmp/stage53_radial_mapping_tail_audit \
+            --stage55-artifact-dir /tmp/stage55_unclipped_quadrature_closure_audit \
+            --output-dir /tmp/stage56_conservative_projection_pilot
+      - name: Verify provenance, bounds, closure and explicit endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage56_conservative_projection_pilot')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 56
+
+          retained55 = summary['retained_stage55_endpoint']
+          assert retained55['workflow_run_id'] == 30822272403
+          assert retained55['workflow_job_id'] == 91714898163
+          assert retained55['workflow_conclusion'] == 'success'
+          assert retained55['tests_passed'] == 105
+          assert retained55['tests_failed'] == 0
+          assert retained55['artifact_id'] == 8865015655
+          assert retained55['artifact_sha256'] == (
+              '4a491f39b2c00bf96b01b950bbbea04fb9a792c054717369cb92c0ca3c1dba19'
+          )
+          assert summary['retained_stage55_decision'] == (
+              'radial_quadrature_closes_unclipped_formula_'
+              'positivity_clipping_breaks_invariants_'
+              'stage56_conservative_projection_pilot'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grid'] == [64, 64]
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['retained_correction_floor'] == 0.05
+          for key in (
+              'physical_parameter_retuning',
+              'collision_parameter_retuning',
+              'transport_retuning',
+              'wall_model_retuning',
+              'normalization_retuning',
+              'correction_floor_retuning',
+              'solver_rerun',
+          ):
+              assert cfg[key] is False
+          assert cfg['projection_is_diagnostic_only'] is True
+          assert cfg['radial_rule_is_retained_from_stage55_closure_audit'] is True
+
+          expected_cases = {'compressed_tail', 'expanded_tail'}
+          assert set(summary['case_audits']) == expected_cases
+          for case_name, metrics in summary['case_audits'].items():
+              for key in (
+                  'projection_success_fraction',
+                  'maximum_conserved_moment_defect',
+                  'rms_conserved_moment_defect',
+                  'heat_flux_closure_relative_l2',
+                  'maximum_floor_violation',
+                  'mean_active_fraction',
+                  'maximum_active_fraction',
+                  'mean_weighted_relative_modification',
+                  'maximum_weighted_relative_modification',
+              ):
+                  assert math.isfinite(metrics[key])
+              path = root / f'{case_name}_conservative_projection_diagnostics.npz'
+              with np.load(path) as data:
+                  required = {
+                      'local_conserved_moment_defect',
+                      'local_heat_flux_closure_absolute',
+                      'active_fraction',
+                      'projection_iterations',
+                      'weighted_relative_modification',
+                      'floor_violation',
+                      'roundoff_floor_clamp_count',
+                      'projection_success',
+                  }
+                  assert required.issubset(data.files)
+                  for key in required:
+                      assert data[key].shape == (64, 64)
+                      assert np.isfinite(data[key]).all()
+
+          allowed = {
+              'conservative_positive_projection_closes_frozen_fields_stage57_single_case_solver_pilot',
+              'conservative_projection_closes_but_large_deformation_requires_review_before_solver_rerun',
+              'conservative_projection_infeasible_blocker_requires_review',
+              'conservative_projection_nonfinite_blocker_requires_review',
+          }
+          assert summary['decision'] in allowed
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage56-conservative-projection-pilot
+          path: /tmp/stage56_conservative_projection_pilot
+          retention-days: 30

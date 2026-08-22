@@ -1,0 +1,114 @@
+name: Vision-guided DSMC Stage 131
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage131_cross_wall_sector_interaction_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage131_cross_wall_sector_interaction_audit.py'
+      - 'vision_guided_dsmc/results/stage130_fixed_sector_continuity_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage131.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  cross-wall-sector-interaction-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 130-131 fixed-design guards
+        run: |
+          pytest -q \
+            tests/test_stage130_fixed_sector_continuity_audit.py \
+            tests/test_stage131_cross_wall_sector_interaction_audit.py
+      - name: Download exact completed Stage 130 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage130-fixed-sector-continuity-audit
+          path: /tmp/stage130_fixed_sector_continuity_audit
+          run-id: 31966517708
+          github-token: ${{ github.token }}
+      - name: Verify exact Stage 130 payload digests
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = {
+              '/tmp/stage130_fixed_sector_continuity_audit/summary.json': '0c918ec583a84176e65a2de6db60baf3406ec9431cf6d4a6bb30a8863dcf50f3',
+              '/tmp/stage130_fixed_sector_continuity_audit/fixed_sector_continuity.npz': 'd8019c6fef615a971afb49211b225b6395a1b368c8df7de7ca56bdc9cc9472f9',
+          }
+          for name, digest in expected.items():
+              actual = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              assert actual == digest, (name, actual, digest)
+          PY
+      - name: Run Stage 131 cross-wall sector interaction audit
+        run: |
+          python -m vgdsmc.stage131_cross_wall_sector_interaction_audit \
+            --stage130-dir /tmp/stage130_fixed_sector_continuity_audit \
+            --stage130-record results/stage130_fixed_sector_continuity_audit_observed.json \
+            --output-dir /tmp/stage131_cross_wall_sector_interaction_audit
+      - name: Verify Stage 131 scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          root = Path('/tmp/stage131_cross_wall_sector_interaction_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 131
+          assert summary['finite'] is True
+          cfg = summary['configuration']
+          assert cfg['grid'] == [64, 64]
+          assert cfg['interior_grid'] == [56, 56]
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['rule'] == [40, 96]
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['boundary_slope'] == 'zero'
+          assert cfg['source_relaxation'] == 1.0
+          assert cfg['correction_floor'] == 0.05
+          assert cfg['witness_node'] == 9
+          assert cfg['pair_sectors'] == [5, 6]
+          assert cfg['solver_rerun'] is False
+          assert cfg['solver_endpoint_advanced'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          assert cfg['benchmark_or_validation_claim_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+          assert summary['aggregate']['maximum_stage130_additive_or_transition_absolute_closure'] <= 1.0e-12
+          allowed = {
+              'stage131_mirror_sector_exchange_collapse_stage132_crossing_phase_transition_width_audit',
+              'stage131_direct_sector_collapse_stage132_common_sector_depth_profile_audit',
+              'stage131_no_simple_cross_wall_sector_mapping_stage132_local_angular_phase_audit',
+          }
+          assert summary['decision'] in allowed
+          assert 'Stage 28 remains a failed MUSCL endpoint' in summary['negative_result_guard']
+          assert 'Stage 90 remains nonconverged' in summary['negative_result_guard']
+          with np.load(root / 'cross_wall_sector_interaction.npz') as data:
+              n = int(summary['metrics']['overlap_sample_count'])
+              assert data['relative_depth'].shape == (n,)
+              assert data['wall0_sector_profiles'].shape == (n, 2)
+              assert data['wall1_direct_sector_profiles'].shape == (n, 2)
+              assert data['wall1_mirrored_sector_profiles'].shape == (n, 2)
+              assert data['wall0_transition_delta'].shape == (2,)
+              assert data['wall1_mirrored_transition_delta'].shape == (2,)
+              assert np.isfinite(data['wall0_sector_profiles']).all()
+              assert np.isfinite(data['wall1_mirrored_sector_profiles']).all()
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage131-cross-wall-sector-interaction-audit
+          path: /tmp/stage131_cross_wall_sector_interaction_audit
+          retention-days: 30

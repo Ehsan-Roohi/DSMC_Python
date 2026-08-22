@@ -1,0 +1,41 @@
+{
+  "stage": 16,
+  "description": "Low-frequency ensemble-target rank-aware score regression",
+  "ci_run": 230,
+  "status": "success",
+  "tests": {
+    "passed": 58,
+    "runtime_seconds": 6.92
+  },
+  "dataset": {
+    "case_count": 45,
+    "condition_count": 9,
+    "grid": [6, 6],
+    "train_seeds": [11, 22, 33],
+    "validation_seeds": [44, 55]
+  },
+  "target": {
+    "type": "within-case percentile rank of two-pass smoothed ensemble local error",
+    "smoothing_passes": 2
+  },
+  "model": {
+    "input_channels": 10,
+    "epochs": 100,
+    "final_training_loss": 0.10511864473422368,
+    "rank_validation_mae": 0.2926512658596039,
+    "rank_validation_rmse": 0.3744480013847351,
+    "rank_validation_pearson": 0.20074482351381084,
+    "rank_validation_spearman": 0.20198537068873887,
+    "top_quartile_iou": 0.21166056166056169
+  },
+  "baselines": {
+    "constant_rank_mae": 0.2571428418159485,
+    "training_template_rank_mae": 0.3146384358406067,
+    "training_template_spearman": 0.08783068783068783
+  },
+  "ratios": {
+    "model_to_constant_rank_mae": 1.138088323956032,
+    "model_to_training_template_rank_mae": 0.9301192496642675
+  },
+  "conclusion": "Smoothing and pairwise rank loss improve transfer relative to the training spatial template, but the learned map remains worse than a constant rank baseline in MAE. The nonzero rank correlation and top-quartile overlap justify only a low-amplitude, exact-budget closed-loop sweep; aggressive learned allocation is not enabled."
+}

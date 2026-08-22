@@ -1,0 +1,168 @@
+name: Vision-guided DSMC Stage 72
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage72_directional_transport_component_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage72_directional_transport_component_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage72.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage72_directional_transport_component_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage72_directional_transport_component_audit.py'
+      - '.github/workflows/vision-guided-dsmc-stage72.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  directional-transport-component-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 72 and retained audit endpoints
+        run: |
+          pytest -q \
+            tests/test_stage72_directional_transport_component_audit.py \
+            tests/test_stage71_wall_layer_interior_face_transport_attribution_audit.py \
+            tests/test_stage70_independent_wall_face_flux_discretization_audit.py \
+            tests/test_stage69_frozen_grid_transfer_residual_scaling_audit.py \
+            tests/test_stage68_independent_transport_operator_residual_audit.py \
+            tests/test_stage67_frozen_full_distribution_residual_decomposition.py \
+            tests/test_stage66_frozen_collision_source_observable_audit.py \
+            tests/test_stage65_local_clipping_activation_map_audit.py \
+            tests/test_stage64_source_step_consistency_audit.py \
+            tests/test_stage63_collision_target_equivalence_audit.py \
+            tests/test_stage62_finite_kn_normalization_audit.py \
+            tests/test_stage60_transport_wall_equation_audit.py
+      - name: Download exact completed Stage 67 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67_frozen_full_distribution_residual_decomposition
+          run-id: 30991124477
+          github-token: ${{ github.token }}
+      - name: Download exact completed Stage 71 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage71-wall-layer-interior-face-transport-attribution-audit
+          path: /tmp/stage71_wall_layer_interior_face_transport_attribution_audit
+          run-id: 31057376562
+          github-token: ${{ github.token }}
+      - name: Run Stage 72 directional transport component audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from vgdsmc import stage72_directional_transport_component_audit as stage72
+
+          # Stage 67 records finiteness under both decision_metrics and replay.
+          # Adapt that frozen, checksum-validated schema without altering the artifact.
+          original_validator = stage72.stage68._validate_stage67_artifact
+
+          def validate_stage67_with_top_level_finite(root):
+              summary = original_validator(root)
+              metrics = summary.get('decision_metrics')
+              replay = summary.get('replay')
+              if not isinstance(metrics, dict) or 'finite' not in metrics:
+                  raise ValueError('Stage 67 decision_metrics finite-state contract missing')
+              if not isinstance(replay, dict) or 'finite' not in replay:
+                  raise ValueError('Stage 67 replay finite-state contract missing')
+              metrics_finite = bool(metrics['finite'])
+              replay_finite = bool(replay['finite'])
+              if metrics_finite != replay_finite:
+                  raise ValueError('Stage 67 finite-state contracts disagree')
+              adapted = dict(summary)
+              adapted['finite'] = metrics_finite
+              return adapted
+
+          stage72.stage68._validate_stage67_artifact = validate_stage67_with_top_level_finite
+          summary = stage72.run_stage72(
+              Path('/tmp/stage67_frozen_full_distribution_residual_decomposition'),
+              Path('/tmp/stage71_wall_layer_interior_face_transport_attribution_audit'),
+              Path('/tmp/stage72_directional_transport_component_audit'),
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+      - name: Verify provenance, exact closure, and scientific guards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage72_directional_transport_component_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 72
+          assert summary['finite'] is True
+          assert summary['directional_closure_closed'] is True
+          assert summary['region_contract_consistent'] is True
+          assert summary['provenance_consistent'] is True
+          assert not summary['decision'].endswith('blocker')
+          assert summary['decision'].startswith('stage72_')
+
+          endpoint71 = summary['retained_stage71_endpoint']
+          assert endpoint71['workflow_run_id'] == 31057376562
+          assert endpoint71['workflow_job_id'] == 92477704992
+          assert endpoint71['artifact_id'] == 8953709936
+          assert endpoint71['tests_passed'] == 143
+          assert endpoint71['tests_failed'] == 0
+
+          cfg = summary['configuration']
+          assert cfg['grids'] == [16, 32, 64]
+          assert cfg['fine_grid'] == 64
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['limiter'] == 'minmod'
+          assert cfg['wall_band_physical_fraction'] == 1.0 / 16.0
+          assert cfg['solver_rerun_count'] == 0
+          assert cfg['bounded_wall_face_arm_adopted'] is False
+          assert cfg['failed_muscl_endpoint_rehabilitated'] is False
+          assert cfg['cross_knudsen_extension_permitted'] is False
+          for key, value in cfg.items():
+              if key.endswith('_retuning'):
+                  assert value is False
+
+          for grid in ('16', '32', '64'):
+              row = summary['grid_results'][grid]
+              assert row['directional_closure']['within_guard'] is True
+              attr = row['attribution']
+              assert abs(attr['x_component_absolute_share'] + attr['y_component_absolute_share'] - 1.0) < 1e-12
+              assert 0.0 <= attr['component_cancellation_ratio'] <= 1.0 + 1e-12
+
+          fine = summary['fine_grid_directional_attribution']
+          assert fine['dominant_direction'] in {'x', 'y', 'mixed'}
+          assert fine['stage71_wall_band_absolute_share_error'] <= 1e-12
+          assert 'not an adjoint sensitivity' in summary['negative_findings'][0]
+          assert 'velocity sign' in summary['scientifically_justified_next_scope']
+
+          with np.load(root / 'directional_transport_component_maps.npz') as maps:
+              for grid in (16, 32, 64):
+                  x = maps[f'grid{grid}_difference_x_qy']
+                  y = maps[f'grid{grid}_difference_y_qy']
+                  total = maps[f'grid{grid}_difference_total_qy']
+                  reference = maps[f'grid{grid}_reference_difference_qy']
+                  assert x.shape == y.shape == total.shape == reference.shape == (grid, grid)
+                  assert np.all(np.isfinite(x)) and np.all(np.isfinite(y))
+                  assert np.allclose(x + y, total, rtol=0.0, atol=1e-14)
+                  assert np.linalg.norm((total - reference).ravel()) / max(np.linalg.norm(reference.ravel()), 1e-300) <= 1e-10
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage72-directional-transport-component-audit
+          path: /tmp/stage72_directional_transport_component_audit
+          retention-days: 30

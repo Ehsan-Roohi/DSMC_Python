@@ -1,0 +1,32 @@
+{
+  "stage": 66,
+  "workflow_run_id": 30976588772,
+  "workflow_job_id": 92211738864,
+  "workflow_conclusion": "success",
+  "tests_passed": 54,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.47,
+  "artifact_id": 8923406335,
+  "artifact_size_bytes": 293758,
+  "artifact_sha256": "226aa6fb853836ab305ce555ecb5227a68a1c59e72e368d4093496219850d15a",
+  "source_head_sha": "ebd96666185a78653b5f6a2ba288a2c86e38d807",
+  "summary_sha256": "71726050b1b41ad4d14616f7f78212156343edba6de670b716498a6cfb40fa68",
+  "maps_sha256": "c4948595303ed14beb7df7edf70597d45e4f17b3f7993c042ef95e67e8eb69d0",
+  "decision": "stage66_clipping_source_bias_opposes_heat_flux_overprediction_stage67_frozen_full_distribution_residual_decomposition",
+  "positive_findings": {
+    "unclipped_target_maximum_relative_vector_error": 1.3179598171038659e-08,
+    "tangential_source_bias_mean": 2.6924522143447913e-20,
+    "normal_source_bias_sign_consistency": 1.0
+  },
+  "negative_findings": {
+    "baseline_predicted_qav": 0.2249270610451477,
+    "published_dsmc_qav": 0.179,
+    "relative_heat_flux_excess": 0.25657576002875815,
+    "normal_target_bias_mean": -0.008288420605822997,
+    "normal_collision_source_bias_mean": -0.0006460641069461453,
+    "normal_target_bias_opposed_fraction": 1.0,
+    "interior_absolute_source_bias_share": 0.8275000321475546
+  },
+  "interpretation": "The direct clipped-minus-unclipped normal collision-source bias opposes the positive heat-flux overprediction. This frozen-frame result does not establish causality, validate the solver, authorize retuning, adopt the conservative projection, rehabilitate MUSCL, or permit cross-Knudsen extension.",
+  "next_scope": "Replay the exact retained Stage-58 baseline once to save converged phi/psi, then decompose collision, interior-upwind and diffuse-wall residual moments without changing any physical or numerical setting."
+}

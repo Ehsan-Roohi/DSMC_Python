@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vision-guided-dsmc"
+version = "3.4.0"
+description = "Physical Argon VHS/SBT DSMC with deterministic DVM supervision"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+ml = ["torch>=2.1"]
+plot = ["matplotlib>=3.7"]
+dev = ["pytest>=7"]
+full = ["torch>=2.1", "matplotlib>=3.7", "pytest>=7"]
+
+[project.scripts]
+vgdsmc-generate = "vgdsmc.cli:main"
+vgdsmc-benchmark = "vgdsmc.benchmark:main"
+vgdsmc-physical-benchmark = "vgdsmc.physical_benchmark:main"
+vgdsmc-physical-multiseed = "vgdsmc.physical_multiseed:main"
+vgdsmc-physical-paired = "vgdsmc.physical_paired_ensemble:main"
+vgdsmc-physical-policy-study = "vgdsmc.physical_policy_study:main"
+vgdsmc-reference-case = "vgdsmc.reference_cli:main"
+vgdsmc-import-dvm = "vgdsmc.dvm_import_cli:main"
+vgdsmc-dvm-reference = "vgdsmc.dvm_cli:main"
+vgdsmc-shakhov-reference = "vgdsmc.shakhov_cli:main"
+vgdsmc-physical-reference-pipeline = "vgdsmc.physical_reference_pipeline:main"
+vgdsmc-build-dvm-dataset = "vgdsmc.dvm_dataset:main"
+vgdsmc-train-score = "vgdsmc.score_regression:main"
+vgdsmc-train-ensemble-score = "vgdsmc.ensemble_score_regression:main"
+vgdsmc-train-lowfreq-score = "vgdsmc.lowfreq_score_regression:main"
+vgdsmc-lowfreq-closed-loop = "vgdsmc.lowfreq_closed_loop:main"
+vgdsmc-focused-closed-loop = "vgdsmc.focused_closed_loop:main"
+vgdsmc-confirmatory-closed-loop = "vgdsmc.confirmatory_closed_loop:main"
+vgdsmc-sampling-allocation = "vgdsmc.sampling_allocation:main"
+vgdsmc-effective-sampling = "vgdsmc.effective_sampling_allocation:main"
+vgdsmc-dvm-convergence = "vgdsmc.dvm_convergence:main"
+vgdsmc-combined-dvm-reference = "vgdsmc.combined_dvm_reference:main"
+vgdsmc-bottom-heated-benchmark = "vgdsmc.bottom_heated_benchmark:main"
+vgdsmc-bottom-heated-corrected = "vgdsmc.bottom_heated_corrected:main"
+vgdsmc-linear-sidewall-validation = "vgdsmc.linear_sidewall_validation:main"
+vgdsmc-stage27-attribution = "vgdsmc.stage27_discretization_attribution:main"
+vgdsmc-stage28-second-order = "vgdsmc.second_order_transport:main"
+vgdsmc-stage29-quadrature-audit = "vgdsmc.velocity_quadrature_audit:main"
+vgdsmc-stage30-reduced-spherical = "vgdsmc.reduced_spherical_solver:main"
+vgdsmc-stage31-cross-kn = "vgdsmc.stage31_cross_kn_extension:main"
+vgdsmc-stage32-observable-audit = "vgdsmc.stage32_near_continuum_observable_audit:main"
+vgdsmc-stage33-spatial-extrapolation = "vgdsmc.stage33_asymptotic_spatial_extrapolation:main"
+vgdsmc-stage34-velocity-scale = "vgdsmc.stage34_velocity_scale_consistency:main"
+vgdsmc-stage35-coordinate-covariance = "vgdsmc.stage35_coordinate_covariance:main"
+vgdsmc-validate-collisions = "vgdsmc.collision_validation:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vgdsmc*"]
+exclude = ["results*", "tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,127 @@
+{
+  "stage": 45,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 45",
+    "run_id": 30751714392,
+    "job_id": 91506805495,
+    "status": "completed",
+    "conclusion": "success",
+    "source_head_sha": "6b96df929af9389542314625ca5ba46f5ed3c612",
+    "tests_passed": 41,
+    "tests_failed": 0,
+    "artifact": {
+      "id": 8834940840,
+      "name": "stage45-projected-polar-32x32-confirmation",
+      "size_bytes": 37009,
+      "sha256": "3d0e7eacd03986c90646a08c9175a6de435e406ac94d8a6c4db76d140ccfd8c7",
+      "created_at": "2026-08-02T14:41:41Z"
+    }
+  },
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grid": [
+      32,
+      32
+    ],
+    "combined_sequence_grids": [
+      20,
+      24,
+      32
+    ],
+    "polar_rule": {
+      "radial_nodes": 32,
+      "angular_nodes": 96,
+      "point_count": 3072
+    },
+    "radial_mapping": "r=s*(1+x)/(1-x)",
+    "radial_scale": 1.0,
+    "prandtl": 0.6666666666666666,
+    "shakhov_correction_floor": 0.05,
+    "transport_iteration": "steady_first_order_upwind_jacobi",
+    "collision": "projected_shakhov",
+    "relaxation_mapping": "sqrt(2)*Kn0/sqrt(pi) in c0 coordinates",
+    "source_relaxation": 1.0,
+    "max_iterations": 3000,
+    "minimum_iterations": 500,
+    "check_interval": 25,
+    "tolerance": 2e-05,
+    "physical_parameter_retuning": false,
+    "velocity_quadrature_retuning": false
+  },
+  "retained_24x24_case": {
+    "grid": [
+      24,
+      24
+    ],
+    "iterations": 625,
+    "converged": true,
+    "final_change": 1.0299366825117229e-05,
+    "predicted_qav": 0.07888585433050331,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.09563686570143495,
+    "velocity_metrics": {
+      "relative_rms": 1.2973287076686175,
+      "relative_l1": 1.4558592163053783,
+      "sign_agreement": 0.4
+    }
+  },
+  "new_32x32_case": {
+    "grid": [
+      32,
+      32
+    ],
+    "iterations": 850,
+    "converged": true,
+    "final_change": 9.852351250450031e-06,
+    "predicted_qav": 0.07765042067403488,
+    "literature_qav": 0.072,
+    "qav_relative_error": 0.07847806491715122,
+    "velocity_metrics": {
+      "relative_rms": 0.9048587311194247,
+      "relative_l1": 1.0065974563171856,
+      "sign_agreement": 0.6
+    },
+    "wall_mass_balance_relative_error": 2.2052024216374906e-16,
+    "minimum_phi": 1e-30,
+    "minimum_psi": 1e-30,
+    "maximum_phi_clipped_weight_fraction": 0.002682339256022005,
+    "maximum_psi_clipped_weight_fraction": 0.004964130817052622,
+    "finite": true,
+    "work_proxy": 2673868800,
+    "table_velocity": [
+      0.00307454895088456,
+      0.0018761778363374521,
+      0.0008824958468704334,
+      8.78520709762072e-05,
+      -0.0005384053530629294,
+      -0.0009789664797633854,
+      -0.001134986651797936,
+      -0.0008231556679703857,
+      0.0002712966187804899,
+      0.0025473100665375356
+    ]
+  },
+  "finest_grid_changes": {
+    "qav_change_24x24_to_32x32": 0.0159101991430877,
+    "profile_change_24x24_to_32x32": 0.4755212600629756,
+    "qav_error_improves": true,
+    "velocity_rms_improves": true
+  },
+  "linear_h_extrapolation": {
+    "model": "observable(h)=slope*h+intercept with h=1/N",
+    "grid_sizes": [
+      20,
+      24,
+      32
+    ],
+    "extrapolated_qav": 0.07392181797670139,
+    "qav_fit_r2": 0.9999869253700769,
+    "extrapolated_qav_relative_error": 0.0266919163430749,
+    "velocity_fit_r2": 0.9999047085363423,
+    "extrapolated_velocity_relative_rms": 0.3266210441901781,
+    "diagnostic_only": true
+  },
+  "decision": "projected_polar_32x32_improving_not_converged_stage46_40x40_confirmation",
+  "scientific_conclusion": "At fixed Kn0=0.1, projected Shakhov physics and the unchanged 32x96 mapped-polar rule, the 32x32 case converged with average heat-flux error 7.8478%, wall-velocity relative RMS 0.9049 and 60% sign agreement. Both benchmark errors improved relative to 24x24, and the heat-flux change was only 1.5910%, but the wall-profile change remained 47.5521%. The sequence is improving but not spatially converged; a frozen 40x40 confirmation is justified. Linear-h extrapolation remains diagnostic, not validation."
+}

@@ -1,0 +1,61 @@
+name: Vision-guided DSMC Stage 21
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage21.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/**'
+      - '.github/workflows/vision-guided-dsmc-stage21.yml'
+jobs:
+  effective-sampling:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test effective-variance utilities
+        run: pytest -q tests/test_effective_sampling_allocation.py tests/test_sampling_allocation.py
+      - name: Run Stage 21 effective-variance benchmark
+        run: |
+          vgdsmc-effective-sampling \
+            --output-dir /tmp/stage21_effective_sampling \
+            --nx 6 --ny 6 --ppc 20 \
+            --warm-steps 40 --pilot-steps 40 \
+            --evaluation-steps 80 --base-samples 20 \
+            --minimum-samples 15 --maximum-samples 25 \
+            --nv 6 --dvm-max-steps 900 \
+            --seeds 399 411 422 433 444 455 466 477 488 499
+      - name: Verify Stage 21 endpoints and budgets
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          summary = json.load(open('/tmp/stage21_effective_sampling/summary.json'))
+          assert summary['stage'] == 21
+          assert summary['configuration']['observations_per_estimator'] == 720
+          assert summary['configuration']['seeds'] == [399,411,422,433,444,455,466,477,488,499]
+          assert len(summary['rows']) == 60
+          assert set(summary['policy_summaries']) == {
+              'weighted_raw_variance',
+              'weighted_effective_variance',
+          }
+          for row in summary['rows']:
+              assert row['uniform_observations'] == row['adaptive_observations'] == 720
+              assert row['observation_ratio'] == 1.0
+              assert math.isfinite(row['sampling_error_ratio'])
+              assert math.isfinite(row['dvm_error_ratio'])
+          for policy in summary['policy_summaries'].values():
+              primary = policy['sampling_error']
+              assert primary['run_count'] == 30
+              assert primary['ci95_low'] <= primary['mean'] <= primary['ci95_high']
+              assert isinstance(policy['primary_success'], bool)
+          assert Path('/tmp/stage21_effective_sampling/effective_sampling_maps.npz').exists()
+          PY

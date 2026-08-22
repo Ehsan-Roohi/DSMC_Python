@@ -1,0 +1,158 @@
+name: Vision-guided DSMC Stage 57
+
+on:
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage57_conservative_solver_pilot.py'
+      - 'vision_guided_dsmc/tests/test_stage57_conservative_solver_pilot.py'
+      - '.github/workflows/vision-guided-dsmc-stage57.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  conservative-solver-pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 57 and retained conservative-projection infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage57_conservative_solver_pilot.py \
+            tests/test_stage56_conservative_projection_pilot.py \
+            tests/test_stage55_unclipped_quadrature_closure_audit.py \
+            tests/test_stage54_projected_collision_moment_audit.py \
+            tests/test_stage53_radial_mapping_tail_audit.py \
+            tests/test_stage52_velocity_resolution_audit.py \
+            tests/test_stage50_projected_polar_cross_kn_extension.py \
+            tests/test_stage42_projected_polar_heated_cavity_pilot.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Download exact completed Stage 56 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage56-conservative-projection-pilot
+          path: /tmp/stage56_conservative_projection_pilot
+          run-id: 30838743466
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run frozen Stage 57 conservative solver-integration pilot
+        run: |
+          python -m vgdsmc.stage57_conservative_solver_pilot \
+            --stage56-artifact-dir /tmp/stage56_conservative_projection_pilot \
+            --output-dir /tmp/stage57_conservative_solver_pilot
+      - name: Verify provenance, paired results, closure and explicit endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage57_conservative_solver_pilot')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 57
+          assert summary['retained_stage56_decision'] == (
+              'conservative_positive_projection_closes_frozen_fields_'
+              'stage57_single_case_solver_pilot'
+          )
+          retained = summary['retained_stage56_endpoint']
+          assert retained['workflow_run_id'] == 30838743466
+          assert retained['workflow_job_id'] == 91770307142
+          assert retained['workflow_conclusion'] == 'success'
+          assert retained['tests_passed'] == 113
+          assert retained['tests_failed'] == 0
+          assert retained['artifact_id'] == 8870328780
+          assert retained['artifact_sha256'] == (
+              'eb16133a3288e652b15986fdf9ae6c1738499a030509c06ac9cd785a3ca45946'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grid'] == [16, 16]
+          assert cfg['radial_nodes'] == 40
+          assert cfg['angular_nodes'] == 96
+          assert cfg['point_count'] == 3840
+          assert cfg['radial_scale'] == 2.0
+          assert cfg['retained_correction_floor'] == 0.05
+          assert cfg['source_relaxation'] == 1.0
+          for key in (
+              'physical_parameter_retuning',
+              'collision_parameter_retuning',
+              'transport_retuning',
+              'wall_model_retuning',
+              'normalization_retuning',
+              'correction_floor_retuning',
+              'source_relaxation_retuning',
+          ):
+              assert cfg[key] is False
+          assert cfg['paired_retained_clipped_baseline'] is True
+          assert cfg['grid_is_preregistered_integration_pilot_not_validation_resolution'] is True
+
+          for arm_name in ('baseline_clipped', 'conservative_projection'):
+              arm = summary[arm_name]
+              for key in (
+                  'iterations',
+                  'final_change',
+                  'predicted_qav',
+                  'literature_qav',
+                  'qav_relative_error',
+                  'wall_mass_balance_relative_error',
+                  'minimum_phi',
+                  'minimum_psi',
+                  'work_proxy',
+              ):
+                  assert math.isfinite(float(arm[key]))
+              assert len(arm['table_velocity']) == 10
+              assert all(math.isfinite(float(v)) for v in arm['table_velocity'])
+              assert all(
+                  math.isfinite(float(v))
+                  for v in arm['velocity_metrics'].values()
+              )
+
+          projection = summary['projection_diagnostics']
+          for value in projection.values():
+              assert math.isfinite(float(value))
+
+          for filename in (
+              'baseline_clipped_fields_and_profiles.npz',
+              'conservative_fields_and_profiles.npz',
+          ):
+              with np.load(root / filename) as data:
+                  required = {
+                      'T', 'rho', 'u', 'v', 'qx', 'qy',
+                      'left_wall_velocity', 'table_velocity',
+                      'bottom_heat_flux', 'residual_history',
+                  }
+                  assert required.issubset(data.files)
+                  for key in required:
+                      assert np.isfinite(data[key]).all()
+                  assert data['T'].shape == (16, 16)
+                  assert data['table_velocity'].shape == (10,)
+
+          allowed = {
+              'stage57_conservative_solver_pilot_passes_stage58_frozen_64x64_confirmation',
+              'stage57_conservative_solver_stable_but_observables_degrade_requires_review_before_full_resolution',
+              'stage57_stable_nonconverged_blocker_without_parameter_retuning',
+              'stage57_conservative_projection_in_solver_blocker_requires_review',
+              'stage57_conservative_solver_numerical_blocker_requires_review',
+              'stage57_retained_clipped_baseline_numerical_blocker',
+              'stage57_conservative_solver_nonfinite_blocker_requires_review',
+          }
+          assert summary['decision'] in allowed
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage57-conservative-solver-pilot
+          path: /tmp/stage57_conservative_solver_pilot
+          retention-days: 30

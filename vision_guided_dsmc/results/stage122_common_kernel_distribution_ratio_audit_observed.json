@@ -1,0 +1,62 @@
+{
+  "stage": 122,
+  "record_type": "completed_common_kernel_distribution_ratio_audit",
+  "source_head": "8725bd56cebaa4d036f7eb741be3ba231480e621",
+  "workflow_status": "completed",
+  "workflow_conclusion": "success",
+  "workflow_run_id": 31865788577,
+  "workflow_job_id": 94966518942,
+  "artifact_id": 9245886921,
+  "artifact_size_bytes": 5383,
+  "artifact_sha256": "9102aec398c865639945190c24b3368ceb10fbe02ee2b3308e05dab288fb9c00",
+  "summary_sha256": "aea388dc498b1f78693fa215c8996bef6f71c949a4f2ffc8e169d0603c1e4e13",
+  "common_kernel_distribution_ratio_sha256": "bc7829374fd43056c74ee101bac87d045760e76f6b520125749a2b017bf3591e",
+  "tests": {"passed": 6, "failed": 0},
+  "decision": "stage122_common_kernel_ratio_wall_distance_stable_stage123_cellwise_ratio_persistence_audit",
+  "aggregate": {
+    "minimum_pairwise_centered_log_ratio_cosine": 0.997927123091762,
+    "maximum_node_ratio_relative_range": 0.1385445252317916,
+    "minimum_leave_one_out_template_profile_cosine": 0.9988867590373174,
+    "minimum_leave_one_out_template_overlap": 0.9778084768563783,
+    "maximum_leave_one_out_template_total_variation": 0.02219152314362176,
+    "common_last_ratio_above_one_node": 2,
+    "maximum_stage121_metric_reconstruction_absolute_error": 0.0
+  },
+  "key_metrics": {
+    "near_1_4": {
+      "common_profile_cosine": 0.8922989345522074,
+      "common_total_variation": 0.2185663734968383,
+      "leave_one_out_template_profile_cosine": 0.9988868387327687,
+      "leave_one_out_template_overlap": 0.9797831630257616,
+      "leave_one_out_template_total_variation": 0.020216836974238303,
+      "ratio_node0": 12.469792190099856,
+      "ratio_node2": 1.6809996328799546,
+      "ratio_node3": 0.7204682110329668,
+      "ratio_node9": 0.44266775897047556
+    },
+    "mid_5_14": {
+      "common_profile_cosine": 0.888727016692831,
+      "common_total_variation": 0.2179317844419425,
+      "leave_one_out_template_profile_cosine": 0.9994262556249718,
+      "leave_one_out_template_overlap": 0.9850675244105049,
+      "leave_one_out_template_total_variation": 0.0149324755894951,
+      "ratio_node0": 13.625696170709201,
+      "ratio_node2": 1.532578592732878,
+      "ratio_node3": 0.660831600380325,
+      "ratio_node9": 0.45027788152202564
+    },
+    "inner_15_28": {
+      "common_profile_cosine": 0.8878242440361478,
+      "common_total_variation": 0.22445030055929627,
+      "leave_one_out_template_profile_cosine": 0.9988867590373174,
+      "leave_one_out_template_overlap": 0.9778084768563783,
+      "leave_one_out_template_total_variation": 0.02219152314362176,
+      "ratio_node0": 14.103492145542042,
+      "ratio_node2": 1.6807282767245209,
+      "ratio_node3": 0.6276900297848695,
+      "ratio_node9": 0.5036114330768584
+    }
+  },
+  "scientific_conclusion": "The residual phi/psi radial ratio under the same |c_x| kernel is highly reproducible across the three fixed wall-distance bands. Pairwise centered-log-ratio cosine is at least 0.997927, and leave-one-band-out ratio templates predict held-out radial profiles with cosine at least 0.998887, overlap at least 0.977808, and total variation at most 0.022192. This supports a wall-distance-stable distribution-specific radial structure and justifies the preregistered cellwise persistence audit. It does not establish limiter causality, MUSCL stability, endpoint convergence, q_av improvement, benchmark accuracy, or validation.",
+  "design_guard": "No model, wall, collision/source, reconstruction, transport, positivity/correction floor, normalization, source-relaxation, velocity-grid, or failed MUSCL parameter was changed. Stage 90 remains nonconverged, Stage 28 remains a failed MUSCL endpoint, Stage 89 remains unpromoted, no solver endpoint is advanced, and no cross-Knudsen extension is permitted."
+}

@@ -1,0 +1,186 @@
+name: Vision-guided DSMC Stage 55
+
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage55_unclipped_quadrature_closure_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage55_unclipped_quadrature_closure_audit.py'
+      - 'vision_guided_dsmc/results/stage54_projected_collision_moment_audit_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage55.yml'
+  pull_request:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage55_unclipped_quadrature_closure_audit.py'
+      - 'vision_guided_dsmc/tests/test_stage55_unclipped_quadrature_closure_audit.py'
+      - 'vision_guided_dsmc/results/stage54_projected_collision_moment_audit_summary.json'
+      - '.github/workflows/vision-guided-dsmc-stage55.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unclipped-quadrature-closure-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - name: Test Stage 55 and retained projected-polar infrastructure
+        run: |
+          pytest -q \
+            tests/test_stage55_unclipped_quadrature_closure_audit.py \
+            tests/test_stage54_projected_collision_moment_audit.py \
+            tests/test_stage53_radial_mapping_tail_audit.py \
+            tests/test_stage52_velocity_resolution_audit.py \
+            tests/test_stage51_heat_flux_definition_audit.py \
+            tests/test_stage50_projected_polar_cross_kn_extension.py \
+            tests/test_stage49_projected_polar_64x64_confirmation.py \
+            tests/test_stage48_projected_polar_56x56_confirmation.py \
+            tests/test_stage47_projected_polar_48x48_confirmation.py \
+            tests/test_stage46_projected_polar_40x40_confirmation.py \
+            tests/test_stage45_projected_polar_32x32_confirmation.py \
+            tests/test_stage44_projected_polar_finer_grid_sequence.py \
+            tests/test_stage43_projected_polar_resolution_sequence.py \
+            tests/test_stage42_projected_polar_heated_cavity_pilot.py \
+            tests/test_stage40_external_benchmark_fidelity_audit.py \
+            tests/test_reduced_spherical_solver.py
+      - name: Download exact completed Stage 53 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage53-radial-mapping-tail-audit
+          path: /tmp/stage53_radial_mapping_tail_audit
+          run-id: 30803098842
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download exact completed Stage 54 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage54-projected-collision-moment-audit
+          path: /tmp/stage54_projected_collision_moment_audit
+          run-id: 30814308875
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run frozen Stage 55 unclipped quadrature-closure audit
+        run: |
+          python -m vgdsmc.stage55_unclipped_quadrature_closure_audit \
+            --stage53-artifact-dir /tmp/stage53_radial_mapping_tail_audit \
+            --stage54-artifact-dir /tmp/stage54_projected_collision_moment_audit \
+            --output-dir /tmp/stage55_unclipped_quadrature_closure_audit
+      - name: Verify provenance, frozen design and explicit scientific endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          from pathlib import Path
+          import numpy as np
+
+          root = Path('/tmp/stage55_unclipped_quadrature_closure_audit')
+          summary = json.load(open(root / 'summary.json'))
+          assert summary['stage'] == 55
+
+          retained54 = summary['retained_stage54_endpoint']
+          assert retained54['workflow_run_id'] == 30814308875
+          assert retained54['workflow_job_id'] == 91688181380
+          assert retained54['workflow_conclusion'] == 'success'
+          assert retained54['tests_passed'] == 96
+          assert retained54['tests_failed'] == 0
+          assert retained54['artifact_id'] == 8858775690
+          assert retained54['artifact_sha256'] == (
+              '0b8ee8fae6ef5d74eafbb17802ce6f76846f0db95f007ab299e19f4db1726afb'
+          )
+          assert summary['retained_stage54_decision'] == (
+              'projected_collision_formula_or_quadrature_blocker'
+          )
+
+          cfg = summary['configuration']
+          assert cfg['kn0'] == 10.0
+          assert cfg['cold_hot_ratio'] == 0.1
+          assert cfg['grid'] == [64, 64]
+          assert cfg['quadrature_rules'] == [
+              {
+                  'name': 'retained_32x96',
+                  'radial_nodes': 32,
+                  'angular_nodes': 96,
+                  'point_count': 3072,
+              },
+              {
+                  'name': 'radial_40x96',
+                  'radial_nodes': 40,
+                  'angular_nodes': 96,
+                  'point_count': 3840,
+              },
+              {
+                  'name': 'angular_32x120',
+                  'radial_nodes': 32,
+                  'angular_nodes': 120,
+                  'point_count': 3840,
+              },
+              {
+                  'name': 'coupled_40x120',
+                  'radial_nodes': 40,
+                  'angular_nodes': 120,
+                  'point_count': 4800,
+              },
+          ]
+          for key in (
+              'physical_parameter_retuning',
+              'collision_parameter_retuning',
+              'transport_retuning',
+              'wall_model_retuning',
+              'normalization_retuning',
+              'active_solver_quadrature_retuning',
+              'solver_rerun',
+          ):
+              assert cfg[key] is False
+          assert cfg['audit_quadrature_varied'] is True
+          assert cfg['unclipped_equilibrium_is_diagnostic_only'] is True
+
+          expected_cases = {'compressed_tail', 'expanded_tail'}
+          expected_rules = {
+              'retained_32x96',
+              'radial_40x96',
+              'angular_32x120',
+              'coupled_40x120',
+          }
+          assert set(summary['case_audits']) == expected_cases
+          for case_name, rows in summary['case_audits'].items():
+              assert set(rows) == expected_rules
+              for rule_name, metrics in rows.items():
+                  assert math.isfinite(metrics['maximum_conserved_moment_defect'])
+                  assert math.isfinite(metrics['rms_conserved_moment_defect'])
+                  assert math.isfinite(metrics['heat_flux_closure_relative_l2'])
+                  assert math.isfinite(
+                      metrics['conserved_defect_reduction_from_retained']
+                  )
+                  assert math.isfinite(
+                      metrics['heat_flux_closure_reduction_from_retained']
+                  )
+                  path = root / f'{case_name}_{rule_name}_closure_diagnostics.npz'
+                  with np.load(path) as data:
+                      required = {
+                          'local_conserved_moment_defect',
+                          'local_heat_flux_closure_absolute',
+                      }
+                      assert required.issubset(data.files)
+                      for key in required:
+                          assert data[key].shape == (64, 64)
+                          assert np.isfinite(data[key]).all()
+
+          allowed = {
+              'radial_quadrature_closes_unclipped_formula_positivity_clipping_breaks_invariants_stage56_conservative_projection_pilot',
+              'unclipped_formula_quadrature_converging_stage56_higher_radial_resolution_confirmation',
+              'unclipped_formula_quadrature_unresolved_stage56_higher_radial_resolution_confirmation',
+              'projected_collision_formula_blocker_requires_review',
+          }
+          assert summary['decision'] in allowed
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage55-unclipped-quadrature-closure-audit
+          path: /tmp/stage55_unclipped_quadrature_closure_audit
+          retention-days: 30

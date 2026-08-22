@@ -1,0 +1,136 @@
+{
+  "stage": 33,
+  "workflow": {
+    "name": "Vision-guided DSMC Stage 33",
+    "run_id": 30691650579,
+    "job_id": 91347331072,
+    "status": "completed",
+    "conclusion": "success",
+    "tests_passed": 24,
+    "tests_failed": 0,
+    "artifact": {
+      "id": 8816902851,
+      "name": "stage33-asymptotic-spatial-extrapolation",
+      "size_in_bytes": 17750,
+      "sha256": "6cb6148d130387f50375cec1763d8f1dc67422f3575c4c53594e9ba996aa8497",
+      "created_at": "2026-08-01T10:01:21Z",
+      "expires_at": "2026-08-31T10:01:20Z"
+    }
+  },
+  "description": "Frozen-physics high-resolution spatial extrapolation for the Kn0=0.1 spherical-quadrature cavity",
+  "configuration": {
+    "kn0": 0.1,
+    "cold_hot_ratio": 0.1,
+    "grids": [[24, 24], [30, 30], [36, 36]],
+    "quadrature": "spherical_matched_r16_mu12_phi24",
+    "velocity_point_count": 4608,
+    "transport": "first-order upwind",
+    "collision": "Shakhov",
+    "observable": "linear_extrapolated_wall",
+    "max_steps": 12000,
+    "tolerance": 2e-5,
+    "physical_parameter_retuning": false
+  },
+  "rows": [
+    {
+      "grid": [24, 24],
+      "iterations": 3200,
+      "converged": true,
+      "final_change": 1.2261756367201032e-5,
+      "predicted_qav": 0.0871157583435301,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.20994108810458473,
+      "velocity_metrics": {
+        "relative_rms": 0.44355087667737597,
+        "sign_agreement": 0.9,
+        "relative_l1": 0.35796974780483015
+      },
+      "wall_mass_balance_relative_error": 1.6910969547113663e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1523954525019028,
+      "maximum_temperature": 0.8856444453443416,
+      "work_proxy": 8493465600
+    },
+    {
+      "grid": [30, 30],
+      "iterations": 4000,
+      "converged": true,
+      "final_change": 9.678366389209714e-6,
+      "predicted_qav": 0.08621792809989212,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.1974712236096129,
+      "velocity_metrics": {
+        "relative_rms": 0.33178936780901513,
+        "sign_agreement": 0.9,
+        "relative_l1": 0.32411082802695645
+      },
+      "wall_mass_balance_relative_error": 1.4488090009886292e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1469886396147455,
+      "maximum_temperature": 0.892879026395673,
+      "work_proxy": 16588800000
+    },
+    {
+      "grid": [36, 36],
+      "iterations": 4700,
+      "converged": true,
+      "final_change": 1.5171767575950304e-5,
+      "predicted_qav": 0.08562078316626645,
+      "literature_qav": 0.072,
+      "qav_relative_error": 0.189177543975923,
+      "velocity_metrics": {
+        "relative_rms": 0.3004656590542708,
+        "sign_agreement": 0.9,
+        "relative_l1": 0.3166515013602979
+      },
+      "wall_mass_balance_relative_error": 2.233179771907449e-16,
+      "minimum_distribution": 1e-30,
+      "minimum_temperature": 0.1431955674082093,
+      "maximum_temperature": 0.8979170242925043,
+      "work_proxy": 28068249600
+    }
+  ],
+  "linear_in_h_extrapolation": {
+    "predicted_qav_h0": 0.08263027680037088,
+    "qav_slope": 0.1076462193266847,
+    "qav_fit_r2": 0.9999995850881418,
+    "qav_relative_error_h0": 0.14764273333848457,
+    "velocity_profile_h0": [
+      0.0008091129077972073,
+      0.0004853245130422123,
+      -0.0004047167244073893,
+      -0.0014035983426637989,
+      -0.0024278844232370274,
+      -0.003421652740247317,
+      -0.004294577452896659,
+      -0.004891010315495223,
+      -0.004738119876805205,
+      -0.0026983956207333763
+    ],
+    "velocity_profile_slope": [
+      0.02727401888587485,
+      0.003641327303887794,
+      -0.0010094560527331349,
+      -0.0005274279337533956,
+      0.0031730821635839418,
+      0.010208678819938916,
+      0.02219530059020088,
+      0.04396141459235951,
+      0.07747440353417716,
+      0.11827764945396745
+    ],
+    "velocity_fit_r2": 0.9888607191258625,
+    "velocity_metrics_h0": {
+      "relative_rms": 0.8290958832550832,
+      "sign_agreement": 1.0,
+      "relative_l1": 0.7826029562129696
+    }
+  },
+  "finest_profile_change_30x30_to_36x36": 0.09738497606390441,
+  "all_cases_converged": true,
+  "qav_error_monotone": true,
+  "velocity_error_monotone": true,
+  "decision": "asymptotic_limit_retains_model_or_benchmark_discrepancy",
+  "scientific_conclusion": "Spatial refinement reduces both Table 6 heat-flux error and finite-grid Table 3 velocity error monotonically, but the linear h-to-zero heat-flux limit remains 14.7643% above the published value. The paper uses the nonlinear Shakhov equation, so the next audit must check exact nondimensional velocity-scale consistency before changing physical parameters or collision models.",
+  "interpretation_guard": "Only spatial resolution changed. The h-to-zero fit is a diagnostic extrapolation, not an uncertainty bound. Negative residual discrepancy is retained."
+}

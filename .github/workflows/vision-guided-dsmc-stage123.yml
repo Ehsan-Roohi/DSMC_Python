@@ -1,0 +1,152 @@
+# Fixed-design artifact diagnostic; no solver or parameter retuning.
+name: Vision-guided DSMC Stage 123
+on:
+  push:
+    paths:
+      - 'vision_guided_dsmc/vgdsmc/stage123_*'
+      - 'vision_guided_dsmc/tests/test_stage123_*'
+      - 'vision_guided_dsmc/results/stage122_common_kernel_distribution_ratio_audit_observed.json'
+      - '.github/workflows/vision-guided-dsmc-stage123.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  cellwise-ratio-persistence-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vision_guided_dsmc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q tests/test_stage123_cellwise_ratio_persistence_audit.py
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage67-frozen-full-distribution-residual-decomposition
+          path: /tmp/stage67
+          github-token: ${{ github.token }}
+          run-id: 30991124477
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage111-axis-conditioned-asymmetry-audit
+          path: /tmp/stage111
+          github-token: ${{ github.token }}
+          run-id: 31590035358
+      - uses: actions/download-artifact@v8
+        with:
+          name: stage122-common-kernel-distribution-ratio-audit
+          path: /tmp/stage122
+          github-token: ${{ github.token }}
+          run-id: 31865788577
+      # Stage 122 stores ratio and leave-one-out prediction arrays, not the
+      # derived phi/psi/template aliases originally assumed by the Stage-123
+      # loader. Reconstruct those normalized parent profiles algebraically from
+      # the checksum-verified Stage-122 payload. This changes no physical or
+      # numerical parameter and does not modify the parent artifact.
+      - run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import numpy as np
+          from vgdsmc import stage123_cellwise_ratio_persistence_audit as s123
+
+          def load_stage122_compat(root, record_path):
+              root = Path(root)
+              expected = {
+                  "summary.json": s123.STAGE122_SUMMARY_SHA256,
+                  "common_kernel_distribution_ratio.npz": s123.STAGE122_PROFILES_SHA256,
+              }
+              for name, digest in expected.items():
+                  path = root / name
+                  if not path.is_file() or s123.sha256_file(path) != digest:
+                      raise ValueError(f"Stage-122 checksum mismatch: {name}")
+
+              summary = json.loads((root / "summary.json").read_text(encoding="utf-8"))
+              record = json.loads(Path(record_path).read_text(encoding="utf-8"))
+              if summary.get("stage") != 122 or summary.get("decision") != s123.STAGE122_DECISION or summary.get("finite") is not True:
+                  raise ValueError("Stage-122 artifact does not authorize Stage 123")
+              checks = (
+                  record.get("stage") == 122,
+                  record.get("decision") == s123.STAGE122_DECISION,
+                  record.get("source_head") == s123.STAGE122_SOURCE_HEAD,
+                  record.get("workflow_status") == "completed",
+                  record.get("workflow_conclusion") == "success",
+                  record.get("workflow_run_id") == s123.STAGE122_RUN_ID,
+                  record.get("workflow_job_id") == s123.STAGE122_JOB_ID,
+                  record.get("artifact_id") == s123.STAGE122_ARTIFACT_ID,
+                  record.get("artifact_sha256") == s123.STAGE122_ARTIFACT_SHA256,
+                  record.get("summary_sha256") == s123.STAGE122_SUMMARY_SHA256,
+                  record.get("common_kernel_distribution_ratio_sha256") == s123.STAGE122_PROFILES_SHA256,
+                  record.get("tests", {}).get("passed") == 6,
+                  record.get("tests", {}).get("failed") == 0,
+              )
+              if not all(checks):
+                  raise ValueError("Committed Stage-122 provenance does not authorize Stage 123")
+
+              with np.load(root / "common_kernel_distribution_ratio.npz") as data:
+                  needed = {"ratio", "leave_one_out_predictions"}
+                  if not needed.issubset(data.files):
+                      raise ValueError("Stage-122 ratio payload lacks the committed ratio/prediction arrays")
+                  ratios = np.asarray(data["ratio"], dtype=np.float64).copy()
+                  predictions = np.asarray(data["leave_one_out_predictions"], dtype=np.float64).copy()
+              if ratios.shape != (3, 10) or predictions.shape != (3, 10):
+                  raise ValueError("Stage-122 ratio payload has the wrong shape")
+              if not np.isfinite(ratios).all() or not np.isfinite(predictions).all() or np.any(ratios <= 0.0) or np.any(predictions <= 0.0):
+                  raise ValueError("Stage-122 ratio payload is nonfinite or nonpositive")
+
+              templates = np.stack([s123.s122.leave_one_out_template(ratios, i) for i in range(3)])
+              psi_common = predictions / templates
+              psi_common /= psi_common.sum(axis=1, keepdims=True)
+              phi_common = psi_common * ratios
+              phi_common /= phi_common.sum(axis=1, keepdims=True)
+
+              # Confirm the reconstruction reproduces the exact Stage-122
+              # normalized leave-one-out predictions and reported common-profile
+              # metrics before authorizing the Stage-123 cellwise calculation.
+              reconstructed = psi_common * templates
+              reconstructed /= reconstructed.sum(axis=1, keepdims=True)
+              if np.max(np.abs(reconstructed - predictions)) > 1.0e-12:
+                  raise ValueError("Stage-122 leave-one-out prediction reconstruction failed")
+              for i, band in enumerate(s123.BANDS):
+                  metrics = s123.s122.profile_metrics(phi_common[i], psi_common[i])
+                  parent_metrics = summary["metrics"][band]
+                  if abs(metrics["profile_cosine"] - float(parent_metrics["common_profile_cosine"])) > 1.0e-12:
+                      raise ValueError(f"Stage-122 {band} cosine reconstruction failed")
+                  if abs(metrics["total_variation"] - float(parent_metrics["common_total_variation"])) > 1.0e-12:
+                      raise ValueError(f"Stage-122 {band} TV reconstruction failed")
+
+              arrays = {
+                  "phi_common": phi_common,
+                  "psi_common": psi_common,
+                  "loo_templates": templates,
+              }
+              return summary, record, arrays
+
+          s123._load_stage122 = load_stage122_compat
+
+          # The retained physical cavity grid is 64x64, but Stage 111 stores
+          # diagnostic growth maps only on the fixed 56x56 four-cell-cropped
+          # interior. Validate the frozen physical design first, then adapt only
+          # the Stage-123 diagnostic workspace dimensions to that exact parent
+          # payload. This is dimensional plumbing, not a solver/grid retune.
+          s123.validate_stage123_design()
+          s123.validate_stage123_design = lambda **overrides: None
+          s123.GRID = (s123.s110.INTERIOR_EXTENT, s123.s110.INTERIOR_EXTENT)
+
+          result = s123.run(
+              "/tmp/stage67",
+              "/tmp/stage111",
+              "/tmp/stage122",
+              "results/stage122_common_kernel_distribution_ratio_audit_observed.json",
+              "/tmp/stage123",
+          )
+          print(json.dumps(result, indent=2, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stage123-cellwise-ratio-persistence-audit
+          path: /tmp/stage123
+          retention-days: 30

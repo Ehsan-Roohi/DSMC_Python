@@ -1,0 +1,58 @@
+{
+  "stage": 75,
+  "status": "completed",
+  "workflow_run_id": 31115869623,
+  "workflow_job_id": 92665123190,
+  "workflow_conclusion": "success",
+  "tests_passed": 190,
+  "tests_failed": 0,
+  "test_duration_seconds": 0.92,
+  "artifact": {
+    "name": "stage75-signed-face-location-velocity-moment-audit",
+    "artifact_id": 8975166032,
+    "size_bytes": 302986,
+    "sha256": "603a37b7b4dd1884e421288ba1bc4da4175bf6c68e96b70bee0c39beb2e86c13",
+    "summary_sha256": "a06f24fc646b2bb1c62369a7d597ed32d078e72783bda50cce5865ff1baa882a",
+    "signed_face_location_velocity_moment_maps_sha256": "2299b1901dad1f38173806ad53bc41dc73a860ec922a9bc00822052ad2e92e20"
+  },
+  "source_head_sha": "5c44701d4aa7c6710c35ac554009c7de5724ba85",
+  "decision": "stage75_conservative_face_pair_cancellation_stage76_local_velocity_frame_jump_audit",
+  "exact_fine_grid_metrics": {
+    "grid": [64, 64],
+    "moment_absolute_shares": [0.23945461842432889, 0.5592125701438556, 0.20133281143181556],
+    "moment_signed_sums": [0.0013254443056110897, -0.003521722615118579, -0.00020772630383162488],
+    "moment_to_total_absolute_cancellation_ratio": 0.9997605051154248,
+    "face_pair_pre_cancellation_absolute_sum": 963.4896929860649,
+    "face_pair_post_cancellation_absolute_sum": 0.011451439132958811,
+    "face_pair_cancellation_ratio": 1.1885377930165813e-05,
+    "left_right_signed_balance_error": 2.8547857046469722e-11,
+    "outer_x_quarters_absolute_share": 0.7683586303886649,
+    "interior_y_band_absolute_share": 0.915237774680242,
+    "total_cell_map_rms": 0.059492728928683646,
+    "total_cell_map_absolute_sum": 81.97149071645086,
+    "total_cell_map_signed_sum": -0.0024040046133392973,
+    "total_cell_map_signed_to_absolute_ratio": -2.9327325785193235e-05,
+    "moment_sum_maximum_absolute_error": 1.6653345369377348e-16,
+    "moment_sum_relative_l2_error": 3.536821997218683e-16
+  },
+  "positive_findings": [
+    "The three fixed peculiar-velocity moment components reproduce the exact Stage-74 x-direction q_y residual map within the frozen closure guard.",
+    "Every interior face was retained with separate conservative contributions to the left and right target cells.",
+    "The exact Stage-67 distributions were used without a cavity solver rerun or operator substitution."
+  ],
+  "negative_findings": [
+    "The face-pair post-cancellation magnitude is only 1.1885377930165813e-05 of the pre-cancellation magnitude, so the large target-cell contributions nearly cancel conservatively across each shared face.",
+    "Large pre-cancellation face contributions are not a sensitivity measure and do not predict the q_av response of a converged modified solver.",
+    "The failed Stage-28 MUSCL endpoint remains unrecovered and was not extended across Knudsen number.",
+    "No physical, collision, correction-floor, source-relaxation, transport, wall, normalization, or velocity-quadrature parameter was retuned."
+  ],
+  "next_stage": {
+    "stage": 76,
+    "name": "Local Velocity-Frame Jump Audit",
+    "scope": "Using the exact Stage-67 distributions and Stage-75 face maps, reconstruct the small non-cancelling face-pair remainder analytically from jumps in the neighboring cells' local peculiar-velocity frames, quantify u-jump, v-jump, and nonlinear cross terms, and compare that remainder with the full frozen cell residual before any solver experiment.",
+    "retuning_permitted": false,
+    "solver_rerun_permitted": false,
+    "validation_claim_permitted": false,
+    "cross_knudsen_extension_permitted": false
+  }
+}
