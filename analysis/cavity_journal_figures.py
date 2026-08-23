@@ -91,7 +91,7 @@ def ensemble_figure(data: np.lib.npyio.NpzFile, output: Path) -> None:
     bias_limit = robust_limit(*(row[2] for row in rows), percentile=99.5)
     gain_limit = robust_limit(*(row[3] for row in rows), percentile=99.5)
 
-    fig, axes = plt.subplots(2, 4, figsize=(19.2, 8.5))
+    fig, axes = plt.subplots(2, 4, figsize=(19.2, 9.3))
     titles = ("Reference mean", "Proposed mean", "Signed bias", "RMSE reduction")
     artists = []
     for row in range(2):
@@ -107,9 +107,11 @@ def ensemble_figure(data: np.lib.npyio.NpzFile, output: Path) -> None:
             artists.append(artist)
             panel_axes(ax, row * 4 + col, titles[col], row == 1, col == 0)
             ax.title.set_fontsize(21)
-    fig.subplots_adjust(left=0.07, right=0.995, top=0.91, bottom=0.20, wspace=0.15, hspace=0.30)
-    fig.text(0.012, 0.705, row_labels[0], rotation=90, ha="center", va="center", fontsize=23, color=NAVY, fontweight="bold")
-    fig.text(0.012, 0.355, row_labels[1], rotation=90, ha="center", va="center", fontsize=23, color=NAVY, fontweight="bold")
+    fig.subplots_adjust(left=0.055, right=0.995, top=0.84, bottom=0.18, wspace=0.15, hspace=0.72)
+    # Horizontal condition banners avoid collision with the shared y-axis and
+    # remain readable after the landscape page is scaled by LaTeX.
+    fig.text(0.51, 0.94, "Condition " + row_labels[0], ha="center", va="center", fontsize=22, color=NAVY, fontweight="bold")
+    fig.text(0.51, 0.51, "Condition " + row_labels[1], ha="center", va="center", fontsize=22, color=NAVY, fontweight="bold")
     specs = ((artists[0], [0.08, 0.065, 0.25, 0.034], r"Mean $q_y$ ($10^6$ W m$^{-2}$)", field_limit), (artists[2], [0.39, 0.065, 0.25, 0.034], r"Bias $\Delta q_y$ ($10^6$ W m$^{-2}$)", bias_limit), (artists[3], [0.70, 0.065, 0.25, 0.034], r"RMSE reduction ($10^6$ W m$^{-2}$)", gain_limit))
     for artist, bounds, label, limit in specs:
         cb = fig.colorbar(artist, cax=fig.add_axes(bounds), orientation="horizontal")
