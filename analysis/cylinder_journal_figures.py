@@ -29,6 +29,11 @@ RED = "#D1495B"
 GRAY = "#8A939E"
 PURPLE = "#6F3C8E"
 
+CYLINDER_RADIUS_M = 0.1524
+CYLINDER_DIAMETER_M = 2.0 * CYLINDER_RADIUS_M
+CYLINDER_CENTER_X_M = 0.1524
+CYLINDER_CENTER_Y_M = 0.0
+
 METHODS = (
     ("target", "Independent reference", "#111111", "-", 3.1),
     ("raw_b3", r"Raw DSMC, $B=3$", GRAY, ":", 2.7),
@@ -66,10 +71,12 @@ def save(fig: plt.Figure, output: Path, stem: str) -> None:
 
 
 def geometry(data: np.lib.npyio.NpzFile) -> tuple[np.ndarray, np.ndarray, float, mtri.Triangulation]:
-    # The locked DS2V deck uses a diameter D=0.2 m and centre (0,0).
-    diameter = 0.2
-    x = np.asarray(data["x_m"], dtype=float) / diameter
-    y = np.asarray(data["y_m"], dtype=float) / diameter
+    # The archived DS2V coordinates are absolute.  Translate by the physical
+    # cylinder centre before normalising; otherwise the numerical solid mask
+    # and the overlaid analytical cylinder are displaced by x_c/D=0.762.
+    diameter = CYLINDER_DIAMETER_M
+    x = (np.asarray(data["x_m"], dtype=float) - CYLINDER_CENTER_X_M) / diameter
+    y = (np.asarray(data["y_m"], dtype=float) - CYLINDER_CENTER_Y_M) / diameter
     tri = mtri.Triangulation(x, y)
     tx = x[tri.triangles]
     ty = y[tri.triangles]
@@ -177,7 +184,7 @@ def native_representation_figure(data: np.lib.npyio.NpzFile, output: Path) -> No
     near = np.asarray(data["near_wall_mask"])[0].astype(float)
 
     fig, axes = plt.subplots(1, 3, figsize=(19.0, 6.1))
-    area_artist = axes[0].tripcolor(tri, area, shading="flat", cmap="cividis")
+    area_artist = axes[0].tripcolor(tri, area * 1.0e5, shading="flat", cmap="cividis")
     theta_artist = axes[1].tripcolor(tri, theta_deg, shading="flat", cmap="magma", vmin=0.0, vmax=180.0)
     mask_map = ListedColormap(["#E7EBF0", RED])
     mask_norm = BoundaryNorm([-0.5, 0.5, 1.5], mask_map.N)
@@ -200,7 +207,7 @@ def native_representation_figure(data: np.lib.npyio.NpzFile, output: Path) -> No
     cax2 = fig.add_axes([0.385, 0.095, 0.25, 0.035])
     cax3 = fig.add_axes([0.695, 0.095, 0.25, 0.035])
     cb1 = fig.colorbar(area_artist, cax=cax1, orientation="horizontal")
-    cb1.set_label(r"Native cell area (m$^2$)", fontsize=23)
+    cb1.set_label(r"Native cell area ($10^{-5}$ m$^2$)", fontsize=23)
     cb2 = fig.colorbar(theta_artist, cax=cax2, orientation="horizontal", ticks=[0, 45, 90, 135, 180])
     cb2.set_label(r"Surface angle, $\theta$ (deg)", fontsize=23)
     cb3 = fig.colorbar(mask_artist, cax=cax3, orientation="horizontal", ticks=[0, 1])
@@ -375,7 +382,7 @@ def wake_profiles_figure(data: np.lib.npyio.NpzFile, output: Path) -> None:
     _, _, _, tri = geometry(data)
     ygrid = np.linspace(0.02, 1.30, 190)
     cuts = (0.75, 1.00, 1.50)
-    fig, axes = plt.subplots(1, 3, figsize=(19.2, 6.8), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(19.2, 9.4), sharey=True)
     handles = []
     for col, (ax, cut) in enumerate(zip(axes, cuts, strict=True)):
         reference_ensemble = np.asarray([interpolate_profile(tri, np.asarray(data["target_qy"])[pair], cut, ygrid) for pair in range(6)])
@@ -397,7 +404,7 @@ def wake_profiles_figure(data: np.lib.npyio.NpzFile, output: Path) -> None:
     axes[0].set_ylabel(r"Dimensionless height, $(y-y_c)/D$")
     labels = ["Independent-reference 10–90% range"] + [item[1] for item in METHODS]
     fig.legend(handles=handles, labels=labels, loc="upper center", bbox_to_anchor=(0.5, 0.995), ncol=3, frameon=False, handlelength=3.2, columnspacing=1.65)
-    fig.subplots_adjust(left=0.07, right=0.995, bottom=0.11, top=0.80, wspace=0.14)
+    fig.subplots_adjust(left=0.07, right=0.995, bottom=0.09, top=0.82, wspace=0.14)
     save(fig, output, "cylinder_wake_qy_profiles")
 
 
@@ -460,8 +467,8 @@ def magnitude_figure(data: np.lib.npyio.NpzFile, output: Path) -> None:
 def polar_figure(data: np.lib.npyio.NpzFile, output: Path) -> None:
     pair = 0
     theta = np.asarray(data["theta"])[pair]
-    x = np.asarray(data["x_m"], dtype=float) / 0.2
-    y = np.asarray(data["y_m"], dtype=float) / 0.2
+    x = (np.asarray(data["x_m"], dtype=float) - CYLINDER_CENTER_X_M) / CYLINDER_DIAMETER_M
+    y = (np.asarray(data["y_m"], dtype=float) - CYLINDER_CENTER_Y_M) / CYLINDER_DIAMETER_M
     radius = np.hypot(x, y)
     mask = (radius >= 0.5) & (radius <= 0.9) & (theta >= 0.0) & (theta <= np.pi)
     xx = radius[mask] * np.cos(theta[mask])
