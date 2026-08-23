@@ -1,0 +1,37 @@
+{
+  "stage": "JCP9_M12_support_aware_campaign_closeout",
+  "classification": "post_failure_reanalysis_no_new_DSMC_not_prospective",
+  "trigger": "The frozen M8/M10 model failed the locked zero-shot M12 prospective gate.",
+  "immutable_inputs": {
+    "JCP7_M12_PREDICTION_LOCK_sha256": "54db6c0be71764df87f9912090821d4676625ea7ccd8da1f4c069e7edd2ac0d8",
+    "JCP8_M12_REFERENCE_sha256": "340dd425239d3df48a056b618caf49b1af22348e384ae9ab3ae597c5ba587f12",
+    "JCP8_M12_SCORE_sha256": "0469f5d78f4a8e4b075a73c781c9d14a2074b16378c6fa2a5545633c14431866"
+  },
+  "split": {
+    "calibration_reference_seeds": [26082801, 26082802],
+    "heldout_reference_seeds": [26082803, 26082804],
+    "evaluation_seeds": [26082701, 26082702, 26082703, 26082704, 26082705, 26082706, 26082707, 26082708, 26082709, 26082710, 26082711, 26082712]
+  },
+  "calibration": {
+    "condition_prior": "mean of the 80 retained blocks from calibration seeds only",
+    "shrinkage_training": "fixed deterministic disjoint B3/B37 splits within calibration seeds only",
+    "spatial_zones": ["near_wall", "wake", "outer"],
+    "heat_flux_basis": ["cylinder_normal", "cylinder_tangential"],
+    "heldout_reference_access_during_fit": false
+  },
+  "comparators": ["Raw_B3", "Raw_B10", "calibration_prior"],
+  "promoted_method": "calibrated_B3",
+  "primary_endpoints": ["all_nine_fields_geometric_NRMSE_ratio_to_Raw_B10", "global_qy_ratio", "near_wall_qn_ratio"],
+  "gate": {
+    "ratio_threshold": 0.95,
+    "minimum_improved_evaluation_seeds": 9,
+    "required_endpoints": ["all_nine", "global_qy", "near_wall_qn"]
+  },
+  "reporting_guards": [
+    "retain and report the original prospective zero-shot failure",
+    "label this analysis post-failure and non-prospective",
+    "do not claim unseen-condition extrapolation",
+    "native wall heat flux remains a separate direct tally and is not predicted by the volume-field model"
+  ],
+  "additional_DSMC_required": false
+}
