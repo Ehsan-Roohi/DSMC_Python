@@ -351,7 +351,7 @@ def wall_heat_flux_figure_from_csv(profile_csv: Path, audit_path: Path, output: 
     qn_trend = arrays["minus_qn_symmetry_trend_W_m2"]
     qn_se = arrays["minus_qn_standard_error_W_m2"]
 
-    fig = plt.figure(figsize=(19.0, 7.6))
+    fig = plt.figure(figsize=(19.0, 8.4))
     grid = fig.add_gridspec(1, 3, width_ratios=[0.88, 1.55, 1.18])
     ax0 = fig.add_subplot(grid[0, 0])
     ax1 = fig.add_subplot(grid[0, 1])
@@ -432,15 +432,16 @@ def wall_heat_flux_figure_from_csv(profile_csv: Path, audit_path: Path, output: 
     ax2.set_ylabel(r"Heat flux toward cylinder (kW m$^{-2}$)")
     ax2.grid(alpha=0.23)
     ax2.set_title("(c) Stagnation-region audit", loc="left", pad=14, fontweight="bold", color="#17365D")
-    ax2.text(0.04, 0.95, r"even fit: $q=a+b(\pi-\theta)^2$" "\n" r"therefore $\partial q/\partial\theta=0$ at $180^{\circ}$",
-             transform=ax2.transAxes, ha="left", va="top", fontsize=18,
-             bbox={"facecolor": "white", "alpha": 0.94, "edgecolor": "#B8C2CC", "boxstyle": "round,pad=0.35"})
-
     fig.legend([raw_wall, trend_wall, raw_qn, trend_qn],
                [line.get_label() for line in (raw_wall, trend_wall, raw_qn, trend_qn)],
                loc="upper center", bbox_to_anchor=(0.66, 0.995), frameon=False, ncol=2,
                columnspacing=1.5, handlelength=2.8, fontsize=18)
-    fig.subplots_adjust(left=0.03, right=0.995, bottom=0.18, top=0.79, wspace=0.22)
+    # The symmetry definition occupies a reserved strip above panel (c), not
+    # the data area; this prevents the annotation from masking either trend.
+    fig.text(0.835, 0.805,
+             r"Even fit: $q=a+b(\pi-\theta)^2$;  $\partial q/\partial\theta=0$ at $180^{\circ}$",
+             ha="center", va="center", fontsize=17.5, color="#263746")
+    fig.subplots_adjust(left=0.03, right=0.995, bottom=0.17, top=0.72, wspace=0.22)
     save(fig, output, "mach12_wall_heat_flux_physical")
 
 
