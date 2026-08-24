@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="${JCP_ROOT:-/project/pi_roohie_umass_edu/DSMC_Python_M3_QY}"
 OUT="${JCP10_OUTPUT:-${ROOT}/JCP10_SUPPORT_AUDIT}"
 REPO="${JCP10_REPO:-${OUT}/code}"
-CODE_COMMIT="${JCP10_CODE_COMMIT:-088a568beb58b620e6eeacb5e3491b08ad81175d}"
+CODE_COMMIT="${JCP10_CODE_COMMIT:-e0d277b9048163fa0102fc14f8f73570e8cabae3}"
 RAW="https://raw.githubusercontent.com/Ehsan-Roohi/DSMC_Python/${CODE_COMMIT}"
 
 mkdir -p "${OUT}"
