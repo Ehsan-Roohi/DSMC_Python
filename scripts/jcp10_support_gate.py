@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Reference-independent support audit for the frozen Mach-12 estimator.
+"""Archive-reconstructed, target-free support audit for the Mach-12 estimator.
 
-The support decision uses only (i) empirical-Bayes (EB) gains recorded during
-the pre-Mach-12 Mach-8/Mach-10 development campaign and (ii) the frozen
-Mach-12 prediction manifest.  Independent reference fields are opened only
-after the decision has been reconstructed, and only to verify the decision.
+The support calculation uses only (i) empirical-Bayes (EB) gains recorded
+during the pre-Mach-12 Mach-8/Mach-10 development campaign and (ii) the frozen
+Mach-12 prediction manifest.  Reference fields are opened separately after the
+decision is reconstructed.  This computational ordering demonstrates target
+independence; it is not a claim that the rule was historically specified before
+the initial reference-scored Mach-12 analysis.  The rule is retrospectively
+specified and should be described as a domain-of-validity diagnostic.
 
 The audit is post-processing: it launches no DSMC trajectory and changes no
 archived prediction.  It produces machine-readable metrics, a journal figure,
@@ -346,7 +349,7 @@ def make_figure(
     ax0.set_xticks(positions, labels)
     ax0.set_ylim(-0.02, 1.02)
     ax0.set_ylabel(r"Empirical-Bayes observation gain, $K_{f,z}$")
-    ax0.set_title("(a) Development support and Mach-12 gains", loc="left", fontweight="bold", color=navy)
+    ax0.set_title("(a) Development support and Mach-12 gains", loc="left", fontweight="bold", color=navy, fontsize=17.5)
     ax0.grid(axis="y", alpha=0.25)
     ax0.legend(
         [bp1["boxes"][0], bp2["boxes"][0]],
@@ -369,7 +372,7 @@ def make_figure(
     ax1.set_xticks(np.arange(len(seeds)), [f"{i:02d}" for i in range(1, 13)])
     ax1.set_xlabel("Mach-12 evaluation seed index")
     ax1.set_ylabel("Fraction outside support")
-    ax1.set_title("(b) Target-free support decision", loc="left", fontweight="bold", color=navy)
+    ax1.set_title("(b) Target-free archival diagnostic", loc="left", fontweight="bold", color=navy, fontsize=17.5)
     ax1.grid(axis="y", alpha=0.25)
     for bar in bars:
         ax1.text(
@@ -393,7 +396,7 @@ def make_figure(
     ax2.set_xlabel("Held-out diagnostic")
     ax2.set_ylim(0.0, max(values) * 1.23)
     ax2.set_ylabel("NRMSE ratio to Raw-$B=10$")
-    ax2.set_title("(c) Independent held-out verification", loc="left", fontweight="bold", color=navy)
+    ax2.set_title("(c) Separate target verification", loc="left", fontweight="bold", color=navy, fontsize=17.5)
     ax2.grid(axis="y", alpha=0.25)
     for bar, value in zip(bars2, values, strict=True):
         ax2.text(
@@ -408,7 +411,7 @@ def make_figure(
         )
     ax2.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15), frameon=False)
 
-    fig.subplots_adjust(left=0.055, right=0.992, bottom=0.16, top=0.82, wspace=0.28)
+    fig.subplots_adjust(left=0.055, right=0.992, bottom=0.16, top=0.82, wspace=0.34)
     fig.savefig(
         output_dir / "mach12_support_gate.pdf",
         bbox_inches="tight",
@@ -447,7 +450,9 @@ def main() -> None:
     manifest, prediction_archive = load_prediction_manifest(args.prediction_lock)
     try:
         support = support_rows(development, manifest)
-        # The decision is complete before the held-out reference is opened.
+        # The target-free computation is complete before this program opens the
+        # verification archive.  This is computational separation, not a claim
+        # of historical preregistration.
         support_fraction = float(
             np.mean([bool(row["outside_development_support"]) for row in support])
         )
@@ -481,8 +486,11 @@ def main() -> None:
     make_figure(development, support, endpoint, args.output)
 
     summary = {
-        "stage": "JCP10_reference_independent_support_audit",
+        "stage": "JCP10_archival_target_free_support_audit",
         "classification": "postprocess_only_no_new_DSMC",
+        "rule_specification_timing": "specified_after_initial_reference_scored_Mach12_analysis",
+        "decision_reconstruction": "computed_without_target_or_reference_inputs_from_archived_pre_reference_model_and_prediction_artifacts",
+        "prospective_validation_claim_authorized": False,
         "development_conditions": ["Mach 8", "Mach 10"],
         "evaluation_condition": "Mach 12",
         "fields": list(FIELDS),
