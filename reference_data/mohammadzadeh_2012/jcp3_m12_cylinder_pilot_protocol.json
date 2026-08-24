@@ -1,0 +1,27 @@
+{
+  "stage": "JCP3_M12_cylinder_pilot",
+  "status": "pilot_design_frozen_before_Mach12_trajectory",
+  "classification": "mechanical_preflight_only_not_publication_evidence",
+  "condition": {
+    "gas": "argon",
+    "geometry": "two_dimensional_circular_cylinder",
+    "nominal_Mach": 12.0,
+    "freestream_speed_m_per_s": 3160.92,
+    "freestream_temperature_K": 200.0,
+    "freestream_number_density_m3": 4.247e20,
+    "cylinder_diameter_m": 0.3048,
+    "wall_temperature_K": 500.0,
+    "Kn": 0.1
+  },
+  "pilot_seed": 26082301,
+  "pilot_stop": "after_first_completed_output_interval",
+  "required_outputs": {
+    "native_additive_fields": [
+      "rho", "u", "v", "T", "Pxx", "Pxy", "Pyy", "qx", "qy"
+    ],
+    "direct_surface_output": "native_DS2V_HEAT-FLUX_tally_per_wall_element",
+    "minimum_populated_cells": 1000,
+    "minimum_wall_elements": 20
+  },
+  "authorization": "A passing pilot authorizes freezing and submitting the prospective Mach-12 evaluation/reference campaign. It is not scientific evidence and must not enter manuscript metrics."
+}

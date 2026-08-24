@@ -1,0 +1,100 @@
+{
+  "stage": "JCP2_prospective_cavity_S2",
+  "status": "locked_before_any_JCP2_trajectory",
+  "scientific_thesis": "A target-free adaptive spectral fusion estimator reconstructs the full DSMC moment hierarchy from three blocks under condition shift; heat-flux uncertainty is estimated from independent blocks because particle-level heat-flux variance requires sixth-order raw moments.",
+  "phase0_basis": {
+    "classification": "retrospective_development_only",
+    "conditions": ["kn0p08_u350", "kn0p1_u400"],
+    "raw_block_ledger_mean_relative_error": 0.0030713726016881535,
+    "overlap_to_direct_noise_mean_ratio": 1.0000958562049438,
+    "moderate_qy_cross_block_gate_fraction": 1.0,
+    "selection_rule": "Low-order fields use P-NNs plus within-unit EB; stress and heat-flux fields use P-NET plus within-unit cross-block gain. This composite rule was frozen from JCP1 before prospective data generation."
+  },
+  "conditions": [
+    {
+      "id": "S1_kn0p065_u250",
+      "role": "interior_off_grid",
+      "knudsen": 0.065,
+      "lid_speed_m_per_s": 250.0,
+      "active_in_this_phase": false
+    },
+    {
+      "id": "S2_kn0p085_u350",
+      "role": "primary_near_hull_shift",
+      "knudsen": 0.085,
+      "lid_speed_m_per_s": 350.0,
+      "active_in_this_phase": true
+    },
+    {
+      "id": "S3_kn0p12_u450",
+      "role": "outside_hull_graceful_degradation",
+      "knudsen": 0.12,
+      "lid_speed_m_per_s": 450.0,
+      "active_in_this_phase": false
+    }
+  ],
+  "trajectory_contract": {
+    "grid": 100,
+    "particles_per_cell": 32,
+    "steps": 134375,
+    "sample_start": 12500,
+    "sample_count": 3900,
+    "nonoverlapping_sampling_blocks": 13,
+    "samples_per_block": 300,
+    "observation_blocks": [0, 1, 2],
+    "raw_B10_comparator_blocks": [3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "reference_primary_seed_count": 20,
+    "reference_blocks_per_seed": 13,
+    "reference_total_blocks": 260,
+    "checkpoint_interval_steps": 1000,
+    "maximum_events_per_particle_per_step": 32,
+    "dt_safety": 0.2,
+    "wall_temperature_K": 300.0,
+    "wall_model": "fully_diffuse_chronological_event_streaming",
+    "collision_model": "VHS_NTC_numpy_fast",
+    "fourth_raw_speed_moment": "sum(weight*|v|^4) recorded per cell and block",
+    "heat_flux_noise_policy": "between-block scatter; no direct particle-level variance claim without sixth-order raw moments"
+  },
+  "qc_contract": {
+    "evaluation_units_required": 8,
+    "evaluation_spares": 4,
+    "reference_units_required": 20,
+    "reference_spares": 5,
+    "replacement_rule": "retain preregistered primary seed if all mechanical and stationarity checks pass; otherwise replace in ascending order with the first passing preregistered spare; predictions never inspect reference outputs"
+  },
+  "estimator_contract": {
+    "transform": "orthonormal Cartesian DCT-II",
+    "bin_width": 10,
+    "minimum_modes_per_bin": 64,
+    "observation_budget": 3,
+    "low_order_fields": ["rho", "u", "v", "T"],
+    "low_order_prior": "P-NNs development-only condition scaling",
+    "low_order_gain": "within-unit blockwise empirical Bayes",
+    "high_order_fields": ["Pxy", "Pxx_minus_Pyy", "qx", "qy"],
+    "high_order_prior": "frozen development-only P-NET",
+    "high_order_gain": "within-unit leave-one-block-out Noise2Noise cross-block regression",
+    "frozen_gain_comparator": true,
+    "current_condition_or_reference_used_for_tuning": false
+  },
+  "reference_contract": {
+    "construction": "exact additive aggregation of 260 blocks from 20 seeds disjoint from all observation seeds",
+    "reference_noise_deconvolution": true,
+    "effective_block_count": "estimated from within-seed block autocorrelation and capped at the actual 260 blocks",
+    "prediction_before_reference_interface": true
+  },
+  "endpoints": {
+    "primary": "qy at S2",
+    "secondary": ["rho", "u", "v", "T", "Pxy", "Pxx_minus_Pyy", "qx"],
+    "statistical_unit": "independent evaluation seed",
+    "cell_as_replicate": false
+  },
+  "gates": {
+    "G1_qy_all_units_below_0p95_of_pnet_alone_p0_and_frozen_envelope": true,
+    "G1_qy_one_sided_exact_sign_p_max": 0.05,
+    "all_eight_fields_reported": true,
+    "raw_B3_and_raw_B10_disjoint": true,
+    "reference_disjoint_from_observations": true,
+    "reference_minimum_effective_blocks": 150,
+    "failed_fields_or_units_must_still_be_reported": true
+  }
+}

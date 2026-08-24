@@ -1,0 +1,34 @@
+{
+  "protocol_version": 1,
+  "stage": "JCP8_M12_independent_reference_and_score",
+  "classification": "prospective_reference_after_prediction_lock",
+  "locked_evaluation_archive_sha256": "1857f8944bd63ebfe825df3b845369728617adc3a4a4bb5d8fd4d2f8990a6161",
+  "locked_prediction_archive_sha256": "54db6c0be71764df87f9912090821d4676625ea7ccd8da1f4c069e7edd2ac0d8",
+  "locked_model_archive_sha256": "bcb57b4585f9be949c8c859cf2d5036a1570499794cf402599f162119390fd20",
+  "condition": {
+    "gas": "argon",
+    "geometry": "two_dimensional_circular_cylinder",
+    "nominal_Mach": 12.0,
+    "freestream_speed_m_per_s": 3160.92,
+    "freestream_temperature_K": 200.0,
+    "freestream_number_density_m3": 4.247e20,
+    "cylinder_diameter_m": 0.3048,
+    "wall_temperature_K": 500.0,
+    "Kn": 0.1
+  },
+  "reference_seeds": [26082801, 26082802, 26082803, 26082804],
+  "minimum_completed_output_blocks_per_seed": 64,
+  "retained_reference_blocks_per_seed": 40,
+  "reference_estimator": "equal-weight mean of 160 retained blocks from four independent seeds",
+  "stationarity": "first-20 versus last-20 drift is reported as a sensitivity diagnostic and never used to select seeds",
+  "scored_volume_fields": ["n", "u", "v", "T", "Pxx", "Pxy", "Pyy", "qx", "qy"],
+  "heat_flux_endpoints": ["global_qy", "near_wall_qn", "direct_wall_heat_flux"],
+  "primary_comparator": "Raw_B10 from the locked JCP7 predictions",
+  "primary_gate": {
+    "global_qy_candidate_B3_to_Raw_B10_geometric_NRMSE_ratio_max": 0.95,
+    "near_wall_qn_candidate_B3_to_Raw_B10_geometric_NRMSE_ratio_max": 0.95,
+    "minimum_improved_prediction_seeds_per_heat_flux_endpoint": 8
+  },
+  "direct_wall_heat_flux_rule": "reported separately because the frozen volume-field restorer does not predict the native surface tally",
+  "isolation_rule": "reference array and reference collector receive no prediction path; only the dependent score job may read both locked predictions and the completed reference archive"
+}

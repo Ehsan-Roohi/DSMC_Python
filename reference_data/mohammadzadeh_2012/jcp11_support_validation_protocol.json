@@ -1,0 +1,59 @@
+{
+  "protocol_version": 1,
+  "stage": "JCP11_support_specificity_and_prospective_M12_validation",
+  "status": "locked_before_JCP11_fresh_M12",
+  "scientific_purpose": "Validate the domain-of-validity monitor with a supported-condition specificity test and a genuinely prospective condition-shift test.",
+  "development_only_rule": {
+    "inputs": "The 32 empirical-Bayes gain vectors already recorded in JCP6R from eight Mach-8/Mach-10 development seeds and four draws per seed.",
+    "components": 27,
+    "components_definition": "Nine physical components (n, u, v, T, Pxx, Pxy, Pyy, qn, qt) in three fixed spatial zones (near wall, wake, outer).",
+    "unit_score": "Fraction of component gains exceeding componentwise maxima estimated without the held-out development seed.",
+    "calibration": "Leave-one-development-seed-out; the alpha=0.10 finite-sample upper conformal rank for eight units is the maximum of the eight held-out unit scores.",
+    "deployment_score": "Fraction of the 27 gains exceeding the full-development componentwise maxima.",
+    "decision": "Accept the structured prediction when the deployment score is at or below the frozen threshold; otherwise abstain."
+  },
+  "heldout_Mach10_specificity": {
+    "observation_seeds": [171701, 171703, 171705, 171707, 171709, 171711],
+    "unused_reference_partner_seeds": [171702, 171704, 171706, 171708, 171710, 171712],
+    "B3_nout": [100, 108, 116],
+    "reference_access": "No reference-partner file is read by the specificity calculation.",
+    "pass_rule": "At least five of six supported-condition observations are accepted."
+  },
+  "fresh_Mach12_evaluation": {
+    "condition": {
+      "gas": "argon",
+      "geometry": "two-dimensional circular cylinder",
+      "nominal_Mach": 12.0,
+      "freestream_speed_m_per_s": 3160.92,
+      "freestream_temperature_K": 200.0,
+      "freestream_number_density_m3": 4.247e20,
+      "cylinder_diameter_m": 0.3048,
+      "wall_temperature_K": 500.0,
+      "Kn": 0.1
+    },
+    "seeds": [26082901, 26082902, 26082903, 26082904],
+    "minimum_completed_paired_blocks": 40,
+    "retained_blocks": 14,
+    "retention_rule": "Last 14 consecutive complete moment/wall pairs.",
+    "roles": {
+      "retained_indices_0_to_2": "B3 observation",
+      "retained_index_3": "unused guard",
+      "retained_indices_4_to_13": "Raw-B10 comparator"
+    },
+    "seed_selection": "All four predeclared seeds are retained when mechanically complete; stationarity diagnostics are reported and are not used for replacement.",
+    "chronology": "The rule lock and Mach-10 specificity archive are created before the Slurm evaluation array is submitted. Prediction and support decisions are locked before the score job may open a reference artifact.",
+    "pass_rule": "All four fresh Mach-12 observations trigger abstention."
+  },
+  "reference_reuse": {
+    "reason_no_new_reference_DSMC": "The independent JCP8 Mach-12 reference already contains four 40-block seeds. JCP11 uses only the two previously held-out seeds 26082803 and 26082804, for 80 blocks, and opens them only after the fresh decision lock.",
+    "reference_seeds": [26082803, 26082804],
+    "reference_blocks": 80,
+    "expected_archive_sha256": "340dd425239d3df48a056b618caf49b1af22348e384ae9ab3ae597c5ba587f12"
+  },
+  "primary_monitor_gate": "Accept at least five of six held-out Mach-10 observations and abstain on all four fresh Mach-12 observations.",
+  "reporting": "Accuracy against the reference is a post-lock diagnostic. It cannot alter the support threshold, seed set, component envelope, or decisions.",
+  "block_accounting_clarifications": {
+    "development_vs_prospective_Mach10": "Each Mach-10 development seed archived 40 blocks. The later prospective Mach-10 confirmation is a different six-pair campaign with a locked 17-output NOUT 100-116 window.",
+    "LOSO_partition": "Within each 40-block development unit, B3 is a subset of B10; the disjoint 30-block reference is the complement of B10. Thus the accounting is 10+30=40, not 3+10+30. Leave-one-seed-out refers to construction of the same-Mach prior from the three peer seeds."
+  }
+}

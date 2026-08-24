@@ -1,0 +1,30 @@
+{
+  "stage": "JCP4_M8_development_reference",
+  "status": "frozen_before_Mach8_trajectories",
+  "classification": "development_only_not_prospective_evidence",
+  "condition": {
+    "gas": "argon",
+    "geometry": "two_dimensional_circular_cylinder",
+    "nominal_Mach": 8.0,
+    "freestream_speed_m_per_s": 2107.28,
+    "freestream_temperature_K": 200.0,
+    "freestream_number_density_m3": 4.247e20,
+    "cylinder_diameter_m": 0.3048,
+    "wall_temperature_K": 500.0,
+    "Kn": 0.1
+  },
+  "seeds": [26082401, 26082402, 26082403, 26082404],
+  "minimum_completed_output_blocks": 60,
+  "burn_in_blocks": 20,
+  "retained_blocks_per_seed": 40,
+  "retention_rule": "last_40_paired_complete_moment_and_wall_blocks",
+  "required_outputs": {
+    "native_additive_fields": [
+      "rho", "u", "v", "T", "Pxx", "Pxy", "Pyy", "qx", "qy"
+    ],
+    "direct_surface_output": "native_DS2V_HEAT-FLUX_tally_per_wall_element",
+    "minimum_populated_cells_per_block": 1000,
+    "minimum_wall_elements_per_block": 20
+  },
+  "next_gate": "train_and_freeze_on_M8_and_existing_M10_before_M12_evaluation"
+}

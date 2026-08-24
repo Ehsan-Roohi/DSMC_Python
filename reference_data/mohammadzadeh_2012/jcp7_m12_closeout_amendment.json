@@ -1,0 +1,28 @@
+{
+  "amendment_version": 1,
+  "stage": "JCP7_M12_pre_reference_closeout",
+  "classification": "pre_reference_protocol_amendment",
+  "date_utc": "2026-08-22",
+  "trigger": "All twelve locked candidate simulations completed mechanically, but only five passed the original last-14-block two-sample drift screen.",
+  "reference_guard_status": "No Mach-12 reference simulation or artifact has been submitted, opened, or read.",
+  "decision": "Use all twelve mechanically complete candidates, retain the original stationarity result as a reported sensitivity diagnostic, and do not select seeds using that diagnostic.",
+  "statistical_reason": "The original consecutive early-B3 versus late-B10 allocation couples estimator identity to time when slow drift is present. A disjoint time-balanced allocation removes that temporal-position bias using the already locked fourteen-block window.",
+  "retained_block_indices": {
+    "B3": [0, 6, 13],
+    "guard": 7,
+    "Raw_B10": [1, 2, 3, 4, 5, 8, 9, 10, 11, 12]
+  },
+  "time_balance": {
+    "B3_mean_index": 6.333333333333333,
+    "Raw_B10_mean_index": 6.5
+  },
+  "unchanged_items": [
+    "twelve candidate seeds and their order",
+    "locked JCP6R model and hashes",
+    "fourteen retained consecutive paired blocks per seed",
+    "three-block model input and disjoint ten-block raw comparator",
+    "Mach-12 physical condition",
+    "prediction-before-reference isolation"
+  ],
+  "additional_DSMC_required": false
+}
